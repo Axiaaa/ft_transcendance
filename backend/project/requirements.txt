@@ -1,3 +1,4 @@
 djangorestframework
 psycopg
 psycopg-binary
+python-json-logger

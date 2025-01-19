@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-import os 
+import os
+from .logger import CustomJsonFormatter
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -133,3 +135,40 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
+
+
+# Updated LOGGING Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'json': {
+            '()': CustomJsonFormatter,
+        },
+    },
+    'filters': {},
+    'handlers': {
+        'info_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/info.log',
+            'formatter': 'json',
+            'filters': [],
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/errors.log',
+            'formatter': 'json',
+            'filters': [],
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['info_file', 'error_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+

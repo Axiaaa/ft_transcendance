@@ -21,7 +21,11 @@ destroy:
 
 clean : destroy
 	docker system prune -af
+	rm -rf ./tmp/
 
 re : clean all
+
+d-logs :
+	rm -rf ./logs/*
 
 .PHONY: all build up down logs clean destroy re start stop

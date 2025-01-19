@@ -1,2 +1,5 @@
 en.subject.pdf
 .env
+*.pyc
+liste.md
+.tmp/
