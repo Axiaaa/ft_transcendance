@@ -3,3 +3,4 @@ en.subject.pdf
 *.pyc
 liste.md
 .tmp/
+__pycache__/
