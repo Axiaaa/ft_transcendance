@@ -5,6 +5,22 @@ start : up
 stop : down
 
 build :
+
+#Create tmp folder with permissions so that services can log into them
+
+	if [ ! -d "./.tmp" ]; then \
+		mkdir -p ./.tmp/; \
+		mkdir -p ./.tmp/postgresql/; \
+		chmod -R 777 ./.tmp/postgresql/; \
+		sudo chown -R 999:999 ./.tmp/postgresql/; \
+		mkdir -p ./.tmp/elasticsearch/; \
+		chmod -R 777 ./.tmp/elasticsearch/; \
+		sudo chown -R 1000:1000 ./.tmp/elasticsearch/; \
+		mkdir -p ./.tmp/kibana/; \
+		chmod -R 777 ./.tmp/kibana/; \
+		sudo chown -R 1000:1000 ./.tmp/kibana/; \
+	fi
+
 	docker-compose build 
 
 up :
@@ -21,7 +37,7 @@ destroy:
 
 clean : destroy
 	docker system prune -af
-	rm -rf ./tmp/
+	sudo rm -rf ./.tmp/
 
 re : clean all
 
