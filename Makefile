@@ -39,6 +39,9 @@ clean : destroy
 	docker system prune -af
 	sudo rm -rf ./.tmp/
 
+cleanlogs : 
+	sudo rm -rf ./.tmp/
+	
 re : clean all
 
 d-logs :

@@ -113,7 +113,7 @@ services:
        until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
        echo "Setting kibana_system password";
        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-       echo "All done!";
+       echo "Certificates are ready !";
      '
    healthcheck:
     test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ]"]
@@ -217,3 +217,20 @@ services:
      - ELASTIC_USER=elastic
      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
      - ELASTIC_HOSTS=https://es:9200
+
+  archive: 
+    image: debian:latest
+    container_name: archive_container
+    volumes:
+      - ./.tmp/:/var/log/logs/
+      - ./.tmp/archives/:/var/log/archives/
+      - ./archive.sh:/usr/local/bin/archive.sh
+    command: >
+      bash -c '
+        apt-get update && apt-get install -y cron;
+        echo "0 3 1 * * /usr/local/bin/archive.sh" > /etc/cron.d/archive;
+        chmod 0644 /etc/cron.d/archive;
+        crontab /etc/cron.d/archive;
+        cron -f;
+      '
+    restart: always
