@@ -2,3 +2,4 @@ djangorestframework
 psycopg
 psycopg-binary
 python-json-logger
+django_prometheus

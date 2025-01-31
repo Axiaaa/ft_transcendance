@@ -11,7 +11,8 @@ volumes:
    driver: local
  pgadmin_data:
    driver: local
-
+ grafana_data :
+   driver: local
 services:
 
 ###########################################################################
@@ -48,7 +49,6 @@ services:
   djangoapp:
     build:
       context: ./backend/project/
-    container_name: django_container
     depends_on:
       - postgres
     volumes:
@@ -234,3 +234,54 @@ services:
         cron -f;
       '
     restart: always
+
+###########################################################################
+#                                                                         #
+#                                MONITORING                               #
+#                                                                         #
+###########################################################################
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter
+    container_name: postgres_exporter
+    restart: always
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+
+  elasticsearch_exporter:
+    image: prometheuscommunity/elasticsearch-exporter
+    container_name: elasticsearch_exporter
+    restart: always
+    command:
+      - '--es.uri=https://es:9200'
+      - '--es.ssl-skip-verify' # Avoid certificate issues
+    ports:
+      - "9114:9114"
+    depends_on:
+      - es
