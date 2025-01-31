@@ -67,61 +67,80 @@ services:
 ###########################################################################
 
   setup:
-   image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
-   volumes:
-     - certs:/usr/share/elasticsearch/config/certs
-   user: "0"
-   command: >
-     bash -c '
-       if [ x${ELASTIC_PASSWORD} == x ]; then
-         echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
-         exit 1;
-       elif [ x${KIBANA_PASSWORD} == x ]; then
-         echo "Set the KIBANA_PASSWORD environment variable in the .env file";
-         exit 1;
-       fi;
-       if [ ! -f config/certs/ca.zip ]; then
-         echo "Creating CA";
-         bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
-         unzip config/certs/ca.zip -d config/certs;
-       fi;
-       if [ ! -f config/certs/certs.zip ]; then
-         echo "Creating certs";
-         echo -ne \
-         "instances:\n"\
-         "  - name: es\n"\
-         "    dns:\n"\
-         "      - es\n"\
-         "      - localhost\n"\
-         "    ip:\n"\
-         "      - 127.0.0.1\n"\
-         "  - name: kibana\n"\
-         "    dns:\n"\
-         "      - kibana\n"\
-         "      - localhost\n"\
-         "    ip:\n"\
-         "      - 127.0.0.1\n"\
-         > config/certs/instances.yml;
-         bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-         unzip config/certs/certs.zip -d config/certs;
-       fi;
-       echo "Setting file permissions"
-       chown -R root:root config/certs;
-       find . -type d -exec chmod 750 \{\} \;;
-       find . -type f -exec chmod 640 \{\} \;;
-       echo "Waiting for Elasticsearch availability";
-       until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
-       echo "Setting kibana_system password";
-       until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-       echo "Certificates are ready !";
-     '
-   healthcheck:
-    test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ]"]
-    interval: 1s
-    timeout: 5s
-    retries: 120
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+    user: "0"
+    command: >
+      bash -c '
+        if [ x${ELASTIC_PASSWORD} == x ]; then
+          echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
+          exit 1;
+        elif [ x${KIBANA_PASSWORD} == x ]; then
+          echo "Set the KIBANA_PASSWORD environment variable in the .env file";
+          exit 1;
+        fi;
+        
+        if [ ! -f config/certs/ca.zip ]; then
+          echo "Creating CA";
+          bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
+          unzip config/certs/ca.zip -d config/certs;
+        fi;
 
-     
+        if [ ! -f config/certs/certs.zip ]; then
+          echo "Creating certs";
+          echo -ne \
+          "instances:\n"\
+          "  - name: es\n"\
+          "    dns:\n"\
+          "      - es\n"\
+          "      - localhost\n"\
+          "    ip:\n"\
+          "      - 127.0.0.1\n"\
+          "  - name: kibana\n"\
+          "    dns:\n"\
+          "      - kibana\n"\
+          "      - localhost\n"\
+          "    ip:\n"\
+          "      - 127.0.0.1\n"\
+          "  - name: grafana\n"\
+          "    dns:\n"\
+          "      - grafana\n"\
+          "      - localhost\n"\
+          "    ip:\n"\
+          "      - 127.0.0.1\n"\
+          > config/certs/instances.yml;
+          
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+          unzip config/certs/certs.zip -d config/certs;
+        fi;
+
+        if [ ! -f config/certs/grafana/grafana.crt ]; then
+          echo "Creating Grafana certs";
+          mkdir -p config/certs/grafana;
+          openssl req -new -newkey rsa:4096 -nodes -keyout config/certs/grafana/grafana.key -out config/certs/grafana/grafana.csr -subj "/CN=grafana";
+          openssl x509 -req -in config/certs/grafana/grafana.csr -CA config/certs/ca/ca.crt -CAkey config/certs/ca/ca.key -CAcreateserial -out config/certs/grafana/grafana.crt -days 365;
+        fi;
+
+        echo "Setting file permissions";
+        chown -R root:root config/certs;
+        find . -type d -exec chmod 750 \{\} \;;
+        find . -type f -exec chmod 640 \{\} \;;
+
+        echo "Waiting for Elasticsearch availability";
+        until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
+
+        echo "Setting kibana_system password";
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+
+        echo "Certificates are ready!";
+      '
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ] && [ -f config/certs/grafana/grafana.crt ]"]
+      interval: 1s
+      timeout: 5s
+      retries: 120
+
   es:
    depends_on:
       setup:
@@ -248,8 +267,6 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
 
-
-
   grafana:
     image: grafana/grafana
     container_name: grafana
@@ -259,8 +276,19 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_SSL_MODE=verify-full
+      - GF_SECURITY_ALLOW_EMBEDDING=true
     volumes:
       - grafana_data:/var/lib/grafana
+      - certs:/etc/grafana/certs
+      - ./grafana.ini:/etc/grafana/grafana.ini
+      - ./grafana-templates/:/var/lib/grafana/dashboards
+      - ./dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+      - ./datasource.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    depends_on:
+     es : 
+      condition: service_healthy
+
 
 
   postgres_exporter:
@@ -277,11 +305,16 @@ services:
   elasticsearch_exporter:
     image: prometheuscommunity/elasticsearch-exporter
     container_name: elasticsearch_exporter
-    restart: always
-    command:
-      - '--es.uri=https://es:9200'
-      - '--es.ssl-skip-verify' # Avoid certificate issues
+    user: root
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+    command: >
+      --es.uri=https://elastic:${ELASTIC_PASSWORD}@es:9200
+      --es.ca=/usr/share/elasticsearch/config/certs/ca/ca.crt
+      --es.client-cert=/usr/share/elasticsearch/config/certs/es/es.crt
+      --es.client-private-key=/usr/share/elasticsearch/config/certs/es/es.key
     ports:
       - "9114:9114"
     depends_on:
-      - es
+     es : 
+      condition: service_healthy

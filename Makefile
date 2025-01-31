@@ -33,10 +33,10 @@ logs :
 	docker-compose logs -f
 
 destroy:
-	docker-compose down --rmi all -v
+	docker-compose down -v
 
 clean : destroy
-	docker system prune -af
+#docker system prune -af
 	sudo rm -rf ./.tmp/
 
 cleanlogs : 
