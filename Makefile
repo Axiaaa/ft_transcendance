@@ -10,9 +10,6 @@ build :
 
 	if [ ! -d "./.tmp" ]; then \
 		mkdir -p ./.tmp/; \
-		mkdir -p ./.tmp/postgresql/; \
-		chmod -R 777 ./.tmp/postgresql/; \
-		sudo chown -R 999:999 ./.tmp/postgresql/; \
 		mkdir -p ./.tmp/elasticsearch/; \
 		chmod -R 777 ./.tmp/elasticsearch/; \
 		sudo chown -R 1000:1000 ./.tmp/elasticsearch/; \

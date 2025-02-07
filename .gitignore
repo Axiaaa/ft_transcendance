@@ -1,6 +1,8 @@
 en.subject.pdf
+old_en.subject.pdf
 .env
 *.pyc
 liste.md
 .tmp/
 __pycache__/
+ddos.py

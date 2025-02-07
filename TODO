@@ -1,0 +1,11 @@
+Add Discord Grafana alerts and archive setup
+
+ADD Fastify to prometheus + elasticsearch
+
+CREATE my own exporter for SQLite
+
+DONE :
+
+
+Redo database in SQLite
+Redo backend with Fastify
