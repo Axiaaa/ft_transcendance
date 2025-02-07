@@ -4,7 +4,7 @@ import metrics from "fastify-metrics"
 
 
 const Port = process.env.PORT || 4321
-const db = new database(`/usr/src/app/db/database.db`)
+export const db = new database(`/usr/src/app/db/database.db`)
 
 const server = fastify({
     logger: {
