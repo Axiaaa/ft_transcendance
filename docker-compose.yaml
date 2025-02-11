@@ -1,16 +1,17 @@
 volumes:
- certs:
-   driver: local
- esdata:
-   driver: local
- kibanadata:
-   driver: local
- logstashdata:
-   driver: local
- grafana_data :
-   driver: local
- sqlite_data:
-   driver: local
+  certs: 
+    name: certs
+  elasticsearchdata: 
+    name: elasticsearchdata
+  kibanadata: 
+    name: kibanadata
+  sqlite_data:
+    name: sqlite_data
+
+networks:
+  ft_transcendence:
+      name: ft_transcendence
+      driver: bridge
 
 
 
@@ -36,7 +37,6 @@ services:
       - "${FASTIFY_PORT}:4321"
     volumes:
       - sqlite_data:/usr/src/app/db/
-      - ./.tmp/fastify:/var/log/fastify
     environment:
       - PORT=${FASTIFY_PORT}
     depends_on:
@@ -48,191 +48,110 @@ services:
 ###########################################################################
 
   setup:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    container_name: elk_setup
+    build:
+      context: ./services/certs
+      dockerfile: Dockerfile
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
-    user: "0"
-    command: >
-      bash -c '
-        if [ x${ELASTIC_PASSWORD} == x ]; then
-          echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
-          exit 1;
-        elif [ x${KIBANA_PASSWORD} == x ]; then
-          echo "Set the KIBANA_PASSWORD environment variable in the .env file";
-          exit 1;
-        fi;
-        
-        if [ ! -f config/certs/ca.zip ]; then
-          echo "Creating CA";
-          bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
-          unzip config/certs/ca.zip -d config/certs;
-        fi;
-
-        if [ ! -f config/certs/certs.zip ]; then
-          echo "Creating certs";
-          echo -ne \
-          "instances:\n"\
-          "  - name: es\n"\
-          "    dns:\n"\
-          "      - es\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          "  - name: kibana\n"\
-          "    dns:\n"\
-          "      - kibana\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          "  - name: grafana\n"\
-          "    dns:\n"\
-          "      - grafana\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          > config/certs/instances.yml;
-          
-          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-          unzip config/certs/certs.zip -d config/certs;
-        fi;
-
-        if [ ! -f config/certs/grafana/grafana.crt ]; then
-          echo "Creating Grafana certs";
-          mkdir -p config/certs/grafana;
-          openssl req -new -newkey rsa:4096 -nodes -keyout config/certs/grafana/grafana.key -out config/certs/grafana/grafana.csr -subj "/CN=grafana";
-          openssl x509 -req -in config/certs/grafana/grafana.csr -CA config/certs/ca/ca.crt -CAkey config/certs/ca/ca.key -CAcreateserial -out config/certs/grafana/grafana.crt -days 365;
-        fi;
-
-        echo "Setting file permissions";
-        chown -R root:root config/certs;
-        find . -type d -exec chmod 750 \{\} \;;
-        find . -type f -exec chmod 640 \{\} \;;
-
-        echo "Waiting for Elasticsearch availability";
-        until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
-
-        echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-
-        echo "Certificates are ready!";
-      '
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    networks:
+      - ft_transcendence
     healthcheck:
-      test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ] && [ -f config/certs/grafana/grafana.crt ]"]
-      interval: 1s
-      timeout: 5s
-      retries: 120
+        test: ['CMD-SHELL', '[ -f config/certs/elasticsearch/elasticsearch.crt ]']
+        interval: 1s
+        timeout: 5s
+        retries: 120
 
-  es:
+
+  elasticsearch:
+   container_name: elasticsearch
    depends_on:
       setup:
         condition: service_healthy
-   image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
-   labels:
-     co.elastic.logs/module: elasticsearch
+   build :
+      context: ./services/elasticsearch
+      dockerfile: Dockerfile
    volumes:
      - certs:/usr/share/elasticsearch/config/certs
-     - esdata:/usr/share/elasticsearch/data
-     - ./.tmp/elasticsearch:/usr/share/elasticsearch/logs
+     - elasticsearchdata:/usr/share/elasticsearch/data
    ports:
      - ${ES_PORT}:9200
+   networks:
+    - ft_transcendence
    environment:
-     - node.name=es
-     - cluster.name=${CLUSTER_NAME}
-     - discovery.type=single-node
-     - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-     - bootstrap.memory_lock=true
-     - xpack.security.enabled=true
-     - xpack.security.http.ssl.enabled=true
-     - xpack.security.http.ssl.key=certs/es/es.key
-     - xpack.security.http.ssl.certificate=certs/es/es.crt
-     - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
-     - xpack.security.transport.ssl.enabled=true
-     - xpack.security.transport.ssl.key=certs/es/es.key
-     - xpack.security.transport.ssl.certificate=certs/es/es.crt
-     - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
-     - xpack.security.transport.ssl.verification_mode=certificate
-     - xpack.license.self_generated.type=${LICENSE}
+    - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    - CLUSTER_NAME=${CLUSTER_NAME}
+    - LICENSE=${LICENSE}
+    - KIBANA_PASSWORD=${KIBANA_PASSWORD}
    mem_limit: ${ES_MEM_LIMIT}
    ulimits:
      memlock:
        soft: -1
        hard: -1
-   healthcheck:
-    test:
-      [
-        "CMD-SHELL",
-        "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-      ]
-    interval: 10s
-    timeout: 10s
-    retries: 120
+   restart: always
        
   kibana:
+   container_name: kibana
    depends_on:
-    es:
+    setup:
       condition: service_healthy
-   image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
-   labels:
-     co.elastic.logs/module: kibana
+   build :
+     context: ./services/kibana
+     dockerfile: Dockerfile
    volumes:
      - certs:/usr/share/kibana/config/certs
      - kibanadata:/usr/share/kibana/data
-     - ./.tmp/kibana:/usr/share/kibana/logs
-     - ./kibana.yaml:/usr/share/kibana/config/kibana.yml
    ports:
      - ${KIBANA_PORT}:5601
    environment:
-     - SERVERNAME=kibana
-     - ELASTICSEARCH_HOSTS=https://es:9200
-     - ELASTICSEARCH_USERNAME=kibana_system
-     - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
-     - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
-     - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-     - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-     - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+     - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+     - STACK_VERSION=${STACK_VERSION}
+     - ENCRYPTION_KEY=${ENCRYPTION_KEY}
    mem_limit: ${KB_MEM_LIMIT}
-   healthcheck:
-    test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ]"]
-    interval: 1s
-    timeout: 5s
-    retries: 120
+   networks:
+    - ft_transcendence
+   restart: always
 
   logstash:
+   container_name: logstash
    depends_on:
-    es : 
+    setup:
       condition: service_healthy
-    kibana : 
-      condition: service_healthy
-   image: docker.elastic.co/logstash/logstash:${STACK_VERSION}
-   labels:
-     co.elastic.logs/module: logstash
-   user: root
+   build :
+     context: ./services/logstash
+     dockerfile: Dockerfile
    volumes:
      - certs:/usr/share/logstash/certs
-     - logstashdata:/usr/share/logstash/data
-     - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
-     - ./.tmp/:/var/log/logstash/
    environment:
      - xpack.monitoring.enabled=false
      - ELASTIC_USER=elastic
      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-     - ELASTIC_HOSTS=https://es:9200
+     - ELASTIC_HOSTS=https://elasticsearch:9200
+     - STACK_VERSION=${STACK_VERSION}
+   networks:
+    - ft_transcendence
+   restart: always
 
-  archive: 
-    image: debian:latest
-    container_name: archive_container
+  filebeat:
+    container_name: filebeat
+    depends_on:
+      setup:
+        condition: service_healthy
+    build :
+      context: ./services/filebeat
+      dockerfile: Dockerfile
     volumes:
-      - ./.tmp/:/var/log/logs/
-      - ./.tmp/archives/:/var/log/archives/
-      - ./archive.sh:/usr/local/bin/archive.sh
-    command: >
-      bash -c '
-        apt-get update && apt-get install -y cron;
-        echo "0 3 1 * * /usr/local/bin/archive.sh" > /etc/cron.d/archive;
-        chmod 0644 /etc/cron.d/archive;
-        crontab /etc/cron.d/archive;
-        cron -f;
-      '
+      - certs:/usr/share/filebeat/certs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    environment:
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+      - STACK_VERSION=${STACK_VERSION}
+    networks:
+      - ft_transcendence
     restart: always
 
 ###########################################################################
@@ -240,51 +159,59 @@ services:
 #                                MONITORING                               #
 #                                                                         #
 ###########################################################################
+  
   prometheus:
-    image: prom/prometheus
     container_name: prometheus
+    depends_on:
+      - setup
+    build :
+      context: ./services/prometheus
+      dockerfile: Dockerfile
+    volumes:
+      - certs:/etc/prometheus/certs
     ports:
       - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    ports:
-      - 3000:3000
+    networks:
+      - ft_transcendence
     restart: always
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
-      - GF_SSL_MODE=verify-full
-      - GF_SECURITY_ALLOW_EMBEDDING=true
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - certs:/etc/grafana/certs
-      - ./grafana.ini:/etc/grafana/grafana.ini
-      - ./grafana-templates/:/var/lib/grafana/dashboards
-      - ./dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
-      - ./datasource.yml:/etc/grafana/provisioning/datasources/datasources.yml
-    depends_on:
-     es : 
-      condition: service_healthy
+    
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   ports:
+  #     - 3000:3000
+  #   restart: always
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+  #     - GF_SSL_MODE=verify-full
+  #     - GF_SECURITY_ALLOW_EMBEDDING=true
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #     - certs:/etc/grafana/certs
+  #     - ./grafana.ini:/etc/grafana/grafana.ini
+  #     - ./grafana-templates/:/var/lib/grafana/dashboards
+  #     - ./dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+  #     - ./datasource.yml:/etc/grafana/provisioning/datasources/datasources.yml
+  #   depends_on:
+  #    es : 
+  #     condition: service_healthy
 
 
 
-  elasticsearch_exporter:
-    image: prometheuscommunity/elasticsearch-exporter
-    container_name: elasticsearch_exporter
-    user: root
-    volumes:
-      - certs:/usr/share/elasticsearch/config/certs
-    command: >
-      --es.uri=https://elastic:${ELASTIC_PASSWORD}@es:9200
-      --es.ca=/usr/share/elasticsearch/config/certs/ca/ca.crt
-      --es.client-cert=/usr/share/elasticsearch/config/certs/es/es.crt
-      --es.client-private-key=/usr/share/elasticsearch/config/certs/es/es.key
-    ports:
-      - "9114:9114"
-    depends_on:
-     es : 
-      condition: service_healthy
+  # elasticsearch_exporter:
+  #   image: prometheuscommunity/elasticsearch-exporter
+  #   container_name: elasticsearch_exporter
+  #   user: root
+  #   volumes:
+  #     - certs:/usr/share/elasticsearch/config/certs
+  #   command: >
+  #     --es.uri=https://elastic:${ELASTIC_PASSWORD}@es:9200
+  #     --es.ca=/usr/share/elasticsearch/config/certs/ca/ca.crt
+  #     --es.client-cert=/usr/share/elasticsearch/config/certs/es/es.crt
+  #     --es.client-private-key=/usr/share/elasticsearch/config/certs/es/es.key
+  #   ports:
+  #     - "9114:9114"
+  #   depends_on:
+  #    es : 
+  #     condition: service_healthy

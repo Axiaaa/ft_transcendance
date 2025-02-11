@@ -7,9 +7,7 @@ const Port = process.env.PORT || 4321
 export const db = new database(`/usr/src/app/db/database.db`)
 
 const server = fastify({
-    logger: {
-        file: "/var/log/fastify/fastify.log",
-    }
+    logger: true
 });
 
 db.prepare(

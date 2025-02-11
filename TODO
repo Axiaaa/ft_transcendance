@@ -4,8 +4,9 @@ ADD Fastify to prometheus + elasticsearch
 
 CREATE my own exporter for SQLite
 
-DONE :
+Fucked up sudo
 
+DONE :
 
 Redo database in SQLite
 Redo backend with Fastify

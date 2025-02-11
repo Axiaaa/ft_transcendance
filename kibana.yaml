@@ -1,9 +1,0 @@
-logging.appenders.default:
- type: file
- fileName: /usr/share/kibana/logs/kibana.log
- layout:
-   type: json
-
-
-server.host: "0.0.0.0"
-elasticsearch.hosts: ["https://es:9200"]
