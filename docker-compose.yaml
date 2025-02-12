@@ -34,7 +34,7 @@ services:
       context: ./backend/fastify-app
       dockerfile: Dockerfile
     ports:
-      - "${FASTIFY_PORT}:4321"
+      - ${FASTIFY_PORT}:4321
     volumes:
       - sqlite_data:/usr/src/app/db/
     environment:
@@ -178,7 +178,7 @@ services:
     volumes:
       - certs:/etc/prometheus/certs
     ports:
-      - "9090:9090"
+      - ${PROMETHEUS_PORT}:9090
     networks:
       - ft_transcendence
     restart: always
@@ -199,7 +199,7 @@ services:
     networks:
       - ft_transcendence
     ports:
-      - 9114:9114
+      - ${ES_EXPORTER_PORT}:9114
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -210,7 +210,7 @@ services:
       context: ./services/cadvisor
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - ${CADVISOR_PORT}:8080
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -228,7 +228,7 @@ services:
       context: ./services/grafana
       dockerfile: Dockerfile
     ports:
-      - 3000:3000
+      - ${GRAFANA_PORT}:3000
     restart: always
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
@@ -253,7 +253,7 @@ services:
     env_file:
       - .env
     ports:
-      - 9093:9093
+      - ${ALERTMANAGER_PORT}:9093
     volumes:
       - certs:/etc/alertmanager/certs
     networks:
