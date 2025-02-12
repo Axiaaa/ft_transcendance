@@ -20,7 +20,7 @@ groups:
       labels:
         severity: warning
       annotations:
-        summary: Container High CPU Utilization (instance {{ $labels.instance }})
+        summary: Container High CPU Utilization (instance {{ $labels.name }})
         description: "Container CPU Utilization is above 80%\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"   
 
 
@@ -31,7 +31,7 @@ groups:
       labels:
         severity: warning
       annotations:
-        summary: Container High Memory usage (instance {{ $labels.instance }})
+        summary: Container High Memory usage (instance {{ $labels.name }})
         description: "Container Memory usage is above 80%\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
     
     #Rule in case Prometheus is crashlooping
@@ -41,7 +41,7 @@ groups:
       labels:
         severity: critical
       annotations:
-        summary: Prometheus too many restarts (instance {{ $labels.instance }})
+        summary: Prometheus too many restarts (instance {{ $labels.name }})
         description: "Prometheus has restarted more than twice in the last 15 minutes. It might be crashlooping.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
     #Rule in case Prometheus is not connected to Alertmanager
@@ -51,5 +51,5 @@ groups:
       labels:
         severity: critical
       annotations:
-        summary: Prometheus not connected to alertmanager (instance {{ $labels.instance }})
+        summary: Prometheus not connected to alertmanager (instance {{ $labels.name }})
         description: "Prometheus cannot connect the alertmanager\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"

@@ -7,6 +7,7 @@
       Alert: **{{ printf "%.150s" .Annotations.summary }}** ({{ .Labels.severity }})
       Description: {{ printf "%.150s" .Annotations.description }}
       Alertname: {{ .Labels.alertname }}
+      Name: {{ .Labels.name }}
     {{ end }}
 
     {{ if gt (len .Alerts.Resolved) 0 }}
