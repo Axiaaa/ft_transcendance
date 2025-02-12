@@ -5,7 +5,10 @@ datasources:
     type: prometheus
     inputName: DS_PROMETHEUS
     access: proxy
-    url: http://prometheus:9090
+    url: https://prometheus:9090
     isDefault: true
     editable: true
     uid: prometheusdatasource
+    jsonData:
+      tlsSkipVerify: true
+      timeInterval: 5s

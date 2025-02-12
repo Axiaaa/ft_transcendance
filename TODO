@@ -1,12 +1,9 @@
-Add Discord Grafana alerts and archive setup
+Archive setup
 
-ADD Fastify to prometheus + elasticsearch
-
-CREATE my own exporter for SQLite
-
-Fucked up sudo
 
 DONE :
-
+Add Discord prometheus alerts
+ADD Fastify to prometheus + elasticsearch
+Fucked up sudo
 Redo database in SQLite
 Redo backend with Fastify

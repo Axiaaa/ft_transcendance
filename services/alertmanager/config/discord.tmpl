@@ -1,0 +1,15 @@
+{{ define "our.discord.title" }}
+    Alert! {{ .GroupLabels.Values | join " " }}
+{{ end }}
+
+{{ define "our.discord.message" }}
+    {{ range .Alerts.Firing }}
+      Alert: **{{ printf "%.150s" .Annotations.summary }}** ({{ .Labels.severity }})
+      Description: {{ printf "%.150s" .Annotations.description }}
+      Alertname: {{ .Labels.alertname }}
+    {{ end }}
+
+    {{ if gt (len .Alerts.Resolved) 0 }}
+        Also {{ .Alerts.Resolved | len }} resolved alerts.
+    {{ end }}
+{{ end }}

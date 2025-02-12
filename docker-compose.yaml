@@ -41,6 +41,9 @@ services:
       - PORT=${FASTIFY_PORT}
     depends_on:
       - sqlite
+    networks:
+      - ft_transcendence
+      
 ###########################################################################
 #                                                                         #
 #                              Elastic-stack                              # 
@@ -92,11 +95,16 @@ services:
        soft: -1
        hard: -1
    restart: always
-       
+   healthcheck:
+     test: ["CMD-SHELL", "curl -k https://elastic:${ELASTIC_PASSWORD}@localhost:9200"]
+     interval: 2s
+     timeout: 10s
+     retries: 10
+
   kibana:
    container_name: kibana
    depends_on:
-    setup:
+    elasticsearch:
       condition: service_healthy
    build :
      context: ./services/kibana
@@ -118,7 +126,7 @@ services:
   logstash:
    container_name: logstash
    depends_on:
-    setup:
+    elasticsearch:
       condition: service_healthy
    build :
      context: ./services/logstash
@@ -138,7 +146,7 @@ services:
   filebeat:
     container_name: filebeat
     depends_on:
-      setup:
+      elasticsearch:
         condition: service_healthy
     build :
       context: ./services/filebeat
@@ -174,44 +182,80 @@ services:
     networks:
       - ft_transcendence
     restart: always
-    
-  # grafana:
-  #   image: grafana/grafana
-  #   container_name: grafana
-  #   ports:
-  #     - 3000:3000
-  #   restart: always
-  #   environment:
-  #     - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
-  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
-  #     - GF_SSL_MODE=verify-full
-  #     - GF_SECURITY_ALLOW_EMBEDDING=true
-  #   volumes:
-  #     - grafana_data:/var/lib/grafana
-  #     - certs:/etc/grafana/certs
-  #     - ./grafana.ini:/etc/grafana/grafana.ini
-  #     - ./grafana-templates/:/var/lib/grafana/dashboards
-  #     - ./dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
-  #     - ./datasource.yml:/etc/grafana/provisioning/datasources/datasources.yml
-  #   depends_on:
-  #    es : 
-  #     condition: service_healthy
 
+  elasticsearch_exporter:
+    image: prometheuscommunity/elasticsearch-exporter
+    container_name: elasticsearch_exporter
+    user: '0'
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+    command: >
+      --es.uri=https://elastic:${ELASTIC_PASSWORD}@elasticsearch:9200
+      --es.ca=/usr/share/elasticsearch/config/certs/ca/ca.crt
+      --es.client-cert=/usr/share/elasticsearch/config/certs/elasticsearch/elasticsearch.crt
+      --es.client-private-key=/usr/share/elasticsearch/config/certs/elasticsearch/elasticsearch.key
+      --es.all
+    restart: always
+    networks:
+      - ft_transcendence
+    ports:
+      - 9114:9114
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
 
+  cadvisor:
+    container_name: cadvisor
+    build: 
+      context: ./services/cadvisor
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - certs:/etc/certs
+    networks:
+      - ft_transcendence
+    restart: always
 
-  # elasticsearch_exporter:
-  #   image: prometheuscommunity/elasticsearch-exporter
-  #   container_name: elasticsearch_exporter
-  #   user: root
-  #   volumes:
-  #     - certs:/usr/share/elasticsearch/config/certs
-  #   command: >
-  #     --es.uri=https://elastic:${ELASTIC_PASSWORD}@es:9200
-  #     --es.ca=/usr/share/elasticsearch/config/certs/ca/ca.crt
-  #     --es.client-cert=/usr/share/elasticsearch/config/certs/es/es.crt
-  #     --es.client-private-key=/usr/share/elasticsearch/config/certs/es/es.key
-  #   ports:
-  #     - "9114:9114"
-  #   depends_on:
-  #    es : 
-  #     condition: service_healthy
+  grafana:
+    container_name: grafana
+    build:
+      context: ./services/grafana
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_SSL_MODE=verify-full
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+    volumes:
+      - certs:/etc/grafana/certs
+    depends_on:
+      setup :
+        condition: service_healthy
+    networks:
+      - ft_transcendence
+
+  alertmanager:
+    container_name: alertmanager
+    build:
+      context: ./services/alertmanager
+      dockerfile: Dockerfile
+      args: 
+        - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+    env_file:
+      - .env
+    ports:
+      - 9093:9093
+    volumes:
+      - certs:/etc/alertmanager/certs
+    networks:
+      - ft_transcendence
+    restart: always

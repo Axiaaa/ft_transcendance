@@ -5,9 +5,6 @@ start : up
 stop : down
 
 build :
-
-#Create tmp folder with permissions so that services can log into them
-
 	docker-compose build 
 
 up :

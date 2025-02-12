@@ -1,0 +1,26 @@
+global:
+  resolve_timeout: 5m 
+route:
+  receiver: "discord"
+  group_wait: 10s      
+  group_interval: 5m    
+  repeat_interval: 1h  
+
+templates:
+  - '/etc/alertmanager/discord.tmpl'
+
+receivers:
+  - name: discord
+    discord_configs:
+      - webhook_url: "DISCORD_WEBHOOK_URL"
+        send_resolved: true
+        message: '{{ template "our.discord.message" . }}'
+        title: '{{ template "our.discord.title" . }}'
+
+
+inhibit_rules:
+  - source_match:
+      severity: "warning | critical"
+    target_match:
+      severity: "warning | critical"
+    equal: ["alertname", "instance"]
