@@ -1,7 +1,8 @@
 import fastify from "fastify";
 import database from "better-sqlite3";
 import metrics from "fastify-metrics"
-
+import { User } from "./user";
+import { IUser } from "./user.d";
 
 const Port = process.env.PORT || 4321
 export const db = new database(`/usr/src/app/db/database.db`)
@@ -9,7 +10,6 @@ export const db = new database(`/usr/src/app/db/database.db`)
 const server = fastify({
     logger: true
 });
-
 
 server.get('/users', async () => {
     return db.prepare('SELECT * FROM users').all();
