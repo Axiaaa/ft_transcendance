@@ -1,5 +1,4 @@
-import { IUser } from "./user.d"
-import { Match } from "./matchs.d"
+import { Match } from "./matchs";
 
 export class User implements User {
 
