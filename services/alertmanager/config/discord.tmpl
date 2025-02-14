@@ -1,5 +1,5 @@
 {{ define "our.discord.title" }}
-    Alert! {{ .GroupLabels.Values | join " " }}
+    🚨 Alert! 🚨 {{ .GroupLabels.Values | join " " }}
 {{ end }}
 
 {{ define "our.discord.message" }}
@@ -10,7 +10,12 @@
       Name: {{ .Labels.name }}
     {{ end }}
 
-    {{ if gt (len .Alerts.Resolved) 0 }}
-        Also {{ .Alerts.Resolved | len }} resolved alerts.
+    {{ if .Alerts.Resolved }}
+        **RESOLVED ALERTS! 🚀**
+        {{ range .Alerts.Resolved }}
+            Alert: **{{ .Labels.alertname }}**
+            Instance: {{ .Labels.instance }}
+            Description: {{ .Annotations.description }}
+        {{ end }}
     {{ end }}
 {{ end }}
