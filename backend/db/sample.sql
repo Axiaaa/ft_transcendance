@@ -1,38 +1,53 @@
 CREATE TABLE IF NOT EXISTS `users` (
-	`id` INTEGER NOT NULL,
-	`email` TEXT NOT NULL,
-	`password` TEXT NOT NULL,
-	`username` TEXT NOT NULL,
-	`is_online` REAL NOT NULL,
-	`created_at` REAL NOT NULL,
-	`history` INTEGER NOT NULL,
-	`win_nbr` INTEGER NOT NULL,
-	`loss_nbr` INTEGER NOT NULL,
-	`avatar` TEXT NOT NULL,
-	`friend_list` INTEGER NOT NULL,
-FOREIGN KEY(`email`) REFERENCES `fornecedor`(`id`),
-FOREIGN KEY(`password`) REFERENCES `klasa`(`id`),
-FOREIGN KEY(`is_online`) REFERENCES `prodotti`(`id`),
-FOREIGN KEY(`history`) REFERENCES `Match`(`id`),
-FOREIGN KEY(`friend_list`) REFERENCES `users`(`id`)
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+    `email` TEXT NOT NULL UNIQUE,
+    `password` TEXT NOT NULL,
+    `username` TEXT NOT NULL,
+    `is_online` INTEGER NOT NULL CHECK (is_online IN (0,1)), 
+    `created_at` REAL NOT NULL,
+    `win_nbr` INTEGER NOT NULL DEFAULT 0,
+    `loss_nbr` INTEGER NOT NULL DEFAULT 0,
+    `avatar` TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS `friends` (
+    `user_id` INTEGER NOT NULL,
+    `friend_id` INTEGER NOT NULL,
+    PRIMARY KEY (user_id, friend_id),
+    FOREIGN KEY (user_id) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (friend_id) REFERENCES `users`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `matches` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+    `date` REAL NOT NULL,
+    `is_tournament` INTEGER NOT NULL CHECK (is_tournament IN (0,1)),
+    `winner` INTEGER,
+    `score` TEXT NOT NULL,
+    FOREIGN KEY (`winner`) REFERENCES `users`(`id`) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS `match_participants` (
+    `match_id` INTEGER NOT NULL,
+    `user_id` INTEGER NOT NULL,
+    PRIMARY KEY (match_id, user_id),
+    FOREIGN KEY (match_id) REFERENCES `matches`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES `users`(`id`) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS `tournaments` (
-	`id` integer primary key NOT NULL UNIQUE,
-	`members` BLOB NOT NULL,
-	`winner` INTEGER NOT NULL,
-	`created_at` REAL NOT NULL,
-	`duration` INTEGER NOT NULL,
-	`type` INTEGER NOT NULL,
-FOREIGN KEY(`members`) REFERENCES `users`(`id`),
-FOREIGN KEY(`winner`) REFERENCES `users`(`id`)
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+    `created_at` REAL NOT NULL,
+    `duration` INTEGER NOT NULL,
+    `type` TEXT NOT NULL,
+    `winner` INTEGER,
+    FOREIGN KEY (`winner`) REFERENCES `users`(`id`) ON DELETE SET NULL
 );
-CREATE TABLE IF NOT EXISTS `Match` (
-	`id` integer primary key NOT NULL UNIQUE,
-	`users` INTEGER NOT NULL,
-	`is_tournament` TEXT NOT NULL,
-	`winner` INTEGER NOT NULL,
-	`score` INTEGER NOT NULL,
-	`date` REAL NOT NULL,
-FOREIGN KEY(`users`) REFERENCES `users`(`id`),
-FOREIGN KEY(`winner`) REFERENCES `users`(`id`)
+
+CREATE TABLE IF NOT EXISTS `tournament_participants` (
+    `tournament_id` INTEGER NOT NULL,
+    `user_id` INTEGER NOT NULL,
+    PRIMARY KEY (tournament_id, user_id),
+    FOREIGN KEY (tournament_id) REFERENCES `tournaments`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES `users`(`id`) ON DELETE CASCADE
 );

@@ -1,7 +1,7 @@
 import type { Match } from "./matchs.d";
 
 export interface IUser {
-    id: string;
+    id?: number;
     name: string;
     password: string;
     username: string;
