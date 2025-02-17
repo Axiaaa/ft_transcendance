@@ -1,4 +1,5 @@
-import type { Match } from "./matchs.d";
+import type { Match } from "./matchs";
+import {User} from "./user";
 
 export interface IUser {
     id?: number;
@@ -7,9 +8,9 @@ export interface IUser {
     username: string;
     is_online: boolean;
     created_at: Date;
-    history: Match[] = [];
+    history: Array<Match>;
     win_nbr: number;
     loss_nbr: number; 
     avatar: string;
-    friend_list: User[] = [];
+    friend_list: Array<User>;
 }

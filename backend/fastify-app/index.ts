@@ -2,9 +2,7 @@ import fastify from "fastify";
 import database from "better-sqlite3";
 import metrics from "fastify-metrics"
 import { User } from "./user";
-import { IUser } from "./user.d";
 import { getUserFromDb  } from "./user";
-import { STATUS_CODES } from "http";
 
 const Port = process.env.PORT || 4321
 export const db = new database(`/usr/src/app/db/database.db`)

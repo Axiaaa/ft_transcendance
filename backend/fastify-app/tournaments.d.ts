@@ -2,7 +2,7 @@ export interface ITournament {
     id: string;
     name: string;
     password: string;
-    members: User[];
+    members: Array<User>;
     winner: User;
     created_at: Date;
     duration: number;
