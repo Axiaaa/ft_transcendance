@@ -105,6 +105,9 @@ export class User implements User {
                 WHERE id = ?
             `);
 
+            const deleteFriends = db.prepare(`DELETE FROM friends WHERE user_id = ?`);
+            const insertFriend = db.prepare(`INSERT INTO friends (user_id, friend_id) VALUES (?, ?)`);
+
             db.transaction(() => {
                 updateUser.run(
                     this.username,
@@ -116,6 +119,10 @@ export class User implements User {
                     this.avatar,
                     this.id
                 );
+                deleteFriends.run(this.id);
+                this.friend_list.forEach(friend => {
+                    insertFriend.run(this.id, friend.id); 
+                });
             })();
             server.log.info(`User ${this.username}, ${this.id} updated in the DB`);
         } catch (error) {
@@ -140,6 +147,17 @@ export class User implements User {
             server.log.error(`Error while deleting user ${this.username} from the DB: ${error}`);
         }
     }
+
+    async addFriend(friend: User) {
+        this.friend_list.push(friend);
+        this.updateUserInDb();
+    }
+
+    async removeFriend(friend: User) {
+        this.friend_list = this.friend_list.filter(f => f.id !== friend.id);
+        this.updateUserInDb();
+    }
+
 }
 
 export async function getUserFromDb(query: number): Promise<User | null> {
@@ -165,6 +183,8 @@ export async function getUserFromDb(query: number): Promise<User | null> {
         user.created_at = new Date(userRow.created_at);
         user.win_nbr = userRow.win_nbr;
         user.loss_nbr = userRow.loss_nbr;
+        const friends = await getFriendsFromDb(user.id);
+        if (friends) user.friend_list = friends;
 
         return user;
     } catch (error) {
@@ -173,3 +193,18 @@ export async function getUserFromDb(query: number): Promise<User | null> {
     }
 }
 
+export async function getFriendsFromDb(userId: number): Promise<User[] | null> {
+
+    try {
+        const friends = db.prepare("SELECT friend_id FROM friends WHERE user_id = ?").all(userId) as Array<{ friend_id: number }>;
+        const users = new Array<User>();
+        for (const friend of friends) {
+            const user = await getUserFromDb(friend.friend_id);
+            if (user) users.push(user);
+        }
+        return users;
+    } catch (error) {
+        server.log.error(`Could not fetch friends from DB ${error}`)
+        return null;
+    }
+}

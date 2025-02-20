@@ -43,6 +43,7 @@ export class Tournament implements ITournament {
             return "User is already in the tournament";
         }
         this.members.push(user);
+        this.updateTournamentInDb();
         return null;
     }
 
@@ -54,6 +55,7 @@ export class Tournament implements ITournament {
             return "User is not in the tournament";
         }
         this.members.splice(index, 1);
+        this.updateTournamentInDb();
         return null;
     }   
 

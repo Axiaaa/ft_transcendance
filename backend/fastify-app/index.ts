@@ -17,9 +17,7 @@ export const server = fastify({
 server.get('/users', async () => {
     const users = db.prepare('SELECT * FROM users').all();
     return await Promise.all(users.map((user: any) => {
-        const newUser = new User(user.username, user.email, user.password);
-        newUser.id = user.id;
-        return newUser;
+        return getUserFromDb(user.id);
     }));
 });
 
@@ -186,10 +184,8 @@ server.post<{ Body: { tournament_id: number, user_id: number } }>('/tournaments/
     const req_message = await tournament.addMember(user);
     if (req_message != null)
         reply.code(409).send({ error: req_message });
-    else {
-        tournament.updateTournamentInDb();
+    else 
         reply.code(201).send();
-    }
 });
 
 server.delete<{ Params: { tournament_id: string, user_id: string } }>('/tournaments/:tournament_id/members/:user_id', async (request, reply) => {
@@ -207,10 +203,8 @@ server.delete<{ Params: { tournament_id: string, user_id: string } }>('/tourname
     const req_message = await tournament.removeMember(user);
     if (req_message != null)
         reply.code(409).send({ error: req_message });
-    else {
-        tournament.updateTournamentInDb();
+    else 
         reply.code(204).send();
-    }
 }
 );
 
@@ -237,6 +231,52 @@ server.delete<{ Params: { id: string } }>('/users/:id', async (request, reply) =
         return;
     }   
     await user.deleteUserFromDb();
+    reply.code(204).send();
+    }
+);
+
+server.get<{ Params: { id: string } }>('/users/:id/friends', async (request, reply) => {
+    const { id } = request.params;
+    const user = await getUserFromDb(Number(id));
+    if (user == null) {
+        reply.code(404).send({error: "User not found"});
+        return;
+    }
+    return user.friend_list;
+    }
+);
+
+server.post<{ Params: { id: string } , Body: { friend_id: number } }>('/users/:id/friends', async (request, reply) => {
+    const { id } = request.params;
+    const { friend_id } = request.body;
+    const user = await getUserFromDb(Number(id));
+    if (user == null) {
+        reply.code(404).send({error: "User not found"});
+        return;
+    }
+    const friend = await getUserFromDb(friend_id);
+    if (friend == null) {
+        reply.code(404).send({error: "Friend not found"});
+        return;
+    }
+    user.addFriend(friend);
+    reply.code(201).send();
+    }
+);
+
+server.delete<{ Params: { user_id: string, friend_id: string } }>('/users/:user_id/friends/:friend_id', async (request, reply) => {
+    const { user_id, friend_id } = request.params;
+    const user = await getUserFromDb(Number(user_id));
+    if (user == null) {
+        reply.code(404).send({error: "User not found"});
+        return;
+    }
+    const friend = await getUserFromDb(Number(friend_id));
+    if (friend == null) {
+        reply.code(404).send({error: "Friend not found"});
+        return;
+    }
+    user.removeFriend(friend);
     reply.code(204).send();
     }
 );
