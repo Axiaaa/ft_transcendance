@@ -126,6 +126,30 @@ export class Tournament implements ITournament {
             return "Error while updating tournament";
         }
     }
+
+    async deleteTournamentFromDb() {
+        
+        if (this.id === 0) {
+            server.log.error(`Tournament ${this.name} does not exist in the DB`);
+            return "Tournament does not exist";
+        }
+
+        try 
+        {
+            const deleteTournament = db.prepare(`DELETE FROM tournaments WHERE id = ?`);
+            const deleteMembers = db.prepare(`DELETE FROM tournament_members WHERE tournament_id = ?`);
+            db.transaction(() => {
+                deleteTournament.run(this.id);
+                deleteMembers.run(this.id);
+            })();
+            server.log.info(`Tournament ${this.name} deleted successfully`);
+            return null;
+        }
+        catch (error) {
+            server.log.error(`Error while deleting tournament ${this.name} : ${error}`);
+            return "Error while deleting tournament";
+        }
+    }
 }
 
 export async function getTournamentFromDb(id: number) : Promise<Tournament | null> {

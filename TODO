@@ -2,9 +2,9 @@ Archive setup (at least setup explanations kwk)
 Try to have a Sqlite exporter
 
 Backend :
-Implement DELETE for users
 
 DONE :
+Implement DELETE for users and tournaments
 Fix Grafana dashboards
 Add email check
 Add Discord prometheus alerts

@@ -122,6 +122,24 @@ export class User implements User {
             server.log.error(`Error while updating user ${this.username} in the DB: ${error}`);
         }
     }
+
+    async deleteUserFromDb() {
+        
+        if (this.id === 0) {
+            server.log.error(`User ${this.username} does not exist in the DB`);
+            return;
+        }
+
+        try {
+            const deleteUser = db.prepare(`DELETE FROM users WHERE id = ?`);
+            db.transaction(() => {
+                deleteUser.run(this.id);
+            })();
+            server.log.info(`User ${this.username}, ${this.id} deleted from the DB`);
+        } catch (error) {
+            server.log.error(`Error while deleting user ${this.username} from the DB: ${error}`);
+        }
+    }
 }
 
 export async function getUserFromDb(query: number): Promise<User | null> {

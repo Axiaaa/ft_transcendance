@@ -215,6 +215,32 @@ server.delete<{ Params: { tournament_id: string, user_id: string } }>('/tourname
 );
 
 
+server.delete<{ Params: { id: string } }>('/tournaments/:id', async (request, reply) => {
+    const { id } = request.params;
+    const tournament = await getTournamentFromDb(Number(id));
+
+    if (tournament == null) {
+        reply.code(404).send({error: "Tournament not found"});
+        return;
+    }   
+    await tournament.deleteTournamentFromDb();
+    reply.code(204).send();
+}
+);
+
+server.delete<{ Params: { id: string } }>('/users/:id', async (request, reply) => {
+    const { id } = request.params;
+    const user = await getUserFromDb(Number(id));
+
+    if (user == null) {
+        reply.code(404).send({error: "User not found"});
+        return;
+    }   
+    await user.deleteUserFromDb();
+    reply.code(204).send();
+    }
+);
+
 const start = async () => {
     try {
         await server.register(metrics,{endpoint: '/metrics'})
