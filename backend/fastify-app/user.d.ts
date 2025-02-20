@@ -3,7 +3,7 @@ import {User} from "./user";
 
 export interface IUser {
     id?: number;
-    name: string;
+    email: string;
     password: string;
     username: string;
     is_online: boolean;

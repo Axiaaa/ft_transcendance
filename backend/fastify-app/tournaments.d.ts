@@ -1,15 +1,16 @@
 export interface ITournament {
-    id: string;
+    id: number;
     name: string;
-    password: string;
+    password: string?;
     members: Array<User>;
-    winner: User;
+    creator: User;
+    winner: User | null;
     created_at: Date;
-    duration: number;
+    duration? : number;
     type: TournamentType;
 }
 
 export enum TournamentType {
-    FFA,
-    BRACKET,
+    FFA = 1,
+    BRACKET = 2, 
 }

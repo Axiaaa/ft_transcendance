@@ -6,7 +6,7 @@ export const DEFAULT_AVATAR_URL : string = "https://zizi.fr";
 
 export class User implements User {
 
-    public name: string;
+    public username: string;
     public email: string;
     public password: string;
     public is_online: boolean;
@@ -25,7 +25,7 @@ export class User implements User {
     )
     {
         this.id = 0; //Id value is only a placeholder, It'll be set in the DB
-        this.name = username;
+        this.username = username;
         this.email = email;
         this.password = password;
         this.is_online = false;
@@ -41,9 +41,10 @@ export class User implements User {
     async pushUserToDb() : Promise<string | null> {
         
         if (this.id !== 0) {
-            server.log.error(`User ${this.name} already exists in the DB`);
+            server.log.error(`User ${this.username} already exists in the DB`);
             return "User already exists";
         }
+        
         try {
             const insertUser = db.prepare(`
                 INSERT INTO users (username, email, password, is_online, created_at, win_nbr, loss_nbr, avatar)
@@ -58,7 +59,7 @@ export class User implements User {
                     db.transaction(() => {
                         
                         const result = insertUser.run(
-                            this.name,  
+                            this.username,  
                     this.email,
                     this.password,
                     this.is_online ? 1 : 0,
@@ -77,7 +78,7 @@ export class User implements User {
                     }
                 }
             })();
-            server.log.info(`User ${this.name}, ${this.id} inserted in the DB`);
+            server.log.info(`User ${this.username}, ${this.id} inserted in the DB`);
             return null;
             
         } catch (error) {
@@ -85,12 +86,18 @@ export class User implements User {
                 server.log.error(`The email address ${this.email} is already in the DB`);
                 return "Email address already exists!";
             }
-            server.log.error(`Error while inserting user ${this.name} in the DB: ${error}`);
+            server.log.error(`Error while inserting user ${this.username} in the DB: ${error}`);
             return "Error while inserting user in the DB";
         }
     }
 
     async updateUserInDb() {
+
+        if (this.id === 0) {
+            server.log.error(`User ${this.username} does not exist in the DB`);
+            return;
+        }
+
         try {
             const updateUser = db.prepare(`
                 UPDATE users 
@@ -100,7 +107,7 @@ export class User implements User {
 
             db.transaction(() => {
                 updateUser.run(
-                    this.name,
+                    this.username,
                     this.email,
                     this.password,
                     this.is_online ? 1 : 0,
@@ -110,9 +117,9 @@ export class User implements User {
                     this.id
                 );
             })();
-            server.log.info(`User ${this.name}, ${this.id} updated in the DB`);
+            server.log.info(`User ${this.username}, ${this.id} updated in the DB`);
         } catch (error) {
-            server.log.error(`Error while updating user ${this.name} in the DB: ${error}`);
+            server.log.error(`Error while updating user ${this.username} in the DB: ${error}`);
         }
     }
 }
