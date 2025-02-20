@@ -36,6 +36,27 @@ export class Tournament implements ITournament {
         this.members.push(creator);
     }
 
+    async addMember(user: User) : Promise<string | null> {
+        
+        if (this.members.find(member => member.id === user.id)) {
+            server.log.error(`User ${user.username} is already in the tournament ${this.name}`);
+            return "User is already in the tournament";
+        }
+        this.members.push(user);
+        return null;
+    }
+
+    async removeMember(user: User) : Promise<string | null> {
+        
+        const index = this.members.findIndex(member => member.id === user.id);
+        if (index === -1) {
+            server.log.error(`User ${user.username} is not in the tournament ${this.name}`);
+            return "User is not in the tournament";
+        }
+        this.members.splice(index, 1);
+        return null;
+    }   
+
     async pushTournamentToDb() : Promise<string | null> {
 
         if (this.id !== 0) {

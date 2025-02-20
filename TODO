@@ -1,7 +1,8 @@
 Archive setup (at least setup explanations kwk)
-Try to have a Sqlite exporter 
+Try to have a Sqlite exporter
 
-Backend : 
+Backend :
+Implement DELETE for users
 
 DONE :
 Fix Grafana dashboards
