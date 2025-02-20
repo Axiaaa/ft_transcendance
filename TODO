@@ -1,10 +1,10 @@
 Archive setup (at least setup explanations kwk)
-Fix Grafana dashboards
 Try to have a Sqlite exporter 
 
 Backend : 
 
 DONE :
+Fix Grafana dashboards
 Add email check
 Add Discord prometheus alerts
 ADD Fastify to prometheus + elasticsearch
