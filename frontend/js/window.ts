@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	let Windows = document.getElementsByClassName('window');
 	for (let i = 0; i < Windows.length; i++) {
+
 		let isDragging: boolean = false;
 		let windowElement = Windows[i] as HTMLElement;
 		let windowHeader = Windows[i].children[0] as HTMLElement;
@@ -57,7 +58,45 @@ document.addEventListener('DOMContentLoaded', () => {
 		document.addEventListener('mouseup', () => {
 			isDragging = false;
 		});
+
+		let isResizing = false;
+		let resizeHandle = document.createElement('div');
+		resizeHandle.style.position = 'absolute';
+		resizeHandle.style.width = '10px';
+		resizeHandle.style.height = '10px';
+		resizeHandle.style.right = '0px';
+		resizeHandle.style.bottom = '0px';
+		resizeHandle.style.backgroundColor = 'black';
+		resizeHandle.style.zIndex = '0';
+		windowElement.appendChild(resizeHandle);
+		resizeHandle.addEventListener('mouseenter', (e: MouseEvent) => {
+			document.body.style.cursor = 'nwse-resize';
+		});
+		resizeHandle.addEventListener('mouseleave', (e: MouseEvent) => {
+			document.body.style.cursor = 'default';
+		});
+		resizeHandle.addEventListener('mousedown', () => {
+			isResizing = true;
+		});
+		document.addEventListener('mousemove', (e: MouseEvent) => {
+			if (isResizing) {
+				const newWidth = e.clientX - windowElement.offsetLeft + 5;
+				const newHeight = e.clientY - windowElement.offsetTop + 5;
+				const minWidth = 300;
+				const minHeight = 200;
+				
+				windowElement.style.width = `${Math.max(newWidth, minWidth)}px`;
+				windowElement.style.height = `${Math.max(newHeight, minHeight)}px`;
+				
+				if (windowElement.offsetLeft + windowElement.offsetWidth > window.innerWidth)
+					windowElement.style.width = `${window.innerWidth - windowElement.offsetLeft}px`;
+				if (windowElement.offsetTop + windowElement.offsetHeight > window.innerHeight)
+					windowElement.style.height = `${window.innerHeight - windowElement.offsetTop}px`;
+			}
+		});
+		resizeHandle.addEventListener('mouseup', () => {
+			isResizing = false;
+		});
 	}
-	
 
 });
