@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Windows XPong</title>
+	<link rel="stylesheet" href="./css/style.css"></style>
+	<link rel="stylesheet" href="https://unpkg.com/xp.css" />
+	<link rel="stylesheet" href="./css/desktop.css">
+</head>
+<body>
+	<div class="login-screen">
+		<div class="login-screen-box">
+			<div class="login-screen-top">
+				<div class="login-screen-left">
+					<img src="./img/Windows_Xpong.png" alt="Windows XP Logo">
+					<h4>To begin, click your user name</h4>
+				</div>
+				<div class="login-screen-right">
+					<div class="login-screen-right-profile-box">
+						<div class="login-screen-right-profile"></div>
+						<img src="./img/user-profile-icon.jpg" alt="Profile">
+						<h4>Xxx_D4rkS4suke36_xxX</h4>
+					</div>
+				</div>
+			</div>
+			<div class="login-screen-bottom">
+			</div>
+		</div>
+	</div>
+	<div id="taskbar">
+		<div class="start-button" id="start-button">
+		</div>
+		<!-- <div class="taskbar-icons">
+			<img src="./img/explorer.png" alt="Explorer">
+			<img src="./img/internet-explorer.png" alt="Internet Explorer">
+			<img src="./img/outlook.png" alt="Outlook">
+			<img src="./img/windows-media-player.png" alt="Windows Media Player">
+			<img src="./img/windows-movie-maker.png" alt="Windows Movie Maker">
+			<img src="./img/windows-update.png" alt="Windows Update">
+			<img src="./img/windows-xp.png" alt="Windows XP">
+		</div>Outlook Express
+		<div class="taskbar-clock">
+			<p>12:00</p> 
+		</div>-->
+	</div>
+	<div class="start-menu" id="start-menu">
+		<div class="start-menu-top">
+			<div class="start-menu-profile">
+				<img class="start-menu-profile" src="./img/user-profile-icon.jpg" alt="Profile">
+				<p>Xxx_D4rkS4suke36_xxX</p>
+			</div>
+		</div>
+		<div class="start-menu-lside">
+			<div class="start-menu-app menu-item" id="pong-app">
+				<img src="https://www.coolmathgames.com/sites/default/files/styles/pwa_512x512/public/game_m_thumbnail/retro-ping-pong-game-icon.png?itok=QxzsX71y" alt="Explorer" height="35">
+				<h5>Pong</h5>
+				<p>Play Pong</p>
+			</div>
+			<div class="start-menu-app menu-item" id="settings-app">
+				<img src="./img/settings-icon.png" alt="Settings" height="35">
+				<h5>Settings</h5>
+				<p>App Parameters</p>
+			</div>
+			<hr class="start-menu-lside-hr" />
+			<div class="start-menu-app menu-item">
+				<img src="https://cdn3.iconfinder.com/data/icons/humano2/128x128/apps/Internet-explorer.png" alt="Explorer" height="35">
+				<h5>Internet</h5>
+				<p>Internet Explorer</p>
+			</div>
+			<div class="start-menu-app menu-item">
+				<img src="https://static.wikia.nocookie.net/logopedia/images/0/00/OE2001.png" alt="Explorer" height="35">
+				<h5>Email</h5>
+				<p>Chat with friend</p>
+			</div>
+			<div class="start-menu-all-programs menu-item">
+				<hr class="start-menu-all-programs-hr" />
+				<h5>All Programs</h5>
+				<img src="./img/start-menu-green-arrow.png" alt="Explorer" height="35">
+			</div>
+
+		</div>
+		<div class="start-menu-rside"></div>
+			<div class="start-menu-shortcuts menu-item">
+				<img src="./img/profile-icon.png" alt="Explorer">
+				<h5>My Profile</h5>
+			</div>
+			<div class="start-menu-shortcuts menu-item">
+				<img src="./img/cup-icon.png" alt="Explorer">
+				<h5>My Tournaments</h5>
+			</div>
+			<div class="start-menu-shortcuts menu-item">
+				<img src="./img/stats-icon.png" alt="Explorer">
+				<h5>My Stats</h5>
+			</div>
+			<hr class="start-menu-hr"/>
+			<div class="start-menu-shortcuts menu-item">
+				<img src="./img/Control_Panel_XP.png" alt="Explorer">
+				<h4>Control Panel</h4>
+			</div>
+			<div class="start-menu-shortcuts menu-item">
+				<img src="./img/default_programs.png" alt="Explorer">
+				<h4>Reset Settings</h4>
+			</div>
+			<hr class="start-menu-hr" />
+			<div class="start-menu-shortcuts menu-item">
+				<img src="./img/help-icon.png" alt="Explorer">
+				<h4>Help and Support</h4>
+			</div>
+			<div class="start-menu-shortcuts menu-item">
+				<img src="./img/search-icon.png" alt="Explorer">
+				<h4>Search</h4>
+			</div>
+		<div class="start-menu-bottom">
+			<div class="start-menu-system-button menu-item" >
+				<img src="./img/shutdown-icon.png" alt="Explorer">
+				<h4>Shutdown</h4> 
+			</div>
+			<div class="start-menu-system-button menu-item" id="log-off-button">
+				<img src="./img/log-off-icon.png" alt="Explorer">
+				<h4>Log off</h4> 
+			</div>
+		</div>
+	</div>
+	<div class="app-icon">
+		<img src="./img/bin-icon.png" alt="bin" height="60"><p>Trash Bin</p>
+	</div>
+	<div class="app-icon">
+		<img src="./img/explorer-icon.png" alt="bin" height="60"><p>Explorer</p>
+	</div>
+	<div class="app-icon" id="pong-app">
+		<img src="https://www.coolmathgames.com/sites/default/files/styles/pwa_512x512/public/game_m_thumbnail/retro-ping-pong-game-icon.png?itok=QxzsX71y" alt="bin" height="60"><p>Play Pong</p>
+	</div>
+	<div class="app-icon">
+		<img src="./img/friend-social-icon.png" alt="bin" height="60"><p>Friends</p>
+	</div>
+	<div class="app-icon" id="settings-app">
+		<img src="./img/settings-logo.png" alt="bin" height="60"><p>Settings</p>
+	</div>
+	<script src="./js/.build/js/app-icon.js" type="module"></script>
+	<script src="./js/.build/js/window.js" type="module"></script>
+	<script src="./js/.build/js/start-menu.js" type="module"></script>
+	<script src="./js/.build/js/login-screen.js" type="module"></script>
+</body>

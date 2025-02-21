@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"target": "es5",
+		"module": "es6",
+		"outDir": "./js/.build/",
+		"rootDir": ".",
+		"strict": true
+	},
+	"files": [
+		"./js/window.ts",
+		"./js/app-icon.ts",
+		"./js/start-menu.ts",
+		"./js/login-screen.ts"
+	]
+}
