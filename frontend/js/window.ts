@@ -38,6 +38,20 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 		});
 
+		let minimiseButton = windowElement.children[0].children[1].children[0] as HTMLElement;
+		let isMinimised = false;
+		minimiseButton.addEventListener('click', () => {
+			console.log('minimise');
+			if (isMinimised) {
+				windowElement.style.display = 'block';
+				isMinimised = false;
+			}
+			else {
+				windowElement.style.display = 'none';
+				isMinimised = true;
+			}
+		});
+
 		windowElement.style.display = 'none';
 		windowElement.style.zIndex = "24";
 
