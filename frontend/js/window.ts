@@ -18,6 +18,26 @@ document.addEventListener('DOMContentLoaded', () => {
 				windowElement.style.display = 'none';
 		});
 
+		let maximiseButton = windowElement.children[0].children[1].children[1] as HTMLElement;
+		let isMaximised = false;
+		maximiseButton.addEventListener('click', () => {
+			console.log('maximise');
+			if (isMaximised) {
+				windowElement.style.width = '500px';
+				windowElement.style.height = '400px';
+				windowElement.style.left = '0px';
+				windowElement.style.top = '0px';
+				isMaximised = false;
+			}
+			else {
+				windowElement.style.width = `${window.innerWidth}px`;
+				windowElement.style.height = `${window.innerHeight}px`;
+				windowElement.style.left = '0px';
+				windowElement.style.top = '0px';
+				isMaximised = true;
+			}
+		});
+
 		windowElement.style.display = 'none';
 		windowElement.style.zIndex = "24";
 
@@ -66,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		resizeHandle.style.height = '10px';
 		resizeHandle.style.right = '0px';
 		resizeHandle.style.bottom = '0px';
-		resizeHandle.style.backgroundColor = 'black';
+		resizeHandle.style.backgroundColor = 'white';
 		resizeHandle.style.zIndex = '0';
 		windowElement.appendChild(resizeHandle);
 		resizeHandle.addEventListener('mouseenter', (e: MouseEvent) => {
@@ -97,6 +117,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		resizeHandle.addEventListener('mouseup', () => {
 			isResizing = false;
 		});
+		let windowsContent = windowElement.children[1].children[0] as HTMLElement;
+		windowsContent.style.overflow = 'auto';
+		windowsContent.style.height = 'calc(100% - 1px)';
+		windowsContent.style.width = 'calc(100% - 1px)';
 	}
 
 });

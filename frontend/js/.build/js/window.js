@@ -13,6 +13,25 @@ document.addEventListener('DOMContentLoaded', function () {
             else
                 windowElement.style.display = 'none';
         });
+        var maximiseButton = windowElement.children[0].children[1].children[1];
+        var isMaximised = false;
+        maximiseButton.addEventListener('click', function () {
+            console.log('maximise');
+            if (isMaximised) {
+                windowElement.style.width = '500px';
+                windowElement.style.height = '400px';
+                windowElement.style.left = '0px';
+                windowElement.style.top = '0px';
+                isMaximised = false;
+            }
+            else {
+                windowElement.style.width = "".concat(window.innerWidth, "px");
+                windowElement.style.height = "".concat(window.innerHeight, "px");
+                windowElement.style.left = '0px';
+                windowElement.style.top = '0px';
+                isMaximised = true;
+            }
+        });
         windowElement.style.display = 'none';
         windowElement.style.zIndex = "24";
         var offsetX, offsetY;
@@ -56,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
         resizeHandle.style.height = '10px';
         resizeHandle.style.right = '0px';
         resizeHandle.style.bottom = '0px';
-        resizeHandle.style.backgroundColor = 'black';
+        resizeHandle.style.backgroundColor = 'white';
         resizeHandle.style.zIndex = '0';
         windowElement.appendChild(resizeHandle);
         resizeHandle.addEventListener('mouseenter', function (e) {
@@ -85,6 +104,10 @@ document.addEventListener('DOMContentLoaded', function () {
         resizeHandle.addEventListener('mouseup', function () {
             isResizing = false;
         });
+        var windowsContent = windowElement.children[1].children[0];
+        windowsContent.style.overflow = 'auto';
+        windowsContent.style.height = 'calc(100% - 1px)';
+        windowsContent.style.width = 'calc(100% - 1px)';
     };
     for (var i = 0; i < Windows.length; i++) {
         _loop_1(i);
