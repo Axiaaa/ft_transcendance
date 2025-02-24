@@ -72,6 +72,9 @@
 
 .login-screen-right {
 	position: absolute;
+	flex-basis: auto;
+	gap: 20px;
+	flex-direction: column;
 	z-index: 110;
 	right: 0;
 	top: 10%;
@@ -106,7 +109,7 @@
 }
 
 .login-screen-right-profile-box {
-	position: absolute;
+	position: relative;
 	z-index: 110;
 	/* bottom: 30px; */
 	left: 20px;
