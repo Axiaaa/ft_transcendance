@@ -520,6 +520,7 @@ p {
 	width: 85px;
 	height: 85px;
 	background: #ffffff;
+	box-shadow: #0000007e 1px 1px 5px;
 	border-radius: 5px;
 }
 
@@ -546,6 +547,7 @@ p {
 	top: -15px;
 	width: 250px;
 	height: 30px;
+	text-shadow: #00000077 1px 1px 5px;
 	/* background: #57a42790; */
 }
 
