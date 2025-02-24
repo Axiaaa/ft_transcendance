@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 	
 	let loginScreen = document.getElementsByClassName("login-screen")[0] as HTMLElement;
-	loginScreen.style.display = 'block';
+	loginScreen.style.display = 'none';
 
 	let profile = document.getElementsByClassName("login-screen-right-profile-box")[0] as HTMLElement;
 

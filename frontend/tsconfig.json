@@ -10,6 +10,7 @@
 		"./js/window.ts",
 		"./js/app-icon.ts",
 		"./js/start-menu.ts",
-		"./js/login-screen.ts"
+		"./js/login-screen.ts",
+		"./js/taskbar.ts"
 	]
 }

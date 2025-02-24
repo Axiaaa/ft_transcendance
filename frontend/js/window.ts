@@ -1,7 +1,16 @@
 
+
+function resetWindows(windowElement: HTMLElement) {
+		windowElement.style.display = 'none';
+		windowElement.style.width = '500px';
+		windowElement.style.height = '400px';
+		windowElement.style.left = '0px';
+		windowElement.style.top = '0px';
+		windowElement.style.zIndex = "24";
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	
-
 	let Windows = document.getElementsByClassName('window');
 	for (let i = 0; i < Windows.length; i++) {
 
@@ -12,10 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		let closeButton = windowElement.children[0].children[1].children[2] as HTMLElement;
 		closeButton.addEventListener('click', () => {
 			console.log('close');
-			if (windowElement.style.display === 'none')
-				windowElement.style.display = 'block';
-			else
-				windowElement.style.display = 'none';
+			resetWindows(windowElement);
 		});
 
 		let maximiseButton = windowElement.children[0].children[1].children[1] as HTMLElement;

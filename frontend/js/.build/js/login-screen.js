@@ -1,7 +1,7 @@
 "use strict";
 document.addEventListener('DOMContentLoaded', function () {
     var loginScreen = document.getElementsByClassName("login-screen")[0];
-    loginScreen.style.display = 'block';
+    loginScreen.style.display = 'none';
     var profile = document.getElementsByClassName("login-screen-right-profile-box")[0];
     var isClicked = false;
     var isHovered = false;

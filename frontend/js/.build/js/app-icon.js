@@ -1,4 +1,38 @@
-"use strict";
+export function openAppWindow(appName) {
+    var appWindow = document.getElementById(appName + '-window');
+    console.log('Open ' + appName + " = " + appWindow);
+    appWindow.style.display = 'block';
+}
+;
+function createApp(appname, content) {
+    var App = document.createElement('div');
+    App.classList.add('window');
+    App.id = appname + '-app-window';
+    App.style.display = 'none';
+    App.style.width = '500px';
+    App.style.height = '400px';
+    App.appendChild(document.createElement('div'));
+    App.children[0].classList.add('title-bar');
+    App.children[0].appendChild(document.createElement('div'));
+    App.children[0].children[0].classList.add('title-bar-text');
+    var Name = appname.charAt(0).toUpperCase() + appname.slice(1);
+    App.children[0].children[0].textContent = Name;
+    App.children[0].appendChild(document.createElement('div'));
+    App.children[0].children[1].classList.add('title-bar-controls');
+    App.children[0].children[1].appendChild(document.createElement('button'));
+    App.children[0].children[1].children[0].ariaLabel = 'Minimize';
+    App.children[0].children[1].appendChild(document.createElement('button'));
+    App.children[0].children[1].children[1].ariaLabel = 'Maximize';
+    App.children[0].children[1].appendChild(document.createElement('button'));
+    App.children[0].children[1].children[2].ariaLabel = 'Close';
+    App.children[0].children[1].children[2].id = 'close-button';
+    App.appendChild(document.createElement('div'));
+    App.children[1].classList.add('window-body');
+    if (content)
+        App.children[1].appendChild(content);
+    document.body.appendChild(App);
+    return App;
+}
 document.addEventListener('DOMContentLoaded', function () {
     function disableImgDragging() {
         var images = document.getElementsByTagName("img");
@@ -101,12 +135,6 @@ document.addEventListener('DOMContentLoaded', function () {
     pongApp.children[1].appendChild(document.createElement('img'));
     pongApp.children[1].children[0].src = './img/pong_loop.gif';
     pongApp.children[1].children[0].height = 362;
-    function openAppWindow(appName) {
-        var appWindow = document.getElementById(appName + '-window');
-        console.log('Open ' + appName + " = " + appWindow);
-        appWindow.style.display = 'block';
-    }
-    ;
     var startMenuApp = document.getElementsByClassName('menu-item');
     var _loop_1 = function (i) {
         var app = startMenuApp[i];
@@ -116,34 +144,5 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     for (var i = 0; i < startMenuApp.length; i++) {
         _loop_1(i);
-    }
-    function createApp(appname, content) {
-        var App = document.createElement('div');
-        App.classList.add('window');
-        App.id = appname + '-app-window';
-        App.style.display = 'none';
-        App.style.width = '500px';
-        App.style.height = '400px';
-        App.appendChild(document.createElement('div'));
-        App.children[0].classList.add('title-bar');
-        App.children[0].appendChild(document.createElement('div'));
-        App.children[0].children[0].classList.add('title-bar-text');
-        var Name = appname.charAt(0).toUpperCase() + appname.slice(1);
-        App.children[0].children[0].textContent = Name;
-        App.children[0].appendChild(document.createElement('div'));
-        App.children[0].children[1].classList.add('title-bar-controls');
-        App.children[0].children[1].appendChild(document.createElement('button'));
-        App.children[0].children[1].children[0].ariaLabel = 'Minimize';
-        App.children[0].children[1].appendChild(document.createElement('button'));
-        App.children[0].children[1].children[1].ariaLabel = 'Maximize';
-        App.children[0].children[1].appendChild(document.createElement('button'));
-        App.children[0].children[1].children[2].ariaLabel = 'Close';
-        App.children[0].children[1].children[2].id = 'close-button';
-        App.appendChild(document.createElement('div'));
-        App.children[1].classList.add('window-body');
-        if (content)
-            App.children[1].appendChild(content);
-        document.body.appendChild(App);
-        return App;
     }
 });

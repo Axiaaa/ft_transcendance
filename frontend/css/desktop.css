@@ -549,6 +549,43 @@ p {
 	/* background: #57a42790; */
 }
 
+.taskbar-side {
+	position: absolute;
+	display: flex;
+	flex-basis: auto;
+	gap: 10px;
+	z-index: 20;
+	bottom: 0px;
+	left: 110px;
+	width: 690px;
+	height: 35px;
+	/* background-color:#2680036e; */
+}
+
+.taskbar-icons {
+	position: relative;
+	z-index: 21;
+	top: 0px;
+	left: 0px;
+	/* right: 10px; */
+	width: 35px;
+	height: auto;
+	/* background: #2680036e; */
+	/* border-radius: 1px; */
+	z-index: 21;
+}
+
+.taskbar-icons img {
+	position: absolute;
+	z-index: 21;
+	top: 2px;
+	left: 2.5px;
+	/* right: 10px; */
+	width: 32px;
+	height: auto;
+	z-index: 21;
+}
+
 img,
 .no-drag {
 	-webkit-user-drag: none;
