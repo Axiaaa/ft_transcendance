@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		(taskbarIcon.children[0] as HTMLImageElement).src = `./img/${Name.replace('-app', '')}-icon.png`;
 		taskbar.appendChild(taskbarIcon);
 		taskbarIcon.addEventListener('mouseenter', () => {
-			taskbarIcon.style.backgroundColor = 'rgba(137, 164, 206, 0.73)';
+			taskbarIcon.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
 		});
 		taskbarIcon.addEventListener('mouseleave', () => {
 			if (isAppOpen === false)

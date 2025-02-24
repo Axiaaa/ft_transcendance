@@ -1,0 +1,133 @@
+.login-screen {
+	position: absolute;
+	z-index: 110;
+	/* bottom: 30px; */
+	/* left: 0; */
+	width: 100%;
+	height: 100%;
+	background: #0029a4;
+}
+
+
+.login-screen-box {
+	/* position: relative; */
+	z-index: 120;
+	position: absolute;
+	top: 10%;
+	/* bottom: 30px; */
+	/* left: 0; */
+	width: 100%;
+	
+	height: 80%;
+	background: #597be0;
+	/* background: linear-gradient(
+	180deg,
+	rgba(9, 151, 255, 1) 0%,
+	rgba(0, 83, 238, 1) 8%,
+	rgba(0, 80, 238, 1) 40%,
+	rgba(0, 102, 255, 1) 88%,
+	rgba(0, 102, 255, 1) 93%,
+	rgba(0, 91, 255, 1) 95%,
+	rgba(0, 61, 215, 1) 96%,
+	rgba(0, 61, 215, 1) 100%
+	); */
+	/* border-radius: 10px; */
+}
+
+.login-screen-left {
+	position: absolute;
+	z-index: 110;
+	/* bottom: 30px; */
+	left: 0;
+	top: 30%;
+	width: 50%;
+	height: 40%;
+	/* background: #57a42790; */
+}
+
+.login-screen-left img {
+	position: absolute;
+	z-index: 110;
+	/* bottom: 30px; */
+	right: 0px;
+	top: 40px;
+	width: 340px;
+	height: 155px;
+	/* background: #57a42790; */
+}
+
+.login-screen-left h4 {
+	position: absolute;
+	z-index: 110;
+	/* bottom: 30px; */
+	font-size: 22px;
+	text-align: right;
+	color: #ffffff;
+	right: 110px;
+	top: 170px;
+	width: 75%;
+	height: 5%;
+	/* background: #57a42790; */
+}
+
+.login-screen-right {
+	position: absolute;
+	z-index: 110;
+	right: 0;
+	top: 10%;
+	width: 50%;
+	height: 80%;
+	/* background: #57a42790; */
+}
+
+.login-screen-right img {
+	position: absolute;
+	z-index: 110;
+	/* bottom: 30px; */
+	left: 12.5px;
+	top: 10px;
+	width: 80px;
+	height: 80px;
+	/* background: #57a42790; */
+	border-radius: 2px;
+}
+
+.login-screen-right-profile {
+	position: absolute;
+	z-index: 110;
+	/* bottom: 30px; */
+	left: 10px;
+	top: 7px;
+	width: 85px;
+	height: 85px;
+	background: #ffffff;
+	box-shadow: #0000007e 1px 1px 5px;
+	border-radius: 5px;
+}
+
+.login-screen-right-profile-box {
+	position: absolute;
+	z-index: 110;
+	/* bottom: 30px; */
+	left: 20px;
+	top: 40%;
+	width: 400px;
+	height: 100px;
+	/* background: #00a2ff70; */
+	border-radius: 5px;
+}
+
+.login-screen-right h4 {
+	position: absolute;
+	z-index: 110;
+	/* bottom: 30px; */
+	text-align: left;
+	font-size: 20px;
+	color: #ffffff;
+	left: 110px;
+	top: -15px;
+	width: 250px;
+	height: 30px;
+	text-shadow: #00000077 1px 1px 5px;
+	/* background: #57a42790; */
+}
