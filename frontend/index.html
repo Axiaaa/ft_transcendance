@@ -21,15 +21,45 @@
 					<h4>To begin, click your user name</h4>
 				</div>
 				<div class="login-screen-right">
-					<div class="login-screen-right-profile-box" id="Test-Profile">
+					<div class="login-screen-right-profile-box" id="test-profile">
 						<div class="login-screen-right-profile"></div>
 						<img src="./img/user-profile-icon.jpg" alt="Profile">
 						<h4>Xxx_D4rkS4suke36_xxX</h4>
 					</div>
-					<div class="login-screen-right-profile-box" id="Real-Profile">
+					<div class="login-screen-right-profile-box" id="new-profile">
 						<div class="login-screen-right-profile"></div>
 						<img src="./img/new-profile-icon.png" alt="Profile">
-						<h4>Other Profile</h4>
+						<h4>Sign In / Sign Up</h4>
+					</div>
+					<div class="login-screen-formulary">
+						<div class="login-screen-sign-in">
+							<img src="./img/new-profile-icon.png" alt="Profile">
+							<h4>Sign in</h4>
+							<form action="/login" method="post">
+								<div>
+									<input type="text" id="username" name="username" placeholder="Username" required>
+								</div>
+								<div>
+									<input type="password" id="password" name="password" placeholder="Password" required>
+								</div>
+								<button type="submit">Sign in</button>
+							</form>
+						</div>
+						<div class="login-screen-sign-up">
+							<h4>Sign up</h4>
+							<form action="/signup" method="post">
+								<div>
+									<input type="text" id="newUsername" name="newUsername" placeholder="Username" required>
+								</div>
+								<div>
+									<input type="password" id="newPassword" name="newPassword" placeholder="Password" required>
+								</div>
+								<div>
+									<input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+								</div>
+								<button type="submit">Sign up</button>
+							</form>
+						</div>
 					</div>
 				</div>
 			</div>

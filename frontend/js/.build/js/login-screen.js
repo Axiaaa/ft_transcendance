@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loginScreen.appendChild(loginScreenMiddleBar);
     loginScreen.style.display = 'block';
     var profiles = document.getElementsByClassName("login-screen-right-profile-box");
+    var NewProfile = document.getElementById("new-profile");
     var _loop_1 = function (i) {
         var profile = profiles[i];
         var isClicked = false;
@@ -26,9 +27,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 profile.style.backgroundColor = 'rgba(41, 74, 127, 0.75)';
             else
                 profile.style.backgroundColor = 'rgba(59, 104, 178, 0.61)';
-            loginScreen.style.display = 'none';
             profile.style.backgroundColor = 'rgba(59, 104, 178, 0.61)';
             profile.style.backgroundColor = 'transparent';
+        });
+        profile.addEventListener('click', function () {
+            if (profile.id !== 'new-profile')
+                loginScreen.style.display = 'none';
         });
         profile.addEventListener('mouseup', function () {
             isClicked = false;
@@ -52,4 +56,12 @@ document.addEventListener('DOMContentLoaded', function () {
     for (var i = 0; i < profiles.length; i++) {
         _loop_1(i);
     }
+    var form = document.getElementsByClassName("login-screen-formulary")[0];
+    form.style.display = 'none';
+    NewProfile.addEventListener('click', function () {
+        for (var i = 0; i < profiles.length; i++) {
+            profiles[i].style.display = 'none';
+        }
+        form.style.display = 'block';
+    });
 });
