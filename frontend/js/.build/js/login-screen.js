@@ -1,7 +1,20 @@
 "use strict";
 document.addEventListener('DOMContentLoaded', function () {
     var loginScreen = document.getElementsByClassName("login-screen")[0];
-    loginScreen.style.display = 'none';
+    // Visual Effect Addons
+    var loginScreenMiddleBar = document.createElement('div');
+    loginScreenMiddleBar.className = 'login-screen-middle-bar';
+    var style = document.createElement('style');
+    style.textContent = "\n\t\t\t.login-screen-middle-bar {\n\t\t\t\tposition: absolute;\n\t\t\t\tbackground: linear-gradient(180deg, transparent 0%, rgb(187, 187, 187) 50%, transparent 100%);\n\t\t\t\twidth: 2px;\n\t\t\t\theight: 80%;\n\t\t\t\tz-index: 1000;\n\t\t\t\tleft: 50%;\n\t\t\t\ttop: 10%;\n\t\t\t}\n\t\t";
+    document.head.appendChild(style);
+    var loginScreenTopBar = document.createElement('div');
+    loginScreenTopBar.className = 'login-screen-top-bar';
+    var topBarStyle = document.createElement('style');
+    topBarStyle.textContent = "\n\t\t\t.login-screen-top-bar {\n\t\t\t\tposition: absolute;\n\t\t\t\tbackground: linear-gradient(90deg, transparent 0%, rgb(231, 231, 231) 50%, transparent 100%);\n\t\t\t\theight: 4px;\n\t\t\t\twidth: 80%;\n\t\t\t\tz-index: 1000;\n\t\t\t\tleft: 5%;\n\t\t\t\ttop: 10%;\n\t\t\t}\n\t\t";
+    document.head.appendChild(topBarStyle);
+    loginScreen.appendChild(loginScreenTopBar);
+    loginScreen.appendChild(loginScreenMiddleBar);
+    loginScreen.style.display = 'block';
     var profile = document.getElementsByClassName("login-screen-right-profile-box")[0];
     var isClicked = false;
     var isHovered = false;

@@ -1,7 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
 	
 	let loginScreen = document.getElementsByClassName("login-screen")[0] as HTMLElement;
-	loginScreen.style.display = 'none';
+	// Visual Effect Addons
+		let loginScreenMiddleBar = document.createElement('div');
+		loginScreenMiddleBar.className = 'login-screen-middle-bar';
+		const style = document.createElement('style');
+		style.textContent = `
+			.login-screen-middle-bar {
+				position: absolute;
+				background: linear-gradient(180deg, transparent 0%, rgb(187, 187, 187) 50%, transparent 100%);
+				width: 2px;
+				height: 80%;
+				z-index: 1000;
+				left: 50%;
+				top: 10%;
+			}
+		`;
+		document.head.appendChild(style);
+	
+		let loginScreenTopBar = document.createElement('div');
+		loginScreenTopBar.className = 'login-screen-top-bar';
+		const topBarStyle = document.createElement('style');
+		topBarStyle.textContent = `
+			.login-screen-top-bar {
+				position: absolute;
+				background: linear-gradient(90deg, transparent 0%, rgb(231, 231, 231) 50%, transparent 100%);
+				height: 4px;
+				width: 80%;
+				z-index: 1000;
+				left: 5%;
+				top: 10%;
+			}
+		`;
+		document.head.appendChild(topBarStyle);
+
+	loginScreen.appendChild(loginScreenTopBar);
+	loginScreen.appendChild(loginScreenMiddleBar);
+
+	loginScreen.style.display = 'block';
 
 	let profile = document.getElementsByClassName("login-screen-right-profile-box")[0] as HTMLElement;
 
