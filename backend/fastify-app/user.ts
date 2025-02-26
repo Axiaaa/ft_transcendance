@@ -1,6 +1,7 @@
 import { Match } from "./matchs";
 import { db } from ".";
 import { server } from ".";
+import { getMatchFromDb } from "./matchs";
 
 export const DEFAULT_AVATAR_URL : string = "https://zizi.fr";
 
@@ -11,11 +12,11 @@ export class User implements User {
     public password: string;
     public is_online: boolean;
     public created_at: Date;
-    public history: Match[];
+    public history: Array<number>;
     public win_nbr: number;
     public loss_nbr: number; 
     public avatar: string;
-    public friend_list: User[];
+    public friend_list: Array<number>;
     public id: number;
 
     constructor(
@@ -30,11 +31,11 @@ export class User implements User {
         this.password = password;
         this.is_online = false;
         this.created_at = new Date();
-        this.history = new Array<Match>();
+        this.history = new Array<number>();
         this.win_nbr = 0;
         this.loss_nbr = 0;
         this.avatar = DEFAULT_AVATAR_URL;
-        this.friend_list = new Array<User>();
+        this.friend_list = new Array<number>();
     }
 
     
@@ -51,11 +52,6 @@ export class User implements User {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 `);
                 
-                const insertFriend = db.prepare(`
-                    INSERT INTO friends (user_id, friend_id)
-                    VALUES (?, ?)
-                    `);
-                    
                     db.transaction(() => {
                         
                         const result = insertUser.run(
@@ -72,15 +68,9 @@ export class User implements User {
                 const lastId = result.lastInsertRowid as number;
                 this.id = lastId;
                 
-                if (this.friend_list && this.friend_list.length > 0) {
-                    for (const friendId of this.friend_list) {
-                        insertFriend.run(lastId, friendId);
-                    }
-                }
             })();
             server.log.info(`User ${this.username}, ${this.id} inserted in the DB`);
-            return null;
-            
+            return null;            
         } catch (error) {
             if ((error as any).message.includes("UNIQUE constraint failed: users.email")) {
                 server.log.error(`The email address ${this.email} is already in the DB`);
@@ -120,8 +110,8 @@ export class User implements User {
                     this.id
                 );
                 deleteFriends.run(this.id);
-                this.friend_list.forEach(friend => {
-                    insertFriend.run(this.id, friend.id); 
+                this.friend_list.forEach(friend_id => {
+                    insertFriend.run(this.id, friend_id); 
                 });
             })();
             server.log.info(`User ${this.username}, ${this.id} updated in the DB`);
@@ -139,8 +129,10 @@ export class User implements User {
 
         try {
             const deleteUser = db.prepare(`DELETE FROM users WHERE id = ?`);
+            const deleteUserFromMatchs = db.prepare(`UPDATE matchs SET player1 = 'Deleted User' WHERE player1 = ? OR player2 = ?`);
             db.transaction(() => {
                 deleteUser.run(this.id);
+                deleteUserFromMatchs.run(this.id, this.id);
             })();
             server.log.info(`User ${this.username}, ${this.id} deleted from the DB`);
         } catch (error) {
@@ -148,13 +140,18 @@ export class User implements User {
         }
     }
 
-    async addFriend(friend: User) {
-        this.friend_list.push(friend);
+    async addFriend(friend_id: number) {
+        this.friend_list.push(friend_id);
         this.updateUserInDb();
     }
 
-    async removeFriend(friend: User) {
-        this.friend_list = this.friend_list.filter(f => f.id !== friend.id);
+    async removeFriend(friend_id: number) {
+        this.friend_list = this.friend_list.filter(f => f !== friend_id);
+        this.updateUserInDb();
+    }
+
+    async addMatch(match_id: number) {
+        this.history.push(match_id);
         this.updateUserInDb();
     }
 
@@ -163,8 +160,8 @@ export class User implements User {
 export async function getUserFromDb(query: number): Promise<User | null> {
 
     try { 
-        const sqlrequest = "SELECT * FROM users WHERE id = ?";
-        const userRow = db.prepare(sqlrequest).get(query) as { 
+        const sqlRequest = "SELECT * FROM users WHERE id = ?";
+        const userRow = db.prepare(sqlRequest).get(query) as { 
             id: number;
             username: string;
             email: string;
@@ -184,14 +181,27 @@ export async function getUserFromDb(query: number): Promise<User | null> {
         user.win_nbr = userRow.win_nbr;
         user.loss_nbr = userRow.loss_nbr;
         const friends = await getFriendsFromDb(user.id);
-        if (friends) user.friend_list = friends;
+        if (friends) user.friend_list = friends.map(f => f.id);
+        
+        //Retrieve user's history
+
+        const userId = Number(user.id);
+        //Take all matches 
+        const matches = db.prepare("SELECT * FROM matchs").all() as Array<Match>;
+        //Filter matches where the user is involved
+        const userMatches = matches.filter(match => match.player1 === userId.toString() || match.player2 === userId.toString());
+        //Map matches to their ids
+        user.history = userMatches.map(match => match.id);
+
+
 
         return user;
     } catch (error) {
-        server.log.error(`Could not fetch uer from DB ${error}`)
+        server.log.error(`Could not fetch user from DB ${error}`)
         return null;
     }
 }
+
 
 export async function getFriendsFromDb(userId: number): Promise<User[] | null> {
 

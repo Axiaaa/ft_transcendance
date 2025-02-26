@@ -1,11 +1,8 @@
 Archive setup (at least setup explanations kwk)
-Try to have a Sqlite exporter
-
 
 
 Backend :
-Add friends check () and finish mutual friend invitation
-
+Changer le champ ami pour éviter la récursion infinie (juste stocker l'id)
 
 DONE :
 Implement DELETE for users and tournaments

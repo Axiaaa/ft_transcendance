@@ -109,9 +109,9 @@ export async function userRoutes(server : FastifyInstance) {
         if (friend.id === user.id) {
             reply.code(409).send({error: "Can't add yourself as a friend"});
             return;
-        }
-        if (user.friend_list.find(f => f.id === friend.id) == undefined) {
-            user.addFriend(friend);
+        }   
+        if (user.friend_list.find(f => f === friend.id) == undefined) {
+            user.addFriend(friend.id);
             reply.code(201).send();
             return;
         } else  
@@ -131,8 +131,8 @@ export async function userRoutes(server : FastifyInstance) {
             reply.code(404).send({error: "Friend not found"});
             return;
         }
-        if (user.friend_list.find(f => f.id === friend.id)) {
-            user.removeFriend(friend);
+        if (user.friend_list.find(f => f === friend.id)) {
+            user.removeFriend(friend.id);
             reply.code(204).send();
         } else
             reply.code(404).send({error: "Friend not found in friend list"});

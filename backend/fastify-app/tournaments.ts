@@ -157,8 +157,8 @@ export class Tournament implements ITournament {
 export async function getTournamentFromDb(id: number) : Promise<Tournament | null> {
 
     try {
-        const sqlrequest = "SELECT * FROM tournaments WHERE id = ?";
-        const tournamentRow = db.prepare(sqlrequest).get(id) as { 
+        const sqlRequest = "SELECT * FROM tournaments WHERE id = ?";
+        const tournamentRow = db.prepare(sqlRequest).get(id) as { 
             id: number;
             name: string;
             password: string;
