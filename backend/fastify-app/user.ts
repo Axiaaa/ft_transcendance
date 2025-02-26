@@ -129,10 +129,10 @@ export class User implements User {
 
         try {
             const deleteUser = db.prepare(`DELETE FROM users WHERE id = ?`);
-            const deleteUserFromMatchs = db.prepare(`UPDATE matchs SET player1 = 'Deleted User' WHERE player1 = ? OR player2 = ?`);
+
+
             db.transaction(() => {
                 deleteUser.run(this.id);
-                deleteUserFromMatchs.run(this.id, this.id);
             })();
             server.log.info(`User ${this.username}, ${this.id} deleted from the DB`);
         } catch (error) {
@@ -186,11 +186,8 @@ export async function getUserFromDb(query: number): Promise<User | null> {
         //Retrieve user's history
 
         const userId = Number(user.id);
-        //Take all matches 
         const matches = db.prepare("SELECT * FROM matchs").all() as Array<Match>;
-        //Filter matches where the user is involved
         const userMatches = matches.filter(match => match.player1 === userId.toString() || match.player2 === userId.toString());
-        //Map matches to their ids
         user.history = userMatches.map(match => match.id);
 
 

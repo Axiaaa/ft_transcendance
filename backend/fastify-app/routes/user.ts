@@ -5,12 +5,19 @@ import { FastifyInstance } from "fastify";
 
 export async function userRoutes(server : FastifyInstance) {
 
-    server.get('/users', async () => {
+    server.get('/users', async (request, reply) => {
         const users = db.prepare('SELECT * FROM users').all();
-        return await Promise.all(users.map((user: any) => {
-            return getUserFromDb(user.id);
-        }));
+        const result = await Promise.all(users.map(async (tmp: any) => {
+            const user = await getUserFromDb(tmp.id);
+            return user !== null ? user : null;
+        })).then(users => users.filter(user => user !== null));
+        if (result.length === 0) {
+            reply.code(404).send({ error: "No users found" });
+            return;
+        }
+        reply.code(200).send(result);
     });
+
 
     server.get<{ Params: { id: string } }>('/users/:id', async (request, reply) => {
         const { id } = request.params;

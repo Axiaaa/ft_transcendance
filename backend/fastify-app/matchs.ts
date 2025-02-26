@@ -1,6 +1,7 @@
 import { IMatch } from "./matchs.d";
 import { server } from ".";
 import { db } from ".";
+import { getUserFromDb } from "./user";
 
 export class Match implements IMatch {
 
@@ -139,10 +140,19 @@ export async function getMatchFromDb(id : number) : Promise<Match | null> {
         match.id = matchRow.id;
         match.score = matchRow.score;
 
-        if (match.player1 === "Deleted User" && match.player2 === "Deleted User") {
-            match.deleteMatchInDb();
+
+        if (await getUserFromDb(Number(matchRow.player1)) == null) {
+            match.player1 = "Deleted user";
+        }
+        if (await getUserFromDb(Number(matchRow.player2)) == null) {
+            match.player2 = "Deleted user";
+        }
+        
+        if (match.player1 === "Deleted user" && match.player2 === "Deleted user") {
+            await match.deleteMatchInDb();
             return null;
         }
+
         return match;
     } catch (error) {
         server.log.error(`Error while getting match ${id} from the DB: ${error}`);

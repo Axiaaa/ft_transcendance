@@ -18,11 +18,17 @@ export async function matchsRoutes(server : FastifyInstance) {
         }
     });
     
-    server.get('/matchs', async () => {
+    server.get('/matchs', async (request, reply) => {
         const matchs = db.prepare('SELECT * FROM matchs').all();
-        return await Promise.all(matchs.map((tmp: any) => {
-            return getMatchFromDb(tmp.id);
-        }));
+        const result = await Promise.all(matchs.map(async (tmp: any) => {
+            const match = await getMatchFromDb(tmp.id);
+            return match !== null ? match : null;
+        })).then(matches => matches.filter(match => match !== null));
+        if (result.length === 0) {
+            reply.code(404).send({ error: "No matches found" });
+            return;
+        }
+        reply.code(200).send(result);
     });
 
     server.post<{ Body: { player1: number, player2: number, is_tournament: boolean } }>('/matchs', async (request, reply) => {
