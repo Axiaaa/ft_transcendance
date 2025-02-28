@@ -22,10 +22,11 @@ CREATE TABLE IF NOT EXISTS `matchs` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
     `player1` TEXT NOT NULL,
     `player2` TEXT NOT NULL,
-    `winner` INTEGER,
+    `winner` TEXT,
     `score` TEXT NOT NULL,
     `created_at` REAL NOT NULL,
-    `is_tournament` INTEGER NOT NULL CHECK (is_tournament IN (0,1))
+    `is_tournament` INTEGER NOT NULL CHECK (is_tournament IN (0,1)),
+    `tournament_id` INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS `tournaments` (

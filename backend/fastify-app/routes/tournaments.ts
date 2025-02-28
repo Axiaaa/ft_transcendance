@@ -16,15 +16,16 @@ export async function tournamentRoutes(server : FastifyInstance) {
         }
     );
     
-    server.get('/tournaments', async () => {
+    server.get('/tournaments', async (request, reply) => {
         const tournaments = db.prepare('SELECT * FROM tournaments').all();
-        return await Promise.all(tournaments.map(async (tournament: any) => {
-            const newTournament = new Tournament(tournament.name, tournament.password, tournament.type, tournament.creator);
-            newTournament.id = tournament.id;
-            newTournament.members = await getTournamentMembers(tournament.id) as Array<User>;
-            newTournament.creator = await getUserFromDb(tournament.creator_id) as User;
-            return newTournament;
-        }));
+        const result =  await Promise.all(tournaments.map(async (tournament: any) => {
+            return await getTournamentFromDb(tournament.id);
+        })).then(tournaments => tournaments.filter(tournament => tournament !== null));
+        if (result.length === 0) {
+            reply.code(404).send({ error: "No tournaments found" });
+            return;
+        }
+        reply.code(200).send(result);
     });
     
     server.post<{ Body:
@@ -86,20 +87,20 @@ export async function tournamentRoutes(server : FastifyInstance) {
         reply.code(204).send();
         }
     );
-    
-    
+        
     server.get<{ Params : {id : string} }>('/tournaments/:id/members', async (request, reply) => {
         const { id } = request.params;
         const members = await getTournamentMembers(Number(id));
         if (members != null)
-            return members;
+            return members.map(member => member.id);
         else 
             reply.code(404).send({error: "Tournament not found"});
         }
     );
     
-    server.post<{ Body: { tournament_id: number, user_id: number } }>('/tournaments/:tournament_id/members', async (request, reply) => {
-        const { tournament_id, user_id } = request.body;
+    server.post<{ Params : { tournament_id : number },  Body: { user_id: number } }>('/tournaments/:tournament_id/members', async (request, reply) => {
+        const { user_id } = request.body;
+        const { tournament_id } = request.params;
         const tournament = await getTournamentFromDb(tournament_id);
         if (tournament == null) {
             reply.code(404).send({error: "Tournament not found"});
@@ -117,8 +118,9 @@ export async function tournamentRoutes(server : FastifyInstance) {
             reply.code(201).send();
     });
     
-    server.delete<{ Params: { tournament_id: string, user_id: string } }>('/tournaments/:tournament_id/members/:user_id', async (request, reply) => {
-        const { tournament_id, user_id } = request.params;
+    server.delete<{ Params: { tournament_id: string }, Body: { user_id: string } }>('/tournaments/:tournament_id/members', async (request, reply) => {
+        const { tournament_id } = request.params;
+        const { user_id } = request.body;
         const tournament = await getTournamentFromDb(Number(tournament_id));
         if (tournament == null) {
             reply.code(404).send({error: "Tournament not found"});
@@ -130,6 +132,9 @@ export async function tournamentRoutes(server : FastifyInstance) {
             return;
         }
         const req_message = await tournament.removeMember(user);
+        if (tournament.members.length === 0) {
+            await tournament.deleteTournamentFromDb();
+        }
         if (req_message != null)
             reply.code(409).send({ error: req_message });
         else 
