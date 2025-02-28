@@ -12,6 +12,18 @@
 	<link rel="stylesheet" href="./css/login-screen.css">
 	<link rel="stylesheet" href="./css/taskbar.css">
 	<link rel="stylesheet" href="./css/start-menu.css">
+	<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+	<link href="pong/style.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+		<script type="importmap">
+			{
+				"imports": {
+				"three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+				"jsm/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+			}
+			}
+		</script>
 </head>
 <body>
 	<div class="login-screen">
@@ -167,6 +179,8 @@
 	<div class="app-icon" id="settings-app">
 		<img src="./img/settings-icon.png" alt="bin" height="60"><p>Settings</p>
 	</div>
+	<!-- <div id="particles-js"></div> -->
+	<!-- <script type="module" src="game/pong.js"></script> -->
 	<script src="./js/.build/js/app-icon.js" type="module"></script>
 	<script src="./js/.build/js/window.js" type="module"></script>
 	<script src="./js/.build/js/start-menu.js" type="module"></script>
