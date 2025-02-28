@@ -1,0 +1,83 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Disabled scrolling */
+}
+
+#menu {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    color: white;
+    font-size: 48px;
+    text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+}
+
+#playButton {
+    position: absolute;
+    top: 105%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: transparent;
+    border: 2px solid white;
+    padding: 10px 30px;
+    color: white;
+    font-size: 24px;
+    font-family: 'Orbitron', sans-serif;
+    cursor: pointer;
+    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+    transition: 0.3s;
+}
+
+#playButton:hover {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+}
+
+#countdown-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 40px #ff0000;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center verticaly */
+    justify-content: center; /* Center horizontaly */
+    width: 100vw; /* Take all width */
+    height: 100vh; /* Take all height */
+    text-align: center;
+    pointer-events: none;
+}
+
+#countdown {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 100px;
+}
+
+#countdown-go {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    font-size: 120px;
+    text-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00, 0 0 80px #00ff00;
+}
+
+/* GO! Animation */
+@keyframes goFlash {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
