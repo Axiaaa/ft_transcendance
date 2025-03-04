@@ -18,13 +18,22 @@ let ballSpeedReachedMax = false;
 let isPaused = false;
 
 const bloomLayer = 1;
-
 // Scene, camera, and renderer
+const canvas = document.getElementById('pong-game-canvas');
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ 
+	antialias: true,
+	canvas: canvas
+});
+renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+
+// Handle window resize to update canvas dimensions
+window.addEventListener('resize', () => {
+	camera.aspect = canvas.clientWidth / canvas.clientHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+});
 
 // Orbital Control
 const controls = new OrbitControls(camera, renderer.domElement);
