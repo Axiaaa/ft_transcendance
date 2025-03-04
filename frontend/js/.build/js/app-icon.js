@@ -133,13 +133,12 @@ document.addEventListener('DOMContentLoaded', function () {
     settingsApp.children[1].children[0].src = './img/settings-app-content.jpeg';
     var pongApp = createApp('pong');
     pongApp.children[1].appendChild(document.createElement('canvas'));
-    pongApp.children[1].children[0].id = 'pong-game-canvas';
-    pongApp.children[1].children[0].width = parseInt(pongApp.style.width);
-    pongApp.children[1].children[0].height = parseInt(pongApp.style.height) - 30;
-    // (pongApp.children[1].children[0] as HTMLElement).style.backgroundColor = 'black';
-    // pongApp.children[1].appendChild(document.createElement('img'));
-    // (pongApp.children[1].children[0] as HTMLImageElement).src = './img/pong_loop.gif';
-    // (pongApp.children[1].children[0] as HTMLImageElement).height = 362;
+    var pongCanvas = pongApp.children[1].children[0];
+    pongCanvas.id = 'pong-game-canvas';
+    var pongAppWindow = document.getElementById('pong-app-window');
+    pongCanvas.width = parseInt(pongAppWindow.style.width);
+    pongCanvas.height = parseInt(pongAppWindow.style.height);
+    pongCanvas.style.backgroundColor = 'black';
     var startMenuApp = document.getElementsByClassName('menu-item');
     var _loop_1 = function (i) {
         var app = startMenuApp[i];

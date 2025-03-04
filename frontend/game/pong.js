@@ -20,19 +20,29 @@ let isPaused = false;
 const bloomLayer = 1;
 // Scene, camera, and renderer
 const canvas = document.getElementById('pong-game-canvas');
+const canvasWidth = window.innerWidth;
+const canvasHeight = window.innerHeight;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, canvasWidth / canvasHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ 
 	antialias: true,
 	canvas: canvas
 });
-renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
-// Handle window resize to update canvas dimensions
-window.addEventListener('resize', () => {
-	camera.aspect = canvas.clientWidth / canvas.clientHeight;
+renderer.setSize(canvasWidth, canvasHeight);
+
+
+function resizeGame() {
+	camera.aspect = canvasWidth / canvasHeight;
 	camera.updateProjectionMatrix();
-	renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+	renderer.setSize(canvasWidth, canvasHeight);
+}
+
+resizeGame();
+
+let pongWindow = document.getElementById('pong-game-canvas');
+pongWindow.addEventListener('focusin', () => {
+	isPaused = false;
 });
 
 // Orbital Control
@@ -528,9 +538,3 @@ function animate() {
 	requestAnimationFrame(animate);
 }
 animate();
-
-window.addEventListener("resize", () => {
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-	renderer.setSize(window.innerWidth, window.innerHeight);
-})
