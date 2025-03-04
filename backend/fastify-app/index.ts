@@ -6,10 +6,35 @@ import { tournamentRoutes } from "./routes/tournaments";
 import { matchsRoutes } from "./routes/matchs";
 
 const Port = process.env.PORT || 4321
+const envUser = process.env.API_USERNAME || 'admin'
+const envPassword = process.env.API_PASSWORD || 'admin'
 export const db = new database(`/usr/src/app/db/database.db`)
 
 export const server = fastify({
     logger: true
+});
+
+server.addHook('preHandler', async (req, reply) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Basic ')) {
+      return reply.code(401).send({ error: 'Unauthorized' });
+    }
+  
+    const base64Credentials = authHeader.split(' ')[1];
+    const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+    const [username, password] = credentials.split(':');
+  
+    if (username !== envUser || password !== envPassword) {
+      return reply.code(401).send({ error: 'Unauthorized. Please provid valid credentials' });
+    }
+
+    if (req.method === 'POST' || req.method === 'PATCH') {
+      try {
+        JSON.parse(JSON.stringify(req.body));
+      } catch (error) {
+        return reply.code(400).send({ error: 'Invalid JSON body' });
+      }
+    }
 });
 
 
