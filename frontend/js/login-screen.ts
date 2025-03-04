@@ -82,6 +82,30 @@ document.addEventListener('DOMContentLoaded', () => {
 	let form = document.getElementsByClassName("login-screen-formulary")[0] as HTMLFormElement;
 	form.style.display = 'none';
 
+	let backbutton = document.createElement('img');
+	backbutton.src = './img/back-icon.png';
+	backbutton.style.width = '35px';
+	backbutton.style.height = '35px';
+	backbutton.style.position = 'absolute';
+	backbutton.style.left = '5%';
+	backbutton.style.top = '120px';
+	backbutton.style.bottom = '10px';
+	form.appendChild(backbutton);
+
+	backbutton.addEventListener('click', () => {
+		form.style.display = 'none';
+		for (let i = 0; i < profiles.length; i++) {
+			profiles[i].style.display = 'block';
+		}
+	});
+
+	backbutton.addEventListener('mouseenter', () => {
+		backbutton.style.filter = 'brightness(1.2)';
+	});
+	backbutton.addEventListener('mouseleave', () => {
+		backbutton.style.filter = 'brightness(1)';
+	});
+
 	NewProfile.addEventListener('click', () => {
 		for (let i = 0; i < profiles.length; i++) {
 			profiles[i].style.display = 'none';

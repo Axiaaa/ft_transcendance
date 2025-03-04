@@ -58,6 +58,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     var form = document.getElementsByClassName("login-screen-formulary")[0];
     form.style.display = 'none';
+    var backbutton = document.createElement('img');
+    backbutton.src = './img/back-icon.png';
+    backbutton.style.width = '35px';
+    backbutton.style.height = '35px';
+    backbutton.style.position = 'absolute';
+    backbutton.style.left = '5%';
+    backbutton.style.top = '120px';
+    backbutton.style.bottom = '10px';
+    form.appendChild(backbutton);
+    backbutton.addEventListener('click', function () {
+        form.style.display = 'none';
+        for (var i = 0; i < profiles.length; i++) {
+            profiles[i].style.display = 'block';
+        }
+    });
+    backbutton.addEventListener('mouseenter', function () {
+        backbutton.style.filter = 'brightness(1.2)';
+    });
+    backbutton.addEventListener('mouseleave', function () {
+        backbutton.style.filter = 'brightness(1)';
+    });
     NewProfile.addEventListener('click', function () {
         for (var i = 0; i < profiles.length; i++) {
             profiles[i].style.display = 'none';
