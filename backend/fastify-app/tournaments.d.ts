@@ -1,7 +1,7 @@
 export interface ITournament {
     id: number;
     name: string;
-    password: string?;
+    password: string | null;
     members: Array<Number>;
     matches : Array<Number>;
     creator: User;

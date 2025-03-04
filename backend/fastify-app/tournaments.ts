@@ -7,32 +7,32 @@ export class Tournament implements ITournament {
     
     public id: number;
     public name: string;
-    public password: string;
+    public password: string | null;
     public members: Array<Number>;
     public matches : Array<Number>;
     public winner: User | null;
     public creator: User;
     public created_at: Date;
-    public duration: number;
+    public duration?: number;
     public type: TournamentType;
     
     constructor(
         name : string,
-        password : string,
         type : TournamentType,
         creator : User,
+        password? : string,
         duration? : number
     )
     {
         this.id = 0; //Id value is only a placeholder, It'll be set in the DB
         this.name = name;
-        this.password = password;
+        this.password = password ? password : null;
         this.members = new Array<Number>();
         this.matches = new Array<Number>();
         this.creator = creator;
         this.winner = null;
         this.created_at = new Date();
-        this.duration = 0;
+        this.duration = duration ? duration : 0;
         this.type = type;
 
         this.members.push(creator.id);
@@ -45,8 +45,8 @@ export class Tournament implements ITournament {
             return "User is already in the tournament";
         }
         this.members.push(user.id);
-        this.updateTournamentInDb();
-        return null;
+        const req_message = this.updateTournamentInDb();
+        return req_message
     }
 
     async removeMember(user: User) : Promise<string | null> {
@@ -57,8 +57,8 @@ export class Tournament implements ITournament {
             return "User is not in the tournament";
         }
         this.members.splice(index, 1);
-        this.updateTournamentInDb();
-        return null;
+        const req_message = this.updateTournamentInDb();
+        return req_message
     }   
 
     async pushTournamentToDb() : Promise<string | null> {
@@ -87,7 +87,7 @@ export class Tournament implements ITournament {
                 });
             })();
             server.log.info(`Tournament ${this.name} created successfully`);
-            return null;       
+            return null;
         }
         catch (error) {
             server.log.error(`Error while creating tournament ${this.name} : ${error}`);
@@ -95,18 +95,19 @@ export class Tournament implements ITournament {
         }
     }
 
-    async updateTournamentInDb() {
+    async updateTournamentInDb() : Promise<string | null> {
         
         if (this.id === 0) {
             server.log.error(`Tournament ${this.name} does not exist in the DB`);
-            return "Tournament does not exist";
+            return "Tournament doesn't exist";
         }
 
         try 
         {
-            const updateTournament = db.prepare(`UPDATE tournaments SET name = ?, password = ?, creator_id = ?, created_at = ?, duration = ?, type = ? WHERE id = ?`);
+            const updateTournament = db.prepare(`UPDATE tournaments SET name = ?, password = ?, creator_id = ?, created_at = ?, duration = ?, type = ?, winner = ? WHERE id = ?`);
             const deleteMembers = db.prepare(`DELETE FROM tournament_members WHERE tournament_id = ?`);
             const insertMember = db.prepare(`INSERT INTO tournament_members (tournament_id, user_id) VALUES (?, ?)`);
+
             db.transaction(() => {
                 updateTournament.run(
                     this.name,
@@ -115,6 +116,7 @@ export class Tournament implements ITournament {
                     Number(this.created_at),
                     this.duration,
                     this.type.valueOf(),
+                    this.winner ? this.winner.id : null,
                     this.id
                 );
                 deleteMembers.run(this.id);
@@ -131,7 +133,7 @@ export class Tournament implements ITournament {
         }
     }
 
-    async deleteTournamentFromDb() {
+    async deleteTournamentFromDb() : Promise<string | null> {
         
         if (this.id === 0) {
             server.log.error(`Tournament ${this.name} does not exist in the DB`);
@@ -170,28 +172,30 @@ export async function getTournamentFromDb(id: number) : Promise<Tournament | nul
             created_at: string;
             duration: number;
             type: number;
+            winner : number | null;
         } | undefined;
-
-        const matches = getMatches.all(id) as Array<{ id: number }>;
 
         if (!tournamentRow) return null;
 
+        const matches = getMatches.all(id) as Array<{ id: number }>;
         const creator = await getUserFromDb(tournamentRow.creator_id);
         if (creator == null) return null;
 
         let tournament = new Tournament(
             tournamentRow.name,
-            tournamentRow.password,
             tournamentRow.type as TournamentType,
             creator,
+            tournamentRow.password,
             tournamentRow.duration
         );
         tournament.id = tournamentRow.id;
         tournament.created_at = new Date(tournamentRow.created_at);
         tournament.members = (await getTournamentMembers(tournamentRow.id))?.map((user: User) => user.id) || [];
+        if (tournament.members.find(member => member === creator.id) === undefined)
+            tournament.members.push(creator.id);
         tournament.matches = matches.map(match => match.id);
+        tournament.winner = tournamentRow.winner ? await getUserFromDb(tournamentRow.winner) : null;
     
-
         return tournament;
     }
     catch (error) {

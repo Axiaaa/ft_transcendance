@@ -111,7 +111,7 @@ export class Match implements IMatch {
                 `);
 
             db.transaction(() => {
-                updateMatch.run(this.player1, this.player2, this.winner,  Number(this.created_at), this.score, this.is_tournament ? 1 : 0, this.id);
+                updateMatch.run(this.player1, this.player2, this.winner, Number(this.created_at), this.score, this.is_tournament ? 1 : 0, this.id);
             })();
 
             server.log.info(`Match ${this.id} updated in the DB`);

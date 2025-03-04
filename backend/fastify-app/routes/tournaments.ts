@@ -5,7 +5,6 @@ import { getUserFromDb, User } from "../user";
 
 export async function tournamentRoutes(server : FastifyInstance) {
     
-
     server.get<{ Params: { id: string } }>('/tournaments/:id', async (request, reply) => {
         const { id } = request.params;
         const tournament = await getTournamentFromDb(Number(id));
@@ -31,7 +30,7 @@ export async function tournamentRoutes(server : FastifyInstance) {
     server.post<{ Body:
         { 
         name: string,
-        password: string,
+        password?: string,
         type: number,
         creator_id: number,
         duration?: number,
@@ -44,27 +43,25 @@ export async function tournamentRoutes(server : FastifyInstance) {
             reply.code(404).send({error: "User not found"});
             return;
         }
-        const tournament = new Tournament(name, password, type, creator, duration);
+        const tournament = new Tournament(name, type, creator, password, duration);
         const req_message = await tournament.pushTournamentToDb();
-        if (tournament.id != 0)
-            reply.code(201).send({ id: tournament.id });
-        else
-            reply.code(409).send({ error: req_message });
+        req_message != null ? reply.code(409).send({ error: req_message }) : reply.code(201).send({ id: tournament.id });
     });
     
     server.patch<{
-        Params: { id: string },
+        Params : { id: string },
         Body : {
             name?: string, 
             password?: string,
             type?: number,
             creator_id?: number,
+            winner_id?: number,
             duration?: number,
             }
         }>('/tournaments/:id', async (request, reply) => {
             
         const { id } = request.params;
-        const { name, password, type, creator_id, duration } = request.body;
+        const { name, password, type, creator_id, winner_id, duration } = request.body;
         let tournament = await getTournamentFromDb(Number(id));
     
         if (tournament == null) {
@@ -74,6 +71,7 @@ export async function tournamentRoutes(server : FastifyInstance) {
         if (name)       { tournament.name = name }
         if (password)   { tournament.password = password }
         if (type)       { tournament.type = type }
+        if (duration)   { tournament.duration = duration }
         if (creator_id) {
             const creator = await getUserFromDb(creator_id);
             if (creator == null) {
@@ -82,9 +80,20 @@ export async function tournamentRoutes(server : FastifyInstance) {
             }
             tournament.creator = creator;
         }
-        if (duration)   { tournament.duration = duration }
-        await tournament.updateTournamentInDb();
-        reply.code(204).send();
+        if (winner_id) {
+            const winner = await getUserFromDb(winner_id);
+            if (winner == null) {
+                reply.code(404).send({error: "User not found"});
+                return;
+            }
+            if (tournament.members.find(member => member === winner_id) == null) {
+                reply.code(409).send({error: "The winner is not a member of the tournament"});
+                return;
+            }
+            tournament.winner = winner;
+        }
+        const req_message = await tournament.updateTournamentInDb();
+        req_message != null ? reply.code(409).send({ error: req_message }) : reply.code(204).send();
         }
     );
         
@@ -112,15 +121,11 @@ export async function tournamentRoutes(server : FastifyInstance) {
             return;
         }
         const req_message = await tournament.addMember(user);
-        if (req_message != null)
-            reply.code(409).send({ error: req_message });
-        else 
-            reply.code(201).send();
+        req_message != null ? reply.code(409).send({ error: req_message }) : reply.code(204).send();
     });
     
-    server.delete<{ Params: { tournament_id: string }, Body: { user_id: string } }>('/tournaments/:tournament_id/members', async (request, reply) => {
-        const { tournament_id } = request.params;
-        const { user_id } = request.body;
+    server.delete<{ Params: { tournament_id: string, user_id: string } }>('/tournaments/:tournament_id/members/:user_id', async (request, reply) => {
+        const { tournament_id, user_id } = request.params;
         const tournament = await getTournamentFromDb(Number(tournament_id));
         if (tournament == null) {
             reply.code(404).send({error: "Tournament not found"});
@@ -131,17 +136,17 @@ export async function tournamentRoutes(server : FastifyInstance) {
             reply.code(404).send({error: "User not found"});
             return;
         }
-        const req_message = await tournament.removeMember(user);
-        if (tournament.members.length === 0) {
-            await tournament.deleteTournamentFromDb();
+        let req_message = await tournament.removeMember(user);
+        if (tournament.members.length != 0) 
+            req_message != null ? reply.code(409).send({ error: req_message }) : reply.code(204).send();
+        else {
+            req_message = await tournament.deleteTournamentFromDb();
+            req_message != null ? reply.code(409).send({ error: req_message }) : reply.code(204).send();
         }
-        if (req_message != null)
-            reply.code(409).send({ error: req_message });
-        else 
-            reply.code(204).send();
     }
     );
     
+
     server.delete<{ Params: { id: string } }>('/tournaments/:id', async (request, reply) => {
         const { id } = request.params;
         const tournament = await getTournamentFromDb(Number(id));
@@ -149,10 +154,10 @@ export async function tournamentRoutes(server : FastifyInstance) {
         if (tournament == null) {
             reply.code(404).send({error: "Tournament not found"});
             return;
-        }   
-        await tournament.deleteTournamentFromDb();
-        reply.code(204).send();
-    }
+        }
+        const req_message = await tournament.deleteTournamentFromDb();
+        req_message != null ? reply.code(409).send({ error: req_message }) : reply.code(204).send();
+        }
     );
     
 

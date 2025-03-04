@@ -2,7 +2,7 @@ Archive setup (at least setup explanations kwk)
 
 
 Backend :
-Changer le champ ami pour éviter la récursion infinie (juste stocker l'id)
+Delete match after a X amount of time ?
 
 DONE :
 Implement DELETE for users and tournaments

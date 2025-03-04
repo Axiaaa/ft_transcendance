@@ -34,14 +34,11 @@ export async function userRoutes(server : FastifyInstance) {
         const { name, email, password } = request.body;
         const user = new User(name, email, password);
         const req_message = await user.pushUserToDb();
-        if (user.id != 0)
-            reply.code(201).send({ id: user.id });
-        else
-            reply.code(409).send({ error: req_message });
+        req_message === null ? reply.code(201).send({ id : user.id }) : reply.code(409).send({ error : req_message });
     });
 
     server.patch<{
-        Params: { id: string },
+        Params : { id: string },
         Body : {
             username?: string, 
             email?: string, 
@@ -67,8 +64,9 @@ export async function userRoutes(server : FastifyInstance) {
         if (avatar)     { user.avatar = avatar; }
         if (win_nbr)    { user.win_nbr = win_nbr; }
         if (loss_nbr)   { user.loss_nbr = loss_nbr; }
-        await user.updateUserInDb();
-        reply.code(204).send();
+        
+        const req_message = await user.updateUserInDb();
+        req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });
     });
 
 
@@ -80,8 +78,8 @@ export async function userRoutes(server : FastifyInstance) {
             reply.code(404).send({error: "User not found"});
             return;
         }   
-        await user.deleteUserFromDb();
-        reply.code(204).send();
+        const req_message = await user.deleteUserFromDb();
+        req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });
         }
     );
             
@@ -118,8 +116,8 @@ export async function userRoutes(server : FastifyInstance) {
             return;
         }   
         if (user.friend_list.find(f => f === friend.id) == undefined) {
-            user.addFriend(friend.id);
-            reply.code(201).send();
+            const req_message = await user.addFriend(friend.id);
+            req_message === null ? reply.code(201).send({ id : user.id}) : reply.code(409).send({ error : req_message });
             return;
         } else  
             reply.code(409).send({error: "Friend already in friend list"});
@@ -139,8 +137,8 @@ export async function userRoutes(server : FastifyInstance) {
             return;
         }
         if (user.friend_list.find(f => f === friend.id)) {
-            user.removeFriend(friend.id);
-            reply.code(204).send();
+            const req_message = await user.removeFriend(friend.id);
+            req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });            
         } else
             reply.code(404).send({error: "Friend not found in friend list"});
         }
