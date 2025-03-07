@@ -44,7 +44,7 @@ server.get('/ping', async (request, reply) => {
 
 const start = async () => {
     try {
-        await server.register(metrics,{endpoint: '/metrics'})
+        await server.register(metrics,{endpoint: '/metrics'});
         await server.register(tournamentRoutes, { prefix: '/api' });
         await server.register(userRoutes, { prefix: '/api' });
         await server.register(matchsRoutes, { prefix: '/api' });

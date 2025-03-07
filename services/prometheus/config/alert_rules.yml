@@ -3,16 +3,6 @@ groups:
   - name: ContainerAlerts
     rules:
 
-    #Rule for alerting when a container is killed
-    - alert: ContainerKilled
-      expr: up == 0
-      for: 15s
-      labels:
-        severity: critical
-      annotations:
-        summary: "Instance [{{ $labels.instance }}] down"
-        description: "[{{ $labels.instance }}] of job {{ $labels.job }} has been down for more than 15 seconds."
-
     #Rule for alerting when a container is using too much CPU
     - alert: ContainerHighCpuUtilization
       expr: (sum(rate(container_cpu_usage_seconds_total{container!=""}[5m])) by (pod, container) / sum(container_spec_cpu_quota{container!=""}/container_spec_cpu_period{container!=""}) by (pod, container) * 100) > 80
@@ -53,3 +43,40 @@ groups:
       annotations:
         summary: Prometheus not connected to alertmanager (instance {{ $labels.name }})
         description: "Prometheus cannot connect the alertmanager\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+
+    - alert: CadvisorDown
+      expr: up{job="cadvisor"} == 0
+      for: 15s
+      labels:
+        severity: critical
+      annotations:
+        summary: "Instance [{{ $labels.instance }}] down"
+        description: "[{{ $labels.instance }}] of job {{ $labels.job }} has been down for more than 15 seconds."
+
+    - alert: NginxDown
+      expr: nginx_up == 0
+      for: 15s
+      labels:
+        severity: critical
+      annotations:
+        summary: "Instance [{{ $labels.instance }}] down"
+        description: "[{{ $labels.instance }}] of job {{ $labels.job }} has been down for more than 15 seconds."
+
+    - alert: ElasticsearchDown
+      expr: elasticsearch_scrape_success == 0
+      for: 15s
+      labels:
+        severity: critical
+      annotations:
+        summary: "Instance [{{ $labels.instance }}] down"
+        description: "[{{ $labels.instance }}] of job {{ $labels.job }} has been down for more than 15 seconds."
+
+    - alert: FastifyDown
+      expr: up{job="fastify"} == 0
+      for: 15s
+      labels:
+        severity: critical
+      annotations:
+        summary: "Instance [{{ $labels.instance }}] down"
+        description: "[{{ $labels.instance }}] of job {{ $labels.job }} has been down for more than 15 seconds."

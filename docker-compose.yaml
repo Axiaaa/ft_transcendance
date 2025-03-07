@@ -234,6 +234,22 @@ services:
       elasticsearch:
         condition: service_healthy
 
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter
+    container_name: nginx_exporter
+    user: '0'
+    volumes:
+      - certs:/etc/nginx/certs
+    command: >
+      --nginx.scrape-uri=https://nginx:443/nginx_status
+    ports:
+      - ${NGINX_EXPORTER_PORT}:9113
+    networks:
+      - ft_transcendence
+    restart: always
+    depends_on:
+      - nginx
+
   cadvisor:
     container_name: cadvisor
     build: 
@@ -289,3 +305,4 @@ services:
     networks:
       - ft_transcendence
     restart: always
+

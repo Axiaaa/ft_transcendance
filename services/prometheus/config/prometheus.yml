@@ -14,7 +14,6 @@ alerting:
         - targets:
             - 'alertmanager:9093'
 
-
 scrape_configs:
   - job_name: "elasticsearch"
     static_configs:
@@ -34,3 +33,7 @@ scrape_configs:
   - job_name: "cadvisor"
     static_configs:
       - targets: ["cadvisor:8080"]
+ 
+  - job_name: "nginx"
+    static_configs:
+      - targets: ["nginx_exporter:9113"]

@@ -1,12 +1,11 @@
 Archive setup (at least setup explanations kwk)
 
-
 Backend :
+
+DONE :
 Delete match after a X amount of time ?
 Implement hashing for passwords
 Test non Json body for fastify
-
-DONE :
 Implement Basic Auth
 Implement DELETE for users and tournaments
 Fix Grafana dashboards
