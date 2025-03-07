@@ -19,6 +19,28 @@ services:
 
 ###########################################################################
 #                                                                         #
+#                                  NGINX                                  # 
+#                                                                         #
+###########################################################################
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - ${NGINX_PORT}:443
+    volumes:
+      - certs:/etc/nginx/certs
+    networks:
+      - ft_transcendence
+    depends_on:
+      - setup
+    restart: always
+
+
+###########################################################################
+#                                                                         #
 #                                  BACKEND                                # 
 #                                                                         #
 ###########################################################################
@@ -48,6 +70,7 @@ services:
       - API_PASSWORD=${API_PASSWORD}
     depends_on:
       - sqlite
+      - nginx
     networks:
       - ft_transcendence
       
