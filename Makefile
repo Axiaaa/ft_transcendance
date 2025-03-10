@@ -20,7 +20,7 @@ destroy:
 	docker-compose down -v --remove-orphans
 
 clean : destroy
-# docker-system prune -af
+	docker system prune -af
 		
 re : destroy all
 

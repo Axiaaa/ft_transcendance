@@ -66,8 +66,8 @@ services:
       - sqlite_data:/usr/src/app/db/
     environment:
       - PORT=${FASTIFY_PORT}
-      - API_USERNAME=${API_USERNAME}
-      - API_PASSWORD=${API_PASSWORD}
+      # - API_USERNAME=${API_USERNAME}
+      # - API_PASSWORD=${API_PASSWORD}
     depends_on:
       - sqlite
       - nginx
@@ -120,10 +120,6 @@ services:
     - LICENSE=${LICENSE}
     - KIBANA_PASSWORD=${KIBANA_PASSWORD}
    mem_limit: ${ES_MEM_LIMIT}
-   ulimits:
-     memlock:
-       soft: -1
-       hard: -1
    restart: always
    healthcheck:
      test: ["CMD-SHELL", "curl -k https://elastic:${ELASTIC_PASSWORD}@localhost:9200"]
