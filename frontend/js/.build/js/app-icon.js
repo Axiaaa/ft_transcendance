@@ -129,8 +129,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     // Apps
     var settingsApp = createApp('settings');
-    settingsApp.children[1].appendChild(document.createElement('img'));
-    settingsApp.children[1].children[0].src = './img/settings-app-content.jpeg';
+    // settingsApp.children[1].appendChild(document.createElement('img'));
+    // (settingsApp.children[1].children[0] as HTMLImageElement).src = './img/settings-app-content.jpeg';
     var pongApp = createApp('pong');
     pongApp.children[1].appendChild(document.createElement('canvas'));
     var pongCanvas = pongApp.children[1].children[0];

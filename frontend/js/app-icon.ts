@@ -147,8 +147,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	// Apps
 
 	let settingsApp = createApp('settings');
-	settingsApp.children[1].appendChild(document.createElement('img'));
-	(settingsApp.children[1].children[0] as HTMLImageElement).src = './img/settings-app-content.jpeg';
+	// settingsApp.children[1].appendChild(document.createElement('img'));
+	// (settingsApp.children[1].children[0] as HTMLImageElement).src = './img/settings-app-content.jpeg';
+
 
 	let pongApp = createApp('pong');
 	pongApp.children[1].appendChild(document.createElement('canvas'));
@@ -166,5 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			openAppWindow(app.id);
 		});
 	}
+
 
 });
