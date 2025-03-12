@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		category.style.padding = '0 10px';
 		category.style.boxSizing = 'border-box';
 		category.style.transition = 'background-color 0.2s ease';
-		
+		category.style.left = '0px';
+		category.style.top = '40px';
 		
 		category.addEventListener('mouseenter', () => {
 			category.style.backgroundColor = 'rgb(100, 105, 235)';
@@ -65,9 +66,31 @@ document.addEventListener('DOMContentLoaded', () => {
 	rightColumn.style.width = '65%';
 	rightColumn.style.height = '100%';
 	rightColumn.style.float = 'left';
+	rightColumn.style.display = 'grid';
+	rightColumn.style.gridTemplateColumns = 'repeat(auto-fill, 150px)';
+	rightColumn.style.gridAutoFlow = 'dense';
+	rightColumn.style.justifyContent = 'space-between';
+	rightColumn.style.position = 'relative';
+	rightColumn.style.padding = '0 10px';
+	rightColumn.style.boxSizing = 'border-box';
+	rightColumn.style.overflowX = 'scroll';
+	rightColumn.style.overflowY = 'scroll';
 	rightColumn.style.backgroundColor = 'rgba(88, 93, 223, 0.78)';
-	
-
+	let	rightColumnTitle = document.createElement('div');
+	rightColumn.appendChild(rightColumnTitle);
+	rightColumnTitle.textContent = 'Pick a category';
+	rightColumnTitle.style.color = 'rgba(212, 206, 255, 0.9)';
+	rightColumnTitle.style.fontSize = '30px';
+	rightColumnTitle.style.fontWeight = 'bold';
+	rightColumnTitle.style.width = '400px';
+	rightColumnTitle.style.height = '80px';
+	rightColumnTitle.style.margin = '10px auto';
+	rightColumnTitle.style.textAlign = 'left';
+	rightColumnTitle.style.position = 'relative';
+	rightColumnTitle.style.padding = '0 10px';
+	rightColumnTitle.style.boxSizing = 'border-box';
+	rightColumnTitle.style.top = '20px';
+	rightColumnTitle.style.left = '20px';
 
 	let Appearance = createCategory('Appearance');
 	let Personalization = createCategory('Personalization');
