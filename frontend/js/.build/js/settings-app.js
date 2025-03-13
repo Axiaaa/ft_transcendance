@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function () {
         rightColumn.appendChild(category);
         return category;
     }
-    appWindowBody.style.height = 'calc(100% - 40px)';
     var appContent = document.createElement('div');
     appContent.style.width = '100%';
     appContent.style.height = '100%';
@@ -74,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
     leftColumn.style.width = '35%';
     leftColumn.style.minWidth = '200px';
     leftColumn.style.maxWidth = '400px';
-    leftColumn.style.height = '75%';
+    leftColumn.style.height = '100%';
     leftColumn.style.float = 'left';
     leftColumn.style.background = 'linear-gradient(to bottom, rgb(117, 142, 219), rgb(109, 124, 218), rgb(104, 108, 213))';
     var leftColumnMenus = document.createElement('img');
@@ -91,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var rightColumn = document.createElement('div');
     appContent.appendChild(rightColumn);
     rightColumn.style.width = '65%';
-    rightColumn.style.height = '75%';
+    rightColumn.style.height = '100%';
     rightColumn.style.float = 'left';
     rightColumn.style.display = 'grid';
     rightColumn.style.gridTemplateColumns = 'repeat(auto-fill, 150px)';

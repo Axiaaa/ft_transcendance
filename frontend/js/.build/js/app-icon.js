@@ -37,8 +37,15 @@ function createApp(appname, content) {
     var windowBody = document.createElement('div');
     windowBody.classList.add('window-body');
     App.appendChild(windowBody);
-    if (content)
+    windowBody.style.width = 'calc(100% - 6px)';
+    windowBody.style.height = 'calc(100% - 27px)';
+    windowBody.style.overflow = 'hidden';
+    windowBody.style.margin = '0px 3px';
+    if (content) {
         windowBody.appendChild(content);
+        content.style.height = (parseInt(App.style.height) - 45.5) + 'px';
+        content.style.width = (parseInt(App.style.width) - 22) + 'px';
+    }
     document.body.appendChild(App);
     return App;
 }
@@ -53,6 +60,16 @@ function disableImgDragging() {
         }, false);
     }
 }
+function renderWindowContent(App) {
+    if (!App)
+        return;
+    requestAnimationFrame(function () {
+        App.style.width = 'calc(100% - 6px)';
+        App.style.boxSizing = 'border-box';
+        App.style.height = 'calc(100% - 30px)';
+        App.style.overflow = 'hidden';
+    });
+}
 document.addEventListener('DOMContentLoaded', function () {
     disableImgDragging();
     // Apps creation
@@ -62,18 +79,18 @@ document.addEventListener('DOMContentLoaded', function () {
     pongApp.children[1].appendChild(pongCanvas);
     pongCanvas.id = 'pong-game-canvas';
     var pongAppWindow = document.getElementById('pong-app-window');
-    pongCanvas.style.width = 'calc(100% - 16px)';
-    pongCanvas.style.height = 'calc(100% - 42px)';
-    pongCanvas.style.boxSizing = 'border-box';
-    pongCanvas.style.overflow = 'hidden';
+    renderWindowContent(pongCanvas);
     pongCanvas.style.position = 'absolute';
     pongCanvas.style.backgroundColor = 'black';
     console.log("App created: Id: " + pongApp.id + " Class: " + pongApp.className);
     var settingsApp = createApp('settings');
+    renderWindowContent(settingsApp.children[1].children[0]);
     console.log("App created: Id: " + settingsApp.id + " Class: " + settingsApp.className);
     var terminalApp = createApp('terminal');
+    renderWindowContent(terminalApp.children[1].children[0]);
     console.log("App created: Id: " + terminalApp.id + " Class: " + terminalApp.className);
     var ExplorerApp = createApp('explorer');
+    renderWindowContent(ExplorerApp.children[1]);
     console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
     var ExplorerContent = ExplorerApp.children[1];
     var ExplorerContentTemp = document.createElement('img');
