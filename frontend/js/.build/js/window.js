@@ -7,12 +7,53 @@ function resetWindows(windowElement) {
     windowElement.style.top = '0px';
     windowElement.style.zIndex = "24";
 }
+function maximize(windowElement, isMaximised) {
+    console.log('maximise');
+    if (isMaximised) {
+        windowElement.style.width = '500px';
+        windowElement.style.height = '400px';
+        windowElement.style.left = '0px';
+        windowElement.style.top = '0px';
+        isMaximised = false;
+    }
+    else {
+        windowElement.style.width = "".concat(window.innerWidth, "px");
+        windowElement.style.height = "".concat(window.innerHeight, "px");
+        windowElement.style.left = '0px';
+        windowElement.style.top = '0px';
+        isMaximised = true;
+    }
+}
+;
+function minimize(windowElement, isMinimised) {
+    console.log('minimise');
+    if (isMinimised) {
+        windowElement.style.display = 'block';
+        isMinimised = false;
+    }
+    else {
+        windowElement.style.display = 'none';
+        isMinimised = true;
+    }
+}
 document.addEventListener('DOMContentLoaded', function () {
     var Windows = document.getElementsByClassName('window');
+    console.log('Found ' + Windows.length + ' windows:');
+    Array.from(Windows).forEach(function (window, index) {
+        console.log("Window ".concat(index, " details:"), window);
+    });
     var _loop_1 = function (i) {
         var isDragging = false;
         var windowElement = Windows[i];
         var windowHeader = Windows[i].children[0];
+        try {
+            console.log("Traitement de la fen\u00EAtre ".concat(i));
+            console.log('Window ' + i + ': ' + windowElement.id);
+            console.log("Fen\u00EAtre ".concat(i, " trait\u00E9e avec succ\u00E8s"));
+        }
+        catch (error) {
+            console.error("Erreur sur la fen\u00EAtre ".concat(i, ":"), error);
+        }
         var closeButton = windowElement.children[0].children[1].children[2];
         closeButton.addEventListener('click', function () {
             console.log('close');
@@ -21,34 +62,12 @@ document.addEventListener('DOMContentLoaded', function () {
         var maximiseButton = windowElement.children[0].children[1].children[1];
         var isMaximised = false;
         maximiseButton.addEventListener('click', function () {
-            console.log('maximise');
-            if (isMaximised) {
-                windowElement.style.width = '500px';
-                windowElement.style.height = '400px';
-                windowElement.style.left = '0px';
-                windowElement.style.top = '0px';
-                isMaximised = false;
-            }
-            else {
-                windowElement.style.width = "".concat(window.innerWidth, "px");
-                windowElement.style.height = "".concat(window.innerHeight, "px");
-                windowElement.style.left = '0px';
-                windowElement.style.top = '0px';
-                isMaximised = true;
-            }
+            maximize(windowElement, isMaximised);
         });
         var minimiseButton = windowElement.children[0].children[1].children[0];
         var isMinimised = false;
         minimiseButton.addEventListener('click', function () {
-            console.log('minimise');
-            if (isMinimised) {
-                windowElement.style.display = 'block';
-                isMinimised = false;
-            }
-            else {
-                windowElement.style.display = 'none';
-                isMinimised = true;
-            }
+            minimize(windowElement, isMinimised);
         });
         windowElement.style.display = 'none';
         windowElement.style.zIndex = "24";
@@ -123,9 +142,11 @@ document.addEventListener('DOMContentLoaded', function () {
             isResizing = false;
         });
         var windowsContent = windowElement.children[1].children[0];
-        windowsContent.style.overflow = 'auto';
-        windowsContent.style.height = 'calc(100% - 1px)';
-        windowsContent.style.width = 'calc(100% - 1px)';
+        if (windowsContent) {
+            windowsContent.style.overflow = 'auto';
+            windowsContent.style.height = 'calc(100% - 1px)';
+            windowsContent.style.width = 'calc(100% - 1px)';
+        }
     };
     for (var i = 0; i < Windows.length; i++) {
         _loop_1(i);

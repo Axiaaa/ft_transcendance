@@ -7,50 +7,93 @@ export function openAppWindow(appName: string): void {
 };
 
 
-function createApp(appname: string, content?: HTMLElement): HTMLDivElement {
+function createApp(appname: string, content?: HTMLElement): HTMLDivElement
+{
 	let App = document.createElement('div');
 	App.classList.add('window');
 	App.id = appname + '-app-window';
 	App.style.display = 'none';
+	App.style.minWidth = '400px';
+	App.style.minHeight = '300px';
 	App.style.width = '500px';
 	App.style.height = '400px';
-	App.appendChild(document.createElement('div'));
-	App.children[0].classList.add('title-bar');
-	App.children[0].appendChild(document.createElement('div'));
-	App.children[0].children[0].classList.add('title-bar-text');
+	
+	let titleBar = document.createElement('div');
+	titleBar.classList.add('title-bar');
+	App.appendChild(titleBar);
+	let titleBarText = document.createElement('div');
+	titleBarText.classList.add('title-bar-text');
+	titleBar.appendChild(titleBarText);
 	let Name = appname.charAt(0).toUpperCase() + appname.slice(1);
-	App.children[0].children[0].textContent = Name;
-	App.children[0].appendChild(document.createElement('div'));
-	App.children[0].children[1].classList.add('title-bar-controls');
-	App.children[0].children[1].appendChild(document.createElement('button'));
-	App.children[0].children[1].children[0].ariaLabel = 'Minimize';
-	App.children[0].children[1].appendChild(document.createElement('button'));
-	App.children[0].children[1].children[1].ariaLabel = 'Maximize';
-	App.children[0].children[1].appendChild(document.createElement('button'));
-	App.children[0].children[1].children[2].ariaLabel = 'Close';
-	App.children[0].children[1].children[2].id = 'close-button';
-	App.appendChild(document.createElement('div'));
-	App.children[1].classList.add('window-body');
+	titleBarText.textContent = Name;
+	let titleBarControls = document.createElement('div');
+	titleBarControls.classList.add('title-bar-controls');
+	titleBar.appendChild(titleBarControls);
+	let minimizeButton = document.createElement('button');
+	minimizeButton.ariaLabel = 'Minimize';
+	titleBarControls.appendChild(minimizeButton);
+	let maximizeButton = document.createElement('button');
+	maximizeButton.ariaLabel = 'Maximize';
+	titleBarControls.appendChild(maximizeButton);
+	let closeButton = document.createElement('button');
+	closeButton.ariaLabel = 'Close';
+	closeButton.id = 'close-button';
+	titleBarControls.appendChild(closeButton);
+	let windowBody = document.createElement('div');
+	windowBody.classList.add('window-body');
+	App.appendChild(windowBody);
 	if (content)
-		App.children[1].appendChild(content);
+		windowBody.appendChild(content);
 	document.body.appendChild(App);
+
 	return App;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
 
-	function disableImgDragging() {
-		var images = document.getElementsByTagName("img");
-		for(var i = 0 ; i < images.length ; i++) {
-		images[i].classList.add('no-drag');
-		images[i].setAttribute('no-drag', 'on');
-		images[i].setAttribute('draggable', 'false');
-		images[i].addEventListener('dragstart', function( event ) {
-			event.preventDefault();
-		}, false);
-		}
+
+function disableImgDragging() {
+	var images = document.getElementsByTagName("img");
+	for(var i = 0 ; i < images.length ; i++) {
+	images[i].classList.add('no-drag');
+	images[i].setAttribute('no-drag', 'on');
+	images[i].setAttribute('draggable', 'false');
+	images[i].addEventListener('dragstart', function( event ) {
+		event.preventDefault();
+	}, false);
 	}
+}
+
+document.addEventListener('DOMContentLoaded', () =>
+{
 	disableImgDragging();
+
+	// Apps creation
+	let pongApp = createApp('pong');
+	console.log(pongApp.id + " " + pongApp.className);
+	let pongCanvas = document.createElement('canvas');
+	pongApp.children[1].appendChild(pongCanvas);
+	pongCanvas.id = 'pong-game-canvas';
+	let pongAppWindow = document.getElementById('pong-app-window') as HTMLElement;
+	pongCanvas.style.width = 'calc(100% - 16px)';
+	pongCanvas.style.height = 'calc(100% - 42px)';
+	pongCanvas.style.boxSizing = 'border-box';
+	pongCanvas.style.overflow = 'hidden';
+	pongCanvas.style.position = 'absolute';
+	pongCanvas.style.backgroundColor = 'black';
+	console.log("App created: Id: " + pongApp.id + " Class: " + pongApp.className);
+	
+	let settingsApp = createApp('settings');
+	console.log("App created: Id: " + settingsApp.id + " Class: " + settingsApp.className);
+
+	let ExplorerApp = createApp('explorer');
+	console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
+	let ExplorerContent = ExplorerApp.children[1] as HTMLElement;
+	let ExplorerContentTemp = document.createElement('img');
+	ExplorerContentTemp.src = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3dtMmVmYnQycWcyYzY4dGFnejhnbTRwbzFiZXUybDJ4dDFvamh4OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4mXjpVNJAFlvi/giphy.gif';
+	ExplorerContent.appendChild(ExplorerContentTemp);
+	ExplorerContent.style.boxSizing = 'border-box';
+	ExplorerContent.style.overflow = 'hidden';
+	
 
 	const desktop = document.getElementById('desktop') as HTMLElement;
 	const windowsContainer = document.getElementById('windows-container') as HTMLElement;
@@ -144,22 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	});
 
-	// Apps
-
-	let settingsApp = createApp('settings');
-	// settingsApp.children[1].appendChild(document.createElement('img'));
-	// (settingsApp.children[1].children[0] as HTMLImageElement).src = './img/settings-app-content.jpeg';
-
-
-	let pongApp = createApp('pong');
-	pongApp.children[1].appendChild(document.createElement('canvas'));
-	let pongCanvas = pongApp.children[1].children[0] as HTMLCanvasElement;
-	pongCanvas.id = 'pong-game-canvas';
-	let pongAppWindow = document.getElementById('pong-app-window') as HTMLElement;
-	pongCanvas.width = parseInt(pongAppWindow.style.width);
-	pongCanvas.height = parseInt(pongAppWindow.style.height);
-	pongCanvas.style.backgroundColor = 'black';
-
+	// Création des fenêtres
 	let startMenuApp = document.getElementsByClassName('menu-item') as HTMLCollectionOf<HTMLDivElement>;
 	for (let i = 0; i < startMenuApp.length; i++) {
 		let app = startMenuApp[i];
@@ -167,6 +195,5 @@ document.addEventListener('DOMContentLoaded', () => {
 			openAppWindow(app.id);
 		});
 	}
-
 
 });

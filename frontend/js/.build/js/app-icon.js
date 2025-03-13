@@ -9,43 +9,76 @@ function createApp(appname, content) {
     App.classList.add('window');
     App.id = appname + '-app-window';
     App.style.display = 'none';
+    App.style.minWidth = '400px';
+    App.style.minHeight = '300px';
     App.style.width = '500px';
     App.style.height = '400px';
-    App.appendChild(document.createElement('div'));
-    App.children[0].classList.add('title-bar');
-    App.children[0].appendChild(document.createElement('div'));
-    App.children[0].children[0].classList.add('title-bar-text');
+    var titleBar = document.createElement('div');
+    titleBar.classList.add('title-bar');
+    App.appendChild(titleBar);
+    var titleBarText = document.createElement('div');
+    titleBarText.classList.add('title-bar-text');
+    titleBar.appendChild(titleBarText);
     var Name = appname.charAt(0).toUpperCase() + appname.slice(1);
-    App.children[0].children[0].textContent = Name;
-    App.children[0].appendChild(document.createElement('div'));
-    App.children[0].children[1].classList.add('title-bar-controls');
-    App.children[0].children[1].appendChild(document.createElement('button'));
-    App.children[0].children[1].children[0].ariaLabel = 'Minimize';
-    App.children[0].children[1].appendChild(document.createElement('button'));
-    App.children[0].children[1].children[1].ariaLabel = 'Maximize';
-    App.children[0].children[1].appendChild(document.createElement('button'));
-    App.children[0].children[1].children[2].ariaLabel = 'Close';
-    App.children[0].children[1].children[2].id = 'close-button';
-    App.appendChild(document.createElement('div'));
-    App.children[1].classList.add('window-body');
+    titleBarText.textContent = Name;
+    var titleBarControls = document.createElement('div');
+    titleBarControls.classList.add('title-bar-controls');
+    titleBar.appendChild(titleBarControls);
+    var minimizeButton = document.createElement('button');
+    minimizeButton.ariaLabel = 'Minimize';
+    titleBarControls.appendChild(minimizeButton);
+    var maximizeButton = document.createElement('button');
+    maximizeButton.ariaLabel = 'Maximize';
+    titleBarControls.appendChild(maximizeButton);
+    var closeButton = document.createElement('button');
+    closeButton.ariaLabel = 'Close';
+    closeButton.id = 'close-button';
+    titleBarControls.appendChild(closeButton);
+    var windowBody = document.createElement('div');
+    windowBody.classList.add('window-body');
+    App.appendChild(windowBody);
     if (content)
-        App.children[1].appendChild(content);
+        windowBody.appendChild(content);
     document.body.appendChild(App);
     return App;
 }
-document.addEventListener('DOMContentLoaded', function () {
-    function disableImgDragging() {
-        var images = document.getElementsByTagName("img");
-        for (var i = 0; i < images.length; i++) {
-            images[i].classList.add('no-drag');
-            images[i].setAttribute('no-drag', 'on');
-            images[i].setAttribute('draggable', 'false');
-            images[i].addEventListener('dragstart', function (event) {
-                event.preventDefault();
-            }, false);
-        }
+function disableImgDragging() {
+    var images = document.getElementsByTagName("img");
+    for (var i = 0; i < images.length; i++) {
+        images[i].classList.add('no-drag');
+        images[i].setAttribute('no-drag', 'on');
+        images[i].setAttribute('draggable', 'false');
+        images[i].addEventListener('dragstart', function (event) {
+            event.preventDefault();
+        }, false);
     }
+}
+document.addEventListener('DOMContentLoaded', function () {
     disableImgDragging();
+    // Apps creation
+    var pongApp = createApp('pong');
+    console.log(pongApp.id + " " + pongApp.className);
+    var pongCanvas = document.createElement('canvas');
+    pongApp.children[1].appendChild(pongCanvas);
+    pongCanvas.id = 'pong-game-canvas';
+    var pongAppWindow = document.getElementById('pong-app-window');
+    pongCanvas.style.width = 'calc(100% - 16px)';
+    pongCanvas.style.height = 'calc(100% - 42px)';
+    pongCanvas.style.boxSizing = 'border-box';
+    pongCanvas.style.overflow = 'hidden';
+    pongCanvas.style.position = 'absolute';
+    pongCanvas.style.backgroundColor = 'black';
+    console.log("App created: Id: " + pongApp.id + " Class: " + pongApp.className);
+    var settingsApp = createApp('settings');
+    console.log("App created: Id: " + settingsApp.id + " Class: " + settingsApp.className);
+    var ExplorerApp = createApp('explorer');
+    console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
+    var ExplorerContent = ExplorerApp.children[1];
+    var ExplorerContentTemp = document.createElement('img');
+    ExplorerContentTemp.src = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3dtMmVmYnQycWcyYzY4dGFnejhnbTRwbzFiZXUybDJ4dDFvamh4OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4mXjpVNJAFlvi/giphy.gif';
+    ExplorerContent.appendChild(ExplorerContentTemp);
+    ExplorerContent.style.boxSizing = 'border-box';
+    ExplorerContent.style.overflow = 'hidden';
     var desktop = document.getElementById('desktop');
     var windowsContainer = document.getElementById('windows-container');
     var gridSize = 90; // Taille de la grille
@@ -127,18 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
             appicon.style.backgroundColor = 'transparent';
         });
     });
-    // Apps
-    var settingsApp = createApp('settings');
-    // settingsApp.children[1].appendChild(document.createElement('img'));
-    // (settingsApp.children[1].children[0] as HTMLImageElement).src = './img/settings-app-content.jpeg';
-    var pongApp = createApp('pong');
-    pongApp.children[1].appendChild(document.createElement('canvas'));
-    var pongCanvas = pongApp.children[1].children[0];
-    pongCanvas.id = 'pong-game-canvas';
-    var pongAppWindow = document.getElementById('pong-app-window');
-    pongCanvas.width = parseInt(pongAppWindow.style.width);
-    pongCanvas.height = parseInt(pongAppWindow.style.height);
-    pongCanvas.style.backgroundColor = 'black';
+    // Création des fenêtres
     var startMenuApp = document.getElementsByClassName('menu-item');
     var _loop_1 = function (i) {
         var app = startMenuApp[i];
