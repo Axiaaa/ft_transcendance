@@ -23,6 +23,7 @@ function maximize(windowElement, isMaximised) {
         windowElement.style.top = '0px';
         isMaximised = true;
     }
+    return isMaximised;
 }
 ;
 function minimize(windowElement, isMinimised) {
@@ -35,6 +36,7 @@ function minimize(windowElement, isMinimised) {
         windowElement.style.display = 'none';
         isMinimised = true;
     }
+    return isMinimised;
 }
 document.addEventListener('DOMContentLoaded', function () {
     var Windows = document.getElementsByClassName('window');
@@ -62,12 +64,12 @@ document.addEventListener('DOMContentLoaded', function () {
         var maximiseButton = windowElement.children[0].children[1].children[1];
         var isMaximised = false;
         maximiseButton.addEventListener('click', function () {
-            maximize(windowElement, isMaximised);
+            isMaximised = maximize(windowElement, isMaximised);
         });
         var minimiseButton = windowElement.children[0].children[1].children[0];
         var isMinimised = false;
         minimiseButton.addEventListener('click', function () {
-            minimize(windowElement, isMinimised);
+            isMinimised = minimize(windowElement, isMinimised);
         });
         windowElement.style.display = 'none';
         windowElement.style.zIndex = "24";

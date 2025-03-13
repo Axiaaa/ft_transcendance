@@ -9,7 +9,7 @@ function resetWindows(windowElement: HTMLElement) {
 		windowElement.style.zIndex = "24";
 }
 
-function maximize(windowElement: HTMLElement, isMaximised: boolean) {
+function maximize(windowElement: HTMLElement, isMaximised: boolean): boolean {
 	console.log('maximise');
 	if (isMaximised) {
 		windowElement.style.width = '500px';
@@ -25,9 +25,10 @@ function maximize(windowElement: HTMLElement, isMaximised: boolean) {
 		windowElement.style.top = '0px';
 		isMaximised = true;
 	}
+	return isMaximised;
 };
 
-function minimize(windowElement: HTMLElement, isMinimised: boolean) {
+function minimize(windowElement: HTMLElement, isMinimised: boolean): boolean {
 	console.log('minimise');
 	if (isMinimised) {
 		windowElement.style.display = 'block';
@@ -37,6 +38,7 @@ function minimize(windowElement: HTMLElement, isMinimised: boolean) {
 		windowElement.style.display = 'none';
 		isMinimised = true;
 	}
+	return isMinimised;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -69,13 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		
 		maximiseButton.addEventListener('click', () => {
-			maximize(windowElement, isMaximised);
+			isMaximised = maximize(windowElement, isMaximised);
 		});
 
 		let minimiseButton = windowElement.children[0].children[1].children[0] as HTMLElement;
 		let isMinimised = false;
 		minimiseButton.addEventListener('click', () => {
-			minimize(windowElement, isMinimised);
+			isMinimised = minimize(windowElement, isMinimised);
 		});
 
 		windowElement.style.display = 'none';
