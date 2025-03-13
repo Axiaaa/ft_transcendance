@@ -1,6 +1,8 @@
 "use strict";
 document.addEventListener('DOMContentLoaded', function () {
     var appWindow = document.getElementById('settings-app-window');
+    appWindow.style.minHeight = '400px';
+    appWindow.style.minWidth = '600px';
     var appWindowBody = appWindow.children[1];
     function createCategory(name) {
         var category = document.createElement('div');
@@ -67,14 +69,18 @@ document.addEventListener('DOMContentLoaded', function () {
     appHeader.style.pointerEvents = 'none';
     var leftColumn = document.createElement('div');
     appContent.appendChild(leftColumn);
+    leftColumn.style.position = 'relative';
+    leftColumn.style.top = '0px';
     leftColumn.style.width = '35%';
-    leftColumn.style.height = "calc(75% - ".concat(appHeader.offsetHeight, "px)");
+    leftColumn.style.minWidth = '200px';
+    leftColumn.style.maxWidth = '400px';
+    leftColumn.style.height = '75%';
     leftColumn.style.float = 'left';
     leftColumn.style.background = 'linear-gradient(to bottom, rgb(117, 142, 219), rgb(109, 124, 218), rgb(104, 108, 213))';
     var leftColumnMenus = document.createElement('img');
     leftColumn.appendChild(leftColumnMenus);
     leftColumnMenus.src = './img/xp_controlpanel_left_cmp.png';
-    leftColumnMenus.style.width = '';
+    leftColumnMenus.style.width = '90%';
     leftColumnMenus.style.height = 'auto';
     leftColumnMenus.style.margin = '10px auto';
     leftColumnMenus.style.display = 'block';

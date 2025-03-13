@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
 	let appWindow = document.getElementById('settings-app-window') as HTMLElement;
+	appWindow.style.minHeight = '400px';
+	appWindow.style.minWidth = '600px';
 	let appWindowBody = appWindow.children[1] as HTMLElement;
 
 
@@ -74,10 +76,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	let	leftColumn = document.createElement('div');
 	appContent.appendChild(leftColumn);
+	leftColumn.style.position = 'relative';
+	leftColumn.style.top = '0px';
 	leftColumn.style.width = '35%';
-	leftColumn.style.height = `calc(75% - ${appHeader.offsetHeight}px)`;
+	leftColumn.style.minWidth = '200px';
+	leftColumn.style.maxWidth = '400px';
+	leftColumn.style.height = '75%';
 	leftColumn.style.float = 'left';
 	leftColumn.style.background = 'linear-gradient(to bottom, rgb(117, 142, 219), rgb(109, 124, 218), rgb(104, 108, 213))';
+	
 	let leftColumnMenus = document.createElement('img');
 	leftColumn.appendChild(leftColumnMenus);
 	leftColumnMenus.src = './img/xp_controlpanel_left_cmp.png';
