@@ -5,9 +5,14 @@ export function sendNotification(title: string, message: string, icon: string) {
 	let notification = document.createElement('div');
 	notification.id = 'notification-icon';
 	notification.style.position = 'absolute';
+	notification.style.zIndex = '100';
 	notification.style.right = '110px';
 	notification.style.bottom = '40px';
-	notification.style.width = '300px';
+	notification.style.width = 'calc(200px + 10%)';
+	notification.style.maxHeight = '60px';
+	notification.style.minHeight = '60px';
+	notification.style.maxWidth = 'calc(100% - 220px)';
+	notification.style.minWidth = '200px';
 	notification.style.height = '60px';
 	notification.style.borderRadius = '12px';
 	notification.style.border = '2px solid rgba(0, 0, 0, 0.85)';
