@@ -38,6 +38,20 @@ function minimize(windowElement, isMinimised) {
     }
     return isMinimised;
 }
+function windowResize(isResizing, window, windowElement, e) {
+    if (isResizing) {
+        var newWidth = e.clientX - windowElement.offsetLeft + 5;
+        var newHeight = e.clientY - windowElement.offsetTop + 5;
+        var minWidth = 300;
+        var minHeight = 200;
+        windowElement.style.width = "".concat(Math.max(newWidth, minWidth), "px");
+        windowElement.style.height = "".concat(Math.max(newHeight, minHeight), "px");
+        if (windowElement.offsetLeft + windowElement.offsetWidth > window.innerWidth)
+            windowElement.style.width = "".concat(window.innerWidth - windowElement.offsetLeft, "px");
+        if (windowElement.offsetTop + windowElement.offsetHeight > window.innerHeight)
+            windowElement.style.height = "".concat(window.innerHeight - windowElement.offsetTop, "px");
+    }
+}
 document.addEventListener('DOMContentLoaded', function () {
     var Windows = document.getElementsByClassName('window');
     console.log('Found ' + Windows.length + ' windows:');
@@ -104,17 +118,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
-        document.addEventListener('mouseup', function () {
+        windowHeader.addEventListener('mouseup', function () {
             isDragging = false;
         });
         var isResizing = false;
         var resizeHandle = document.createElement('div');
         resizeHandle.style.position = 'absolute';
-        resizeHandle.style.width = '10px';
-        resizeHandle.style.height = '10px';
+        resizeHandle.style.width = '15px';
+        resizeHandle.style.height = '15px';
         resizeHandle.style.right = '0px';
         resizeHandle.style.bottom = '0px';
-        resizeHandle.style.backgroundColor = 'white';
         resizeHandle.style.zIndex = '0';
         windowElement.appendChild(resizeHandle);
         resizeHandle.addEventListener('mouseenter', function (e) {
@@ -127,18 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
             isResizing = true;
         });
         document.addEventListener('mousemove', function (e) {
-            if (isResizing) {
-                var newWidth = e.clientX - windowElement.offsetLeft + 5;
-                var newHeight = e.clientY - windowElement.offsetTop + 5;
-                var minWidth = 300;
-                var minHeight = 200;
-                windowElement.style.width = "".concat(Math.max(newWidth, minWidth), "px");
-                windowElement.style.height = "".concat(Math.max(newHeight, minHeight), "px");
-                if (windowElement.offsetLeft + windowElement.offsetWidth > window.innerWidth)
-                    windowElement.style.width = "".concat(window.innerWidth - windowElement.offsetLeft, "px");
-                if (windowElement.offsetTop + windowElement.offsetHeight > window.innerHeight)
-                    windowElement.style.height = "".concat(window.innerHeight - windowElement.offsetTop, "px");
-            }
+            windowResize(isResizing, window, windowElement, e);
         });
         resizeHandle.addEventListener('mouseup', function () {
             isResizing = false;
@@ -149,6 +151,10 @@ document.addEventListener('DOMContentLoaded', function () {
             windowsContent.style.height = 'calc(100% - 1px)';
             windowsContent.style.width = 'calc(100% - 1px)';
         }
+        document.addEventListener('mouseup', function () {
+            isDragging = false;
+            isResizing = false;
+        });
     };
     for (var i = 0; i < Windows.length; i++) {
         _loop_1(i);

@@ -41,6 +41,23 @@ function minimize(windowElement: HTMLElement, isMinimised: boolean): boolean {
 	return isMinimised;
 }
 
+function windowResize(isResizing: boolean, window: Window, windowElement: HTMLElement, e: MouseEvent) {
+	if (isResizing) {
+		const newWidth = e.clientX - windowElement.offsetLeft + 5;
+		const newHeight = e.clientY - windowElement.offsetTop + 5;
+		const minWidth = 300;
+		const minHeight = 200;
+		
+		windowElement.style.width = `${Math.max(newWidth, minWidth)}px`;
+		windowElement.style.height = `${Math.max(newHeight, minHeight)}px`;
+
+		if (windowElement.offsetLeft + windowElement.offsetWidth > window.innerWidth)
+			windowElement.style.width = `${window.innerWidth - windowElement.offsetLeft}px`;
+		if (windowElement.offsetTop + windowElement.offsetHeight > window.innerHeight)
+			windowElement.style.height = `${window.innerHeight - windowElement.offsetTop}px`;
+	}
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	
 	let Windows = document.getElementsByClassName('window');
@@ -117,20 +134,21 @@ document.addEventListener('DOMContentLoaded', () => {
 				}
 			}
 		});
-		document.addEventListener('mouseup', () => {
+		windowHeader.addEventListener('mouseup', () => {
 			isDragging = false;
 		});
+
 
 		let isResizing = false;
 		let resizeHandle = document.createElement('div');
 		resizeHandle.style.position = 'absolute';
-		resizeHandle.style.width = '10px';
-		resizeHandle.style.height = '10px';
+		resizeHandle.style.width = '15px';
+		resizeHandle.style.height = '15px';
 		resizeHandle.style.right = '0px';
 		resizeHandle.style.bottom = '0px';
-		resizeHandle.style.backgroundColor = 'white';
 		resizeHandle.style.zIndex = '0';
 		windowElement.appendChild(resizeHandle);
+
 		resizeHandle.addEventListener('mouseenter', (e: MouseEvent) => {
 			document.body.style.cursor = 'nwse-resize';
 		});
@@ -141,20 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			isResizing = true;
 		});
 		document.addEventListener('mousemove', (e: MouseEvent) => {
-			if (isResizing) {
-				const newWidth = e.clientX - windowElement.offsetLeft + 5;
-				const newHeight = e.clientY - windowElement.offsetTop + 5;
-				const minWidth = 300;
-				const minHeight = 200;
-				
-				windowElement.style.width = `${Math.max(newWidth, minWidth)}px`;
-				windowElement.style.height = `${Math.max(newHeight, minHeight)}px`;
-
-				if (windowElement.offsetLeft + windowElement.offsetWidth > window.innerWidth)
-					windowElement.style.width = `${window.innerWidth - windowElement.offsetLeft}px`;
-				if (windowElement.offsetTop + windowElement.offsetHeight > window.innerHeight)
-					windowElement.style.height = `${window.innerHeight - windowElement.offsetTop}px`;
-			}
+			windowResize(isResizing, window, windowElement, e);
 		});
 		resizeHandle.addEventListener('mouseup', () => {
 			isResizing = false;
@@ -165,6 +170,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			windowsContent.style.height = 'calc(100% - 1px)';
 			windowsContent.style.width = 'calc(100% - 1px)';
 		}
+
+
+		document.addEventListener('mouseup', () => {
+			isDragging = false;
+			isResizing = false;
+		});
+
 	}
 
 });
