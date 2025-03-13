@@ -56,6 +56,30 @@ export function sendNotification(title, message, icon) {
     notificationText.style.fontFamily = 'Arial, sans-serif';
     notificationText.innerText = message;
     notificationText.style.overflow = 'scroll';
+    notificationText.style.overflowX = 'scroll';
+    notificationText.style.overflowY = 'hidden';
+    var scrollSpeed = 0;
+    var scrollAnimation;
+    notificationText.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        // Adjust scroll speed based on deltaY
+        var acceleration = Math.abs(e.deltaY) / 120; // doubled from 150
+        scrollSpeed = Math.min(10, Math.max(5, acceleration * 10)); // halved from 20,10
+        clearInterval(scrollAnimation);
+        scrollAnimation = setInterval(function () {
+            if (e.deltaY > 0) {
+                notificationText.scrollLeft += scrollSpeed;
+            }
+            else {
+                notificationText.scrollLeft -= scrollSpeed;
+            }
+            // Decelerate
+            scrollSpeed *= 0.95;
+            if (scrollSpeed < 0.5) {
+                clearInterval(scrollAnimation);
+            }
+        }, 16);
+    });
     notificationText.style.textOverflow = 'ellipsis';
     notificationText.style.whiteSpace = 'nowrap';
     notification.appendChild(notificationText);
@@ -68,6 +92,8 @@ export function sendNotification(title, message, icon) {
     notificationIcon.style.height = 'auto';
     notificationIcon.style.borderRadius = '5px';
     notificationIcon.src = icon;
+    notificationIcon.style.userSelect = 'none';
+    notificationIcon.draggable = false;
     notification.appendChild(notificationIcon);
     var notificationClose = document.createElement('div');
     notificationClose.id = 'notification-close';
@@ -88,6 +114,13 @@ export function sendNotification(title, message, icon) {
     notification.appendChild(notificationClose);
     notification.style.display = 'block';
     taskbar.appendChild(notification);
+    var isHovering = false;
+    notification.addEventListener('mouseenter', function () {
+        isHovering = true;
+    });
+    notification.addEventListener('mouseleave', function () {
+        isHovering = false;
+    });
     notificationClose.addEventListener('mouseenter', function () {
         notificationClose.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
     });
@@ -102,6 +135,8 @@ export function sendNotification(title, message, icon) {
         }, 750);
     });
     setTimeout(function () {
+        if (isHovering)
+            return;
         notification.style.opacity = '0';
         setTimeout(function () {
             notification.style.display = 'none';
@@ -110,6 +145,7 @@ export function sendNotification(title, message, icon) {
     }, 10000);
 }
 document.addEventListener('DOMContentLoaded', function () {
-    // Test notification
-    sendNotification("Notification test", "This is a test notification snvfweifbveyuirvbehsuiveryhuvberyuveryuvyervyebvebvhugvhebv", "https://media.giphy.com/media/c5skRQb3BXp8RwKGKW/giphy.gif?cid=790b7611o1187e2a31w6cpl715es06ac2ji3emsexex42ha4&ep=v1_gifs_search&rid=giphy.gif&ct=g");
+    // Welcome Message
+    var message = "Welcome to WindowsXPong ! This is a simple pong game created using TypeScript and HTML5 Canvas. This project is a part of the WindowsXP project, a recreation of the Windows XP operating system using TypeScript, HTML, and CSS. The project is open-source and available on GitHub. This project is created by Jcuzin, Lcamerly, Mcourbon, Aammmirat & Yallo. Enjoy your time on WindowsXPong !";
+    sendNotification("Welcome to WindowsXPong !", message, "https://media.giphy.com/media/c5skRQb3BXp8RwKGKW/giphy.gif?cid=790b7611o1187e2a31w6cpl715es06ac2ji3emsexex42ha4&ep=v1_gifs_search&rid=giphy.gif&ct=g");
 });

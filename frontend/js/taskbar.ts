@@ -85,16 +85,18 @@ document.addEventListener('DOMContentLoaded', () => {
 	accessibilityIcon.style.left = '0px';
 	accessibilityIcon.style.width = '60%';
 	accessibilityIcon.style.height = '100%';
-	// accessibilityIcon.style.backgroundColor = 'rgba(88, 255, 88, 0.76)';
 	accessibilityIcon.style.display = 'flex';
 	accessibilityIcon.style.flexDirection = 'row';
 	accessibilityIcon.style.justifyContent = 'left';
 	accessibilityIcon.style.alignItems = 'center';
 	accessibilityIcon.style.gap = '0px';
+
 	function createAccessibilityIcon(name: string, imgsrc: string): HTMLDivElement {
 		let aIcon = document.createElement('img');
 		accessibilityIcon.appendChild(aIcon);
 		aIcon.src = imgsrc;
+		aIcon.style.userSelect = 'none';
+		aIcon.draggable = false;
 		aIcon.id = name;
 		aIcon.style.width = '20px';
 		aIcon.style.height = 'auto';
