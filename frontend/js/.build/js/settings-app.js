@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var leftColumn = document.createElement('div');
     appContent.appendChild(leftColumn);
     leftColumn.style.width = '35%';
-    leftColumn.style.height = "calc(100% - ".concat(appHeader.offsetHeight + 80, "px)");
+    leftColumn.style.height = "calc(75% - ".concat(appHeader.offsetHeight, "px)");
     leftColumn.style.float = 'left';
     leftColumn.style.background = 'linear-gradient(to bottom, rgb(117, 142, 219), rgb(109, 124, 218), rgb(104, 108, 213))';
     var leftColumnMenus = document.createElement('img');
