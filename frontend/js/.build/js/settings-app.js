@@ -38,6 +38,8 @@ document.addEventListener('DOMContentLoaded', function () {
         icon.style.width = '40px';
         icon.style.height = '40px';
         icon.style.marginRight = '5px';
+        icon.style.userSelect = 'none';
+        icon.style.pointerEvents = 'none';
         category.insertBefore(icon, category.firstChild);
         rightColumn.appendChild(category);
         return category;
@@ -61,10 +63,12 @@ document.addEventListener('DOMContentLoaded', function () {
     appHeader.style.left = '0px';
     appHeader.style.overflow = 'hidden';
     appHeader.style.zoom = '0.5';
+    appHeader.style.userSelect = 'none';
+    appHeader.style.pointerEvents = 'none';
     var leftColumn = document.createElement('div');
     appContent.appendChild(leftColumn);
     leftColumn.style.width = '35%';
-    leftColumn.style.height = '75%';
+    leftColumn.style.height = "calc(100% - ".concat(appHeader.offsetHeight + 80, "px)");
     leftColumn.style.float = 'left';
     leftColumn.style.background = 'linear-gradient(to bottom, rgb(117, 142, 219), rgb(109, 124, 218), rgb(104, 108, 213))';
     var leftColumnMenus = document.createElement('img');
@@ -76,6 +80,8 @@ document.addEventListener('DOMContentLoaded', function () {
     leftColumnMenus.style.display = 'block';
     leftColumnMenus.style.position = 'relative';
     leftColumnMenus.style.padding = '0 10px';
+    leftColumnMenus.style.userSelect = 'none';
+    leftColumnMenus.style.pointerEvents = 'none';
     var rightColumn = document.createElement('div');
     appContent.appendChild(rightColumn);
     rightColumn.style.width = '65%';
