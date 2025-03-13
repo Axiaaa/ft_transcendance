@@ -160,7 +160,18 @@ document.addEventListener('DOMContentLoaded', function () {
             appicon.style.backgroundColor = 'transparent';
         });
     });
-    // Création des fenêtres
+    // Apps
+    var settingsApp = createApp('settings');
+    // settingsApp.children[1].appendChild(document.createElement('img'));
+    // (settingsApp.children[1].children[0] as HTMLImageElement).src = './img/settings-app-content.jpeg';
+    var pongApp = createApp('pong');
+    pongApp.children[1].appendChild(document.createElement('canvas'));
+    var pongCanvas = pongApp.children[1].children[0];
+    pongCanvas.id = 'pong-game-canvas';
+    var pongAppWindow = document.getElementById('pong-app-window');
+    pongCanvas.width = parseInt(pongAppWindow.style.width);
+    pongCanvas.height = parseInt(pongAppWindow.style.height);
+    pongCanvas.style.backgroundColor = 'black';
     var startMenuApp = document.getElementsByClassName('menu-item');
     var _loop_1 = function (i) {
         var app = startMenuApp[i];

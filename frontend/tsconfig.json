@@ -13,6 +13,7 @@
 		"./js/start-menu.ts",
 		"./js/login-screen.ts",
 		"./js/taskbar.ts",
-		"./js/settings-app.ts"
+		"./js/settings-app.ts",
+		"./js/terminal-app.ts"
 	]
 }
