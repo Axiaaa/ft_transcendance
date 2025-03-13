@@ -4,8 +4,8 @@ function resetWindows(windowElement: HTMLElement) {
 		windowElement.style.display = 'none';
 		windowElement.style.width = '500px';
 		windowElement.style.height = '400px';
-		windowElement.style.left = '0px';
-		windowElement.style.top = '0px';
+		windowElement.style.left = '5%';
+		windowElement.style.top = '5%';
 		windowElement.style.zIndex = "24";
 }
 

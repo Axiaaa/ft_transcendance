@@ -13,6 +13,8 @@ function createApp(appname, content) {
     App.style.minHeight = '300px';
     App.style.width = '500px';
     App.style.height = '400px';
+    App.style.left = '5%';
+    App.style.top = '5%';
     var titleBar = document.createElement('div');
     titleBar.classList.add('title-bar');
     App.appendChild(titleBar);
@@ -90,14 +92,13 @@ document.addEventListener('DOMContentLoaded', function () {
     renderWindowContent(terminalApp.children[1].children[0]);
     console.log("App created: Id: " + terminalApp.id + " Class: " + terminalApp.className);
     var ExplorerApp = createApp('explorer');
-    renderWindowContent(ExplorerApp.children[1]);
     console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
     var ExplorerContent = ExplorerApp.children[1];
     var ExplorerContentTemp = document.createElement('img');
     ExplorerContentTemp.src = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3dtMmVmYnQycWcyYzY4dGFnejhnbTRwbzFiZXUybDJ4dDFvamh4OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4mXjpVNJAFlvi/giphy.gif';
     ExplorerContent.appendChild(ExplorerContentTemp);
-    ExplorerContent.style.boxSizing = 'border-box';
-    ExplorerContent.style.overflow = 'hidden';
+    ExplorerContentTemp.style.position = 'absolute';
+    renderWindowContent(ExplorerApp.children[1].children[0]);
     var desktop = document.getElementById('desktop');
     var windowsContainer = document.getElementById('windows-container');
     var gridSize = 90; // Taille de la grille

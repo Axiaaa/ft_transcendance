@@ -17,6 +17,8 @@ function createApp(appname: string, content?: HTMLElement): HTMLDivElement
 	App.style.minHeight = '300px';
 	App.style.width = '500px';
 	App.style.height = '400px';
+	App.style.left = '5%';
+	App.style.top = '5%';
 	
 	let titleBar = document.createElement('div');
 	titleBar.classList.add('title-bar');
@@ -108,14 +110,13 @@ document.addEventListener('DOMContentLoaded', () =>
 	console.log("App created: Id: " + terminalApp.id + " Class: " + terminalApp.className);
 	
 	let ExplorerApp = createApp('explorer');
-	renderWindowContent(ExplorerApp.children[1] as HTMLElement);
 	console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
 	let ExplorerContent = ExplorerApp.children[1] as HTMLElement;
 	let ExplorerContentTemp = document.createElement('img');
 	ExplorerContentTemp.src = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3dtMmVmYnQycWcyYzY4dGFnejhnbTRwbzFiZXUybDJ4dDFvamh4OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4mXjpVNJAFlvi/giphy.gif';
 	ExplorerContent.appendChild(ExplorerContentTemp);
-	ExplorerContent.style.boxSizing = 'border-box';
-	ExplorerContent.style.overflow = 'hidden';
+	ExplorerContentTemp.style.position = 'absolute';
+	renderWindowContent(ExplorerApp.children[1].children[0] as HTMLElement);
 	
 
 	const desktop = document.getElementById('desktop') as HTMLElement;
