@@ -84,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () =>
 	
 	let settingsApp = createApp('settings');
 	console.log("App created: Id: " + settingsApp.id + " Class: " + settingsApp.className);
-
+	let terminalApp = createApp('terminal');
+	console.log("App created: Id: " + terminalApp.id + " Class: " + terminalApp.className);
 	let ExplorerApp = createApp('explorer');
 	console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
 	let ExplorerContent = ExplorerApp.children[1] as HTMLElement;

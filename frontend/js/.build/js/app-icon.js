@@ -71,6 +71,8 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log("App created: Id: " + pongApp.id + " Class: " + pongApp.className);
     var settingsApp = createApp('settings');
     console.log("App created: Id: " + settingsApp.id + " Class: " + settingsApp.className);
+    var terminalApp = createApp('terminal');
+    console.log("App created: Id: " + terminalApp.id + " Class: " + terminalApp.className);
     var ExplorerApp = createApp('explorer');
     console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
     var ExplorerContent = ExplorerApp.children[1];
@@ -160,18 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
             appicon.style.backgroundColor = 'transparent';
         });
     });
-    // Apps
-    var settingsApp = createApp('settings');
-    // settingsApp.children[1].appendChild(document.createElement('img'));
-    // (settingsApp.children[1].children[0] as HTMLImageElement).src = './img/settings-app-content.jpeg';
-    var pongApp = createApp('pong');
-    pongApp.children[1].appendChild(document.createElement('canvas'));
-    var pongCanvas = pongApp.children[1].children[0];
-    pongCanvas.id = 'pong-game-canvas';
-    var pongAppWindow = document.getElementById('pong-app-window');
-    pongCanvas.width = parseInt(pongAppWindow.style.width);
-    pongCanvas.height = parseInt(pongAppWindow.style.height);
-    pongCanvas.style.backgroundColor = 'black';
+    // Création des fenêtres
     var startMenuApp = document.getElementsByClassName('menu-item');
     var _loop_1 = function (i) {
         var app = startMenuApp[i];
