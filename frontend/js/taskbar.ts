@@ -7,6 +7,7 @@ export function setIsAppOpen(value: boolean) {
 	isAppOpen = value;
 };
 
+
 document.addEventListener('DOMContentLoaded', () => {
 
 	let taskbar = document.getElementById('taskbar')as HTMLElement;
