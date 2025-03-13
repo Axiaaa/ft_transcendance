@@ -109,11 +109,11 @@ document.addEventListener('DOMContentLoaded', () =>
 	renderWindowContent(terminalApp.children[1].children[0] as HTMLElement);
 	console.log("App created: Id: " + terminalApp.id + " Class: " + terminalApp.className);
 	
-	let ExplorerApp = createApp('explorer');
+	let ExplorerApp = createApp('internet explorer');
 	console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
 	let ExplorerContent = ExplorerApp.children[1] as HTMLElement;
 	let ExplorerContentTemp = document.createElement('img');
-	ExplorerContentTemp.src = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3dtMmVmYnQycWcyYzY4dGFnejhnbTRwbzFiZXUybDJ4dDFvamh4OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4mXjpVNJAFlvi/giphy.gif';
+	ExplorerContentTemp.src = 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGtqMHNrYndsbHZ2ZGM5eXlvNjhwNnlyeXY5cDl2MXBuYTFsaWl0YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3hRzIz4D8Ikgg/giphy.gif';
 	ExplorerContent.appendChild(ExplorerContentTemp);
 	ExplorerContentTemp.style.position = 'absolute';
 	renderWindowContent(ExplorerApp.children[1].children[0] as HTMLElement);
