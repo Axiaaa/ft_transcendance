@@ -59,9 +59,12 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("Window ".concat(index, " details:"), window);
     });
     var _loop_1 = function (i) {
-        var isDragging = false;
         var windowElement = Windows[i];
         var windowHeader = Windows[i].children[0];
+        var isDragging = false;
+        var isMaximised = false;
+        var isMinimised = false;
+        var isOpened = windowElement.classList.contains('opened-window');
         try {
             console.log("Traitement de la fen\u00EAtre ".concat(i));
             console.log('Window ' + i + ': ' + windowElement.id);
@@ -72,16 +75,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         var closeButton = windowElement.children[0].children[1].children[2];
         closeButton.addEventListener('click', function () {
+            isOpened = false;
+            Windows[i].classList.remove('opened-window');
             console.log('close');
             resetWindows(windowElement);
         });
         var maximiseButton = windowElement.children[0].children[1].children[1];
-        var isMaximised = false;
         maximiseButton.addEventListener('click', function () {
             isMaximised = maximize(windowElement, isMaximised);
         });
         var minimiseButton = windowElement.children[0].children[1].children[0];
-        var isMinimised = false;
         minimiseButton.addEventListener('click', function () {
             isMinimised = minimize(windowElement, isMinimised);
         });

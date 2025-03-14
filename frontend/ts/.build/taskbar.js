@@ -8,38 +8,72 @@ export function setIsAppOpen(value) {
 document.addEventListener('DOMContentLoaded', function () {
     var taskbar = document.getElementById('taskbar');
     var taskbarMiddle = taskbar.children[1];
-    function createTaskbarIcon(Name) {
-        var taskbarIcon = document.createElement('div');
-        taskbarIcon.classList.add('taskbar-icons');
-        taskbarIcon.appendChild(document.createElement('img'));
-        taskbarIcon.children[0].classList.add('taskbar-icon-image');
-        taskbarIcon.children[0].src = "./img/".concat(Name.replace('-app', ''), "-icon.png");
-        taskbarMiddle.appendChild(taskbarIcon);
-        taskbarIcon.addEventListener('mouseenter', function () {
-            taskbarIcon.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
+    function createTaskbarApp(Name, iconSrc) {
+        var taskbarApp = document.createElement('div');
+        taskbarApp.classList.add('taskbar-icons');
+        var taskbarAppIcon = document.createElement('img');
+        taskbarApp.appendChild(taskbarAppIcon);
+        taskbarAppIcon.src = iconSrc || './img/Desktop/exe-program-icon.png';
+        taskbarAppIcon.style.height = '25px';
+        taskbarAppIcon.style.width = 'auto';
+        taskbarAppIcon.style.position = 'relative';
+        taskbarAppIcon.style.margin = '2px 2px';
+        taskbarAppIcon.style.transition = 'transform 0.2s ease';
+        taskbarMiddle.appendChild(taskbarApp);
+        taskbarApp.addEventListener('mouseenter', function () {
+            taskbarApp.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
         });
-        taskbarIcon.addEventListener('mouseleave', function () {
+        taskbarApp.addEventListener('mouseleave', function () {
             if (isAppOpen === false)
-                taskbarIcon.style.backgroundColor = 'transparent';
+                taskbarApp.style.backgroundColor = 'transparent';
         });
-        taskbarIcon.addEventListener('click', function () {
+        taskbarApp.addEventListener('click', function () {
             if (isAppOpen) {
                 isAppOpen = false;
                 var appWindow = document.getElementById(Name + '-window');
                 if (appWindow)
                     appWindow.style.display = 'none';
-                taskbarIcon.style.backgroundColor = 'transparent';
+                taskbarApp.style.backgroundColor = 'transparent';
             }
             else {
                 openAppWindow(Name);
                 isAppOpen = true;
-                taskbarIcon.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
+                taskbarApp.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
             }
         });
-        return taskbarIcon;
+        taskbarApp.style.display = 'none';
+        return taskbarApp;
     }
-    var pongApp = createTaskbarIcon('pong-app');
-    var settingsApp = createTaskbarIcon('settings-app');
+    function taskbarIconVisibility(App, Window) {
+        var observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    if (Window === null || Window === void 0 ? void 0 : Window.classList.contains('opened-window'))
+                        App.style.display = 'flex';
+                    else
+                        App.style.display = 'none';
+                }
+            });
+        });
+        if (Window)
+            observer.observe(Window, { attributes: true });
+    }
+    var pongWindow = document.getElementById('pong-app-window');
+    var settingsWindow = document.getElementById('settings-app-window');
+    var terminalWindow = document.getElementById('terminal-app-window');
+    var internetExplorerWindow = document.getElementById('internet explorer-app-window');
+    var pongApp = createTaskbarApp('pong-app', './img/Desktop/pong-game.png');
+    var settingsApp = createTaskbarApp('settings-app', './img/Desktop/settings-icon.png');
+    var terminalApp = createTaskbarApp('terminal-app', './img/Desktop/terminal-icon.png');
+    var internetExplorerApp = createTaskbarApp('internet explorer-app', './img/Start_Menu/internet-explorer-icon.png');
+    if (pongWindow)
+        taskbarIconVisibility(pongApp, pongWindow);
+    if (settingsWindow)
+        taskbarIconVisibility(settingsApp, settingsWindow);
+    if (terminalWindow)
+        taskbarIconVisibility(terminalApp, terminalWindow);
+    if (internetExplorerWindow)
+        taskbarIconVisibility(internetExplorerApp, internetExplorerWindow);
     var rightSide = document.createElement('div');
     rightSide.classList.add('taskbar-right-side');
     rightSide.style.position = 'absolute';

@@ -13,41 +13,82 @@ document.addEventListener('DOMContentLoaded', () => {
 	let taskbar = document.getElementById('taskbar')as HTMLElement;
 	let taskbarMiddle = taskbar.children[1] as HTMLElement;
 
-	function createTaskbarIcon(Name:string) {
-		let taskbarIcon = document.createElement('div');
-		taskbarIcon.classList.add('taskbar-icons');
-		taskbarIcon.appendChild(document.createElement('img'));
-		taskbarIcon.children[0].classList.add('taskbar-icon-image');
-		(taskbarIcon.children[0] as HTMLImageElement).src = `./img/${Name.replace('-app', '')}-icon.png`;
-		taskbarMiddle.appendChild(taskbarIcon);
-		taskbarIcon.addEventListener('mouseenter', () => {
-			taskbarIcon.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
+	function createTaskbarApp(Name: string, iconSrc?: string): HTMLDivElement {
+		let taskbarApp = document.createElement('div');
+		taskbarApp.classList.add('taskbar-icons');
+		let taskbarAppIcon = document.createElement('img');
+		taskbarApp.appendChild(taskbarAppIcon);
+		taskbarAppIcon.src = iconSrc || './img/Desktop/exe-program-icon.png';
+		taskbarAppIcon.style.height = '25px';
+		taskbarAppIcon.style.width = 'auto';
+		taskbarAppIcon.style.position = 'relative';
+		taskbarAppIcon.style.margin = '2px 2px';
+		taskbarAppIcon.style.transition = 'transform 0.2s ease';
+		taskbarMiddle.appendChild(taskbarApp);
+		taskbarApp.addEventListener('mouseenter', () => {
+			taskbarApp.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
 		});
-		taskbarIcon.addEventListener('mouseleave', () => {
+		taskbarApp.addEventListener('mouseleave', () => {
 			if (isAppOpen === false)
-				taskbarIcon.style.backgroundColor = 'transparent';
+				taskbarApp.style.backgroundColor = 'transparent';
 		});
-		taskbarIcon.addEventListener('click', () => {
+		taskbarApp.addEventListener('click', () => {
 			if (isAppOpen) {
 				isAppOpen = false;
 				let appWindow = document.getElementById(Name + '-window');
 				if (appWindow)
 					appWindow.style.display = 'none';
-				taskbarIcon.style.backgroundColor = 'transparent';
+				taskbarApp.style.backgroundColor = 'transparent';
 			}
 			else 
 			{
 				openAppWindow(Name);
 				isAppOpen = true;
-				taskbarIcon.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
+				taskbarApp.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
 			}
 			
 		});
-		return taskbarIcon;
+		taskbarApp.style.display = 'none';
+		return taskbarApp;
 	}
-	let pongApp = createTaskbarIcon('pong-app');
-	let settingsApp = createTaskbarIcon('settings-app');
 	
+	function taskbarIconVisibility(App: HTMLDivElement, Window: HTMLElement)
+	{
+		const observer = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+					if (Window?.classList.contains('opened-window'))
+						App.style.display = 'flex';
+					else
+						App.style.display = 'none';
+				}
+			});
+		});
+		if (Window)
+			observer.observe(Window, { attributes: true });
+	}
+
+	let pongWindow = document.getElementById('pong-app-window');
+	let settingsWindow = document.getElementById('settings-app-window');
+	let terminalWindow = document.getElementById('terminal-app-window');
+	let internetExplorerWindow = document.getElementById('internet explorer-app-window');
+
+	let pongApp = createTaskbarApp('pong-app', './img/Desktop/pong-game.png');
+	let settingsApp = createTaskbarApp('settings-app', './img/Desktop/settings-icon.png');
+	let terminalApp = createTaskbarApp('terminal-app', './img/Desktop/terminal-icon.png');
+	let internetExplorerApp = createTaskbarApp('internet explorer-app', './img/Start_Menu/internet-explorer-icon.png');
+
+	if (pongWindow)
+		taskbarIconVisibility(pongApp, pongWindow);
+	if (settingsWindow)
+		taskbarIconVisibility(settingsApp, settingsWindow);
+	if (terminalWindow)
+		taskbarIconVisibility(terminalApp, terminalWindow);
+	if (internetExplorerWindow)
+		taskbarIconVisibility(internetExplorerApp, internetExplorerWindow);
+	
+
+
 	let rightSide = document.createElement('div');
 	rightSide.classList.add('taskbar-right-side');
 	rightSide.style.position = 'absolute';

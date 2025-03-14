@@ -67,9 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 	for (let i = 0; i < Windows.length; i++) {
 
-		let isDragging: boolean = false;
 		let windowElement = Windows[i] as HTMLElement;
 		let windowHeader = Windows[i].children[0] as HTMLElement;
+		let isDragging: boolean = false;
+		let isMaximised = false;
+		let isMinimised = false;
+		let isOpened = windowElement.classList.contains('opened-window');
 		try {
 			console.log(`Traitement de la fenêtre ${i}`);
 			console.log('Window ' + i + ': ' + windowElement.id);
@@ -79,12 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 		let closeButton = windowElement.children[0].children[1].children[2] as HTMLElement;
 		closeButton.addEventListener('click', () => {
+			isOpened = false;
+			Windows[i].classList.remove('opened-window');
 			console.log('close');
 			resetWindows(windowElement);
 		});
 
 		let maximiseButton = windowElement.children[0].children[1].children[1] as HTMLElement;
-		let isMaximised = false;
 
 		
 		maximiseButton.addEventListener('click', () => {
@@ -92,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 
 		let minimiseButton = windowElement.children[0].children[1].children[0] as HTMLElement;
-		let isMinimised = false;
 		minimiseButton.addEventListener('click', () => {
 			isMinimised = minimize(windowElement, isMinimised);
 		});

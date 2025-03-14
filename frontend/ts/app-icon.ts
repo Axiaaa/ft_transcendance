@@ -4,6 +4,7 @@ export function openAppWindow(appName: string): void {
 	let appWindow = document.getElementById(appName + '-window') as HTMLElement;
 	console.log('Open ' + appName + " = " + appWindow);
 	appWindow.style.display = 'block';
+	appWindow.classList.add('opened-window');
 };
 
 

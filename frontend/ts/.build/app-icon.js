@@ -2,6 +2,7 @@ export function openAppWindow(appName) {
     var appWindow = document.getElementById(appName + '-window');
     console.log('Open ' + appName + " = " + appWindow);
     appWindow.style.display = 'block';
+    appWindow.classList.add('opened-window');
 }
 ;
 function createApp(appname, content) {
