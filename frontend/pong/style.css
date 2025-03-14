@@ -81,3 +81,26 @@ html, body {
     50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
     100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
 }
+
+button-endgame {
+    padding: 15px 30px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: #00ffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    position: absolute;
+    top: 80%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: transparent;
+    border: 2px solid #00ffff;
+    font-family: 'Orbitron', sans-serif;
+    transition: 0.3s;
+}
+
+button-endgame:hover {
+    background: rgba(0, 255, 255, 0.1);
+    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+}

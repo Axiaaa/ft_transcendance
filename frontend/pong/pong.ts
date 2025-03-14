@@ -26,7 +26,7 @@ camera.maxZ = 1000;
 camera.inputs.clear(); // Disable camera controls with arrowLeft and arrowRight
 
 // Add a hemispheric light
-const light: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+const light: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 5, 5), scene);
 light.intensity = 0.8;
 
 // Post-processing effects
@@ -152,13 +152,7 @@ function highlightCircles(playerColor: BABYLON.Color3): void {
     // Listen for key press to resume the game
     window.addEventListener('keydown', handleKeyPress);
 }
-// Function to resume the game
-function handleKeyPress(event: KeyboardEvent): void {
-    if (event.code === 'Space' || event.code === 'Enter') {
-        isPaused = false;
-        window.removeEventListener('keydown', handleKeyPress);
-    }
-}
+
 // Create neon field lines
 const fieldLinePoints: BABYLON.Vector3[] = [
     // Top edges
@@ -288,7 +282,7 @@ let lastScorer: 1 | 2 | null = null;
 const MAX_BALL_SPEED: number = 0.2;
 
 //////////////////////////////// SCORE ////////////////////////////////
-let score1: number = 0, score2: number = 0;
+let score1: number = 0, score2: number = 9;
 const scoreElement: HTMLDivElement = document.createElement('div');
 scoreElement.style.position = 'absolute';
 scoreElement.style.top = '20px';
@@ -499,7 +493,7 @@ function zoomOutEffect(callback?: () => void): void {
 
 //////////////////////////////// RESET ////////////////////////////////
 
-function reset(): void {    
+function reset(): void {
     paddle1.position.set(0, fieldHeight + 0.2, 6.5);
     paddle2.position.set(0, fieldHeight + 0.2, -6.5);
     ball.position.set(0, fieldHeight + 0.2, 0);
@@ -515,19 +509,40 @@ function reset(): void {
     }
 }
 
-//////////////////////////////// ENDGAME ////////////////////////////////
+//////////////////////////////// ENDGAME & RESTART ////////////////////////////////
 
-// let gameIsFinished = false;
+let gameIsFinished = false;
 
-// function endGame() {
-//     gameIsFinished = true;
-//     document.removeEventListener("keydown", handleKeyPress);
-//     // Stop loop ?
-//     const restartButton = document.createElement("button");
-//     restartButton.textContent = "Restart Game";
-//     restartButton.onclick = restartGame;
-//     document.body.appendChild(restartButton);
-// }
+function endGame() {
+    gameIsFinished = true;
+    document.removeEventListener("keydown", handleKeyPress);
+    // Stop loop ?
+    setTimeout(() => {
+        const restartButton = document.createElement("button-endgame");
+        restartButton.textContent = "Restart Game";
+        restartButton.onclick = restartGame;
+        document.body.appendChild(restartButton);
+    }, 1000)
+}
+function handleKeyPress(event: KeyboardEvent): void {
+    if (event.code == 'Space' || event.code == 'Enter') {
+        if (gameIsFinished) return; // If the game is finished we stop the ball
+
+        isPaused = false; // If the game is not finished, we relaunch the ball
+        window.removeEventListener('keydown', handleKeyPress);
+    }
+}
+function restartGame() {
+    gameIsFinished = false;
+    score1 = 0;
+    score2 = 0;
+    isPaused = true;
+    reset();
+    document.removeEventListener("keydown", handleKeyPress);
+    document.addEventListener("keydown", handleKeyPress);
+    const restartButton = document.querySelector("button-endgame");
+    if (restartButton) restartButton.remove();
+}
 
 //////////////////////////////// COLLISION ////////////////////////////////
 
@@ -587,6 +602,7 @@ function checkCollision(): void {
     }
     if (score1 > 9 || score2 > 9) {
         zoomOutEffect();
+        endGame();
     }
 }
 
