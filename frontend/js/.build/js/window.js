@@ -126,8 +126,8 @@ document.addEventListener('DOMContentLoaded', function () {
         resizeHandle.style.position = 'absolute';
         resizeHandle.style.width = '15px';
         resizeHandle.style.height = '15px';
-        resizeHandle.style.right = '0px';
-        resizeHandle.style.bottom = '0px';
+        resizeHandle.style.right = '-5px';
+        resizeHandle.style.bottom = '-5px';
         resizeHandle.style.zIndex = '0';
         windowElement.appendChild(resizeHandle);
         resizeHandle.addEventListener('mouseenter', function (e) {
