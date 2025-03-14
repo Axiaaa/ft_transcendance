@@ -172,7 +172,7 @@ export function sendNotification(title, message, icon) {
             notification.style.display = 'none';
             notification.remove();
         }, 500);
-    }, 1000000);
+    }, 10000);
 }
 document.addEventListener('DOMContentLoaded', function () {
     // Welcome Message

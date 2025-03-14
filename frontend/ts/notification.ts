@@ -179,7 +179,7 @@ export function sendNotification(title: string, message: string, icon: string) {
 			notification.style.display = 'none';
 			notification.remove();
 		}, 500);
-	}, 1000000);
+	}, 10000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
