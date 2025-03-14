@@ -31,6 +31,10 @@ titleScreen.style.transform = 'translateY(-50%)';
 titleScreen.style.left = '50%';
 titleScreen.style.transform = 'translate(-50%, -50%)';
 
+titleScreen.addEventListener('click', () => {
+	titleScreenBackground.style.opacity = '0';
+});
+
 setTimeout(() => {
 	titleScreenBackground.style.opacity = '0';
 	setTimeout(() => {
@@ -38,7 +42,7 @@ setTimeout(() => {
 		titleScreenBackground.remove();
 	}
 	, 500);
-}, 2000);
+}, 4000);
 
 
 

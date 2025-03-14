@@ -28,13 +28,16 @@ titleScreen.style.top = '50%';
 titleScreen.style.transform = 'translateY(-50%)';
 titleScreen.style.left = '50%';
 titleScreen.style.transform = 'translate(-50%, -50%)';
+titleScreen.addEventListener('click', function () {
+    titleScreenBackground.style.opacity = '0';
+});
 setTimeout(function () {
     titleScreenBackground.style.opacity = '0';
     setTimeout(function () {
         titleScreenBackground.style.display = 'none';
         titleScreenBackground.remove();
     }, 500);
-}, 2000);
+}, 4000);
 document.addEventListener('DOMContentLoaded', function () {
     var loginScreen = document.getElementsByClassName("login-screen")[0];
     // Visual Effect Addons
