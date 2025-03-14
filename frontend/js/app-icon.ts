@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () =>
 	console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
 	let ExplorerContent = ExplorerApp.children[1] as HTMLElement;
 	let ExplorerContentTemp = document.createElement('img');
-	ExplorerContentTemp.src = 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGtqMHNrYndsbHZ2ZGM5eXlvNjhwNnlyeXY5cDl2MXBuYTFsaWl0YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3hRzIz4D8Ikgg/giphy.gif';
+	ExplorerContentTemp.src = 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXh2ZTljZWw2ZHd4dWMwc254dzN6M2Y1dHk1Z2JjY2hiMm11azZzaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jNztZhObQPjbsSNNkm/giphy.gif';
 	ExplorerContent.appendChild(ExplorerContentTemp);
 	ExplorerContentTemp.style.position = 'absolute';
 	renderWindowContent(ExplorerApp.children[1].children[0] as HTMLElement);

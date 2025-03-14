@@ -120,7 +120,7 @@
 	z-index: 110;
 	/* bottom: 30px; */
 	left: 20px;
-	top: 40%;
+	top: calc(50% - 55px);
 	width: 400px;
 	height: 100px;
 	/* background: #00a2ff70; */
