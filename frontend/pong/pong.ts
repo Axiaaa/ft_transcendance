@@ -517,17 +517,17 @@ function reset(): void {
 
 //////////////////////////////// ENDGAME ////////////////////////////////
 
-let gameIsFinished = false;
+// let gameIsFinished = false;
 
-function endGame() {
-    gameIsFinished = true;
-    document.removeEventListener("keydown", handleKeyPress);
-    // Stop loop ?
-    const restartButton = document.createElement("button");
-    restartButton.textContent = "Restart Game";
-    restartButton.onclick = restartGame;
-    document.body.appendChild(restartButton);
-}
+// function endGame() {
+//     gameIsFinished = true;
+//     document.removeEventListener("keydown", handleKeyPress);
+//     // Stop loop ?
+//     const restartButton = document.createElement("button");
+//     restartButton.textContent = "Restart Game";
+//     restartButton.onclick = restartGame;
+//     document.body.appendChild(restartButton);
+// }
 
 //////////////////////////////// COLLISION ////////////////////////////////
 
