@@ -154,10 +154,23 @@ export function sendNotification(title: string, message: string, icon: string) {
 		}, 750);
 	}, 10000);
 }
+
 document.addEventListener('DOMContentLoaded', () => {
 	
 	// Welcome Message
-	let message = "Welcome to WindowsXPong ! This is a simple pong game created using TypeScript and HTML5 Canvas. This project is a part of the WindowsXP project, a recreation of the Windows XP operating system using TypeScript, HTML, and CSS. The project is open-source and available on GitHub. This project is created by Jcuzin, Lcamerly, Mcourbon, Aammmirat & Yallo. Enjoy your time on WindowsXPong !";
-	sendNotification("Welcome to WindowsXPong !", message, "https://media.giphy.com/media/c5skRQb3BXp8RwKGKW/giphy.gif?cid=790b7611o1187e2a31w6cpl715es06ac2ji3emsexex42ha4&ep=v1_gifs_search&rid=giphy.gif&ct=g");
+	let loginScreen = document.getElementsByClassName('login-screen')[0] as HTMLElement;
+	if (loginScreen) {
+		const observer = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (mutation.target.nodeType === Node.ELEMENT_NODE && 
+					(mutation.target as HTMLElement).style.display === 'none') {
+					observer.disconnect();
+					let message = "Welcome to WindowsXPong ! This is a simple pong game created using TypeScript and HTML5 Canvas. This project is a part of the WindowsXP project, a recreation of the Windows XP operating system using TypeScript, HTML, and CSS. The project is open-source and available on GitHub. This project is created by Jcuzin, Lcamerly, Mcourbon, Aammmirat & Yallo. Enjoy your time on WindowsXPong !";
+					sendNotification("Welcome to WindowsXPong !", message, "https://media.giphy.com/media/c5skRQb3BXp8RwKGKW/giphy.gif?cid=790b7611o1187e2a31w6cpl715es06ac2ji3emsexex42ha4&ep=v1_gifs_search&rid=giphy.gif&ct=g");
+				}
+			});
+		});
+		observer.observe(loginScreen, { attributes: true, attributeFilter: ['style'] });
+	}
 
 });
