@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loginScreen.appendChild(loginScreenTopBar);
     loginScreen.appendChild(loginScreenMiddleBar);
     // DEFAULTS DISPLAY SETTINGS
-    loginScreen.style.display = 'block';
+    loginScreen.style.display = 'none';
     var profiles = document.getElementsByClassName("login-screen-right-profile-box");
     var NewProfile = document.getElementById("new-profile");
     var _loop_1 = function (i) {

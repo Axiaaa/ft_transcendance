@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 	// DEFAULTS DISPLAY SETTINGS
-	loginScreen.style.display = 'block';
+	loginScreen.style.display = 'none';
 
 	let profiles = document.getElementsByClassName("login-screen-right-profile-box") as HTMLCollectionOf<HTMLElement>;
 	let NewProfile = document.getElementById("new-profile") as HTMLElement;

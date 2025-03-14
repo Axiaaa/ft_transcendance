@@ -3,18 +3,21 @@
 		"lib": ["es2015", "dom"],
 		"target": "es5",
 		"module": "es6",
-		"outDir": "./js/.build/",
-		"rootDir": ".",
+		"outDir": "./ts/.build",
+		"rootDir": "./ts",
+		"baseUrl": "./ts",
 		"strict": true
 	},
-	"files": [
-		"./js/window.ts",
-		"./js/app-icon.ts",
-		"./js/start-menu.ts",
-		"./js/login-screen.ts",
-		"./js/taskbar.ts",
-		"./js/settings-app.ts",
-		"./js/notification.ts",
-		"./js/terminal-app.ts"
-	]
+	"include": ["ts/**/*.ts"],
+    "exclude": ["node_modules"]
+	// "files": [
+	// 	"window.ts",
+	// 	"app-icon.ts",
+	// 	"start-menu.ts",
+	// 	"login-screen.ts",
+	// 	"taskbar.ts",
+	// 	"settings-app.ts",
+	// 	"notification.ts",
+	// 	"terminal-app.ts"
+	// ]
 }

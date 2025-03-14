@@ -18,7 +18,7 @@ export function sendNotification(title, message, icon) {
     notification.style.border = '2px solid rgba(0, 0, 0, 0.85)';
     notification.style.boxShadow = '2 2 8px rgba(0, 0, 0, 0.75)';
     notification.style.background = 'rgb(255, 254, 216)';
-    notification.style.transition = 'opacity 0.75s ease';
+    notification.style.transition = 'opacity 0.5s ease';
     notification.style.opacity = '0';
     setTimeout(function () {
         notification.style.opacity = '1';
@@ -89,7 +89,7 @@ export function sendNotification(title, message, icon) {
     notificationText.style.whiteSpace = 'nowrap';
     notification.appendChild(notificationText);
     var notificationIcon = document.createElement('img');
-    notificationIcon.id = 'notification-icon';
+    notificationIcon.classList.add('notification-icon');
     notificationIcon.style.position = 'absolute';
     notificationIcon.style.left = '10px';
     notificationIcon.style.top = '8px';
@@ -118,6 +118,31 @@ export function sendNotification(title, message, icon) {
     notificationClose.style.lineHeight = '18px';
     notification.appendChild(notificationClose);
     notification.style.display = 'block';
+    var notificationRepeat = document.createElement('div');
+    var notificationRepeatCount = document.getElementsByClassName('notification-icon').length;
+    notification.appendChild(notificationRepeat);
+    notificationRepeat.id = 'notification-repeat';
+    notificationRepeat.style.position = 'absolute';
+    notificationRepeat.style.left = '-5px';
+    notificationRepeat.style.top = '-5px';
+    notificationRepeat.style.width = '15px';
+    notificationRepeat.style.height = '15px';
+    notificationRepeat.style.borderRadius = '5px';
+    notificationRepeat.style.backgroundColor = 'rgb(255, 0, 0)';
+    notificationRepeat.style.color = 'white';
+    notificationRepeat.style.fontSize = '10px';
+    notificationRepeat.style.fontWeight = 'bold';
+    notificationRepeat.style.textAlign = 'center';
+    notificationRepeat.style.lineHeight = '15px';
+    if (notificationRepeatCount > 0) {
+        notificationRepeat.style.display = 'block';
+        if (notificationRepeatCount > 8)
+            notificationRepeat.innerText = '9+';
+        else
+            notificationRepeat.innerText = (notificationRepeatCount + 1).toString();
+    }
+    else
+        notificationRepeat.style.display = 'none';
     taskbar.appendChild(notification);
     var isHovering = false;
     notification.addEventListener('mouseenter', function () {
@@ -137,7 +162,7 @@ export function sendNotification(title, message, icon) {
         setTimeout(function () {
             notification.style.display = 'none';
             notification.remove();
-        }, 750);
+        }, 500);
     });
     setTimeout(function () {
         if (isHovering)
@@ -146,23 +171,28 @@ export function sendNotification(title, message, icon) {
         setTimeout(function () {
             notification.style.display = 'none';
             notification.remove();
-        }, 750);
-    }, 10000);
+        }, 500);
+    }, 1000000);
 }
 document.addEventListener('DOMContentLoaded', function () {
     // Welcome Message
+    var message = "Welcome to WindowsXPong ! This is a simple pong game created using TypeScript and HTML5 Canvas. This project is a part of the WindowsXP project, a recreation of the Windows XP operating system using TypeScript, HTML, and CSS. The project is open-source and available on GitHub. This project is created by Jcuzin, Lcamerly, Mcourbon, Aammmirat & Yallo. Enjoy your time on WindowsXPong !";
     var loginScreen = document.getElementsByClassName('login-screen')[0];
     if (loginScreen) {
-        var observer_1 = new MutationObserver(function (mutations) {
-            mutations.forEach(function (mutation) {
-                if (mutation.target.nodeType === Node.ELEMENT_NODE &&
-                    mutation.target.style.display === 'none') {
-                    observer_1.disconnect();
-                    var message = "Welcome to WindowsXPong ! This is a simple pong game created using TypeScript and HTML5 Canvas. This project is a part of the WindowsXP project, a recreation of the Windows XP operating system using TypeScript, HTML, and CSS. The project is open-source and available on GitHub. This project is created by Jcuzin, Lcamerly, Mcourbon, Aammmirat & Yallo. Enjoy your time on WindowsXPong !";
-                    sendNotification("Welcome to WindowsXPong !", message, "https://media.giphy.com/media/c5skRQb3BXp8RwKGKW/giphy.gif?cid=790b7611o1187e2a31w6cpl715es06ac2ji3emsexex42ha4&ep=v1_gifs_search&rid=giphy.gif&ct=g");
-                }
+        if (loginScreen.style.display === 'none') {
+            sendNotification("Welcome to WindowsXPong !", message, "https://media.giphy.com/media/c5skRQb3BXp8RwKGKW/giphy.gif?cid=790b7611o1187e2a31w6cpl715es06ac2ji3emsexex42ha4&ep=v1_gifs_search&rid=giphy.gif&ct=g");
+        }
+        else {
+            var observer_1 = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    if (mutation.target.nodeType === Node.ELEMENT_NODE &&
+                        mutation.target.style.display === 'none') {
+                        observer_1.disconnect();
+                        sendNotification("Welcome to WindowsXPong !", message, "https://media.giphy.com/media/c5skRQb3BXp8RwKGKW/giphy.gif?cid=790b7611o1187e2a31w6cpl715es06ac2ji3emsexex42ha4&ep=v1_gifs_search&rid=giphy.gif&ct=g");
+                    }
+                });
             });
-        });
-        observer_1.observe(loginScreen, { attributes: true, attributeFilter: ['style'] });
+            observer_1.observe(loginScreen, { attributes: true, attributeFilter: ['style'] });
+        }
     }
 });
