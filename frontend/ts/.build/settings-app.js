@@ -271,6 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
     categoryContainerBackground.style.boxSizing = 'border-box';
     categoryContainerBackground.style.userSelect = 'none';
     categoryContainerBackground.style.overflow = 'hidden';
+    categoryContainerBackground.draggable = false;
     var rightColumnTitle = document.createElement('div');
     rightColumnTitle.id = 'settings-app-right-column-title';
     rightColumn.appendChild(rightColumnTitle);

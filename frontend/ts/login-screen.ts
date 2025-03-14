@@ -33,6 +33,12 @@ titleScreen.style.transform = 'translate(-50%, -50%)';
 
 titleScreen.addEventListener('click', () => {
 	titleScreenBackground.style.opacity = '0';
+	titleScreen.style.opacity = '0';
+	setTimeout(() => {
+		titleScreenBackground.style.display = 'none';
+		titleScreenBackground.remove();
+	}
+	, 750);
 });
 
 setTimeout(() => {
@@ -41,7 +47,7 @@ setTimeout(() => {
 		titleScreenBackground.style.display = 'none';
 		titleScreenBackground.remove();
 	}
-	, 500);
+	, 750);
 }, 4000);
 
 
