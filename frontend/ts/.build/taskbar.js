@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function createTaskbarApp(Name, iconSrc) {
         var taskbarApp = document.createElement('div');
         taskbarApp.classList.add('taskbar-icons');
+        taskbarApp.id = Name + '-taskbar-icon';
         var taskbarAppIcon = document.createElement('img');
         taskbarApp.appendChild(taskbarAppIcon);
         taskbarAppIcon.src = iconSrc || './img/Desktop/exe-program-icon.png';

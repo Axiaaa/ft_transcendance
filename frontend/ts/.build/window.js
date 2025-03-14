@@ -1,4 +1,4 @@
-"use strict";
+import { setIsAppOpen } from "./taskbar.js";
 function resetWindows(windowElement) {
     windowElement.style.display = 'none';
     windowElement.style.width = '500px';
@@ -35,6 +35,11 @@ function minimize(windowElement, isMinimised) {
     else {
         windowElement.style.display = 'none';
         isMinimised = true;
+        var taskbarApp = document.getElementById(windowElement.id.replace('-window', '') + '-taskbar-icon');
+        if (taskbarApp) {
+            taskbarApp.style.backgroundColor = 'transparent';
+            setIsAppOpen(false);
+        }
     }
     return isMinimised;
 }
@@ -79,6 +84,12 @@ document.addEventListener('DOMContentLoaded', function () {
             Windows[i].classList.remove('opened-window');
             console.log('close');
             resetWindows(windowElement);
+            var taskbarApp = document.getElementById(windowElement.id.replace('-window', '') + '-taskbar-icon');
+            if (taskbarApp) {
+                taskbarApp.style.backgroundColor = 'transparent';
+                taskbarApp.style.display = 'none';
+                setIsAppOpen(false);
+            }
         });
         var maximiseButton = windowElement.children[0].children[1].children[1];
         maximiseButton.addEventListener('click', function () {

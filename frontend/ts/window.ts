@@ -1,4 +1,4 @@
-
+import { setIsAppOpen } from "./taskbar.js";
 
 function resetWindows(windowElement: HTMLElement) {
 		windowElement.style.display = 'none';
@@ -37,6 +37,12 @@ function minimize(windowElement: HTMLElement, isMinimised: boolean): boolean {
 	else {
 		windowElement.style.display = 'none';
 		isMinimised = true;
+		let taskbarApp = document.getElementById(windowElement.id.replace('-window', '') + '-taskbar-icon') as HTMLElement;
+		if (taskbarApp)
+		{
+			taskbarApp.style.backgroundColor = 'transparent';
+			setIsAppOpen(false);
+		}
 	}
 	return isMinimised;
 }
@@ -86,6 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			Windows[i].classList.remove('opened-window');
 			console.log('close');
 			resetWindows(windowElement);
+			let taskbarApp = document.getElementById(windowElement.id.replace('-window', '') + '-taskbar-icon') as HTMLElement;
+			if (taskbarApp)
+			{
+				taskbarApp.style.backgroundColor = 'transparent';
+				taskbarApp.style.display = 'none';
+				setIsAppOpen(false);
+			}
 		});
 
 		let maximiseButton = windowElement.children[0].children[1].children[1] as HTMLElement;

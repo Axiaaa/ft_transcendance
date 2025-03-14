@@ -8,6 +8,7 @@ export function setIsAppOpen(value: boolean) {
 };
 
 
+
 document.addEventListener('DOMContentLoaded', () => {
 
 	let taskbar = document.getElementById('taskbar')as HTMLElement;
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	function createTaskbarApp(Name: string, iconSrc?: string): HTMLDivElement {
 		let taskbarApp = document.createElement('div');
 		taskbarApp.classList.add('taskbar-icons');
+		taskbarApp.id = Name + '-taskbar-icon';
 		let taskbarAppIcon = document.createElement('img');
 		taskbarApp.appendChild(taskbarAppIcon);
 		taskbarAppIcon.src = iconSrc || './img/Desktop/exe-program-icon.png';

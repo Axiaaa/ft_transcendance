@@ -1,3 +1,5 @@
+import { isAppOpen } from "./taskbar.js";
+import { setIsAppOpen } from "./taskbar.js";
 
 
 export function openAppWindow(appName: string): void {
@@ -5,6 +7,13 @@ export function openAppWindow(appName: string): void {
 	console.log('Open ' + appName + " = " + appWindow);
 	appWindow.style.display = 'block';
 	appWindow.classList.add('opened-window');
+	let appTaskbarIcon = document.getElementById(appName + '-taskbar-icon') as HTMLElement;
+	if (appTaskbarIcon)
+	{
+		appTaskbarIcon.style.display = 'flex';
+		appTaskbarIcon.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
+		setIsAppOpen(true);
+	}
 };
 
 
