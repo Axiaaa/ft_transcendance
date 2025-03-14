@@ -39,9 +39,10 @@
 	z-index: 110;
 	/* bottom: 30px; */
 	left: 0;
-	top: 30%;
+	/* top: 30%; */
 	width: 50%;
-	height: 40%;
+	height: 100%;
+	overflow: hidden;
 	/* background: #57a42790; */
 }
 
@@ -50,9 +51,10 @@
 	z-index: 110;
 	/* bottom: 30px; */
 	right: 0px;
-	top: 40px;
+	top: calc(50% - 77.5px);
 	width: 340px;
 	height: 155px;
+	overflow: hidden;
 	/* background: #57a42790; */
 }
 
@@ -64,9 +66,11 @@
 	text-align: right;
 	color: #ffffff;
 	right: 110px;
-	top: 170px;
+	top: calc(50% + 50px);
+	min-width: 220px;
 	width: 75%;
-	height: 5%;
+	height: auto;
+	overflow: hidden;
 	/* background: #57a42790; */
 }
 
@@ -77,9 +81,10 @@
 	flex-direction: column;
 	z-index: 110;
 	right: 0;
-	top: 10%;
+	/* top: 10%; */
 	width: 50%;
-	height: 80%;
+	height: 100%;
+	overflow: hidden;
 	/* background: #57a42790; */
 }
 
@@ -93,6 +98,7 @@
 	height: 80px;
 	/* background: #57a42790; */
 	border-radius: 2px;
+	overflow: hidden;
 }
 
 .login-screen-right-profile {
@@ -106,6 +112,7 @@
 	background: #ffffff;
 	box-shadow: #0000007e 1px 1px 5px;
 	border-radius: 5px;
+	overflow: hidden;
 }
 
 .login-screen-right-profile-box {
@@ -118,6 +125,7 @@
 	height: 100px;
 	/* background: #00a2ff70; */
 	border-radius: 5px;
+	overflow: hidden;
 }
 
 .login-screen-right h4 {
@@ -144,6 +152,7 @@
 	width: 400px;
 	height: 100%;
 	/* background: #57a42790; */
+	overflow: hidden;
 }
 
 .login-screen-sign-in {
@@ -151,9 +160,10 @@
 	z-index: 110;
 	/* bottom: 30px; */
 	left: 20px;
-	top: 230px;
+	top: calc(50% - 60px);
 	width: 400px;
 	height: 100px;
+	overflow: hidden;
 	/* background: #57a42790; */
 }
 .login-screen-sign-in img {
@@ -198,9 +208,10 @@
 	z-index: 110;
 	/* bottom: 30px; */
 	left: 20px;
-	top: 320px;
+	top: calc(50% + 30px);;
 	width: 400px;
 	height: 125px;
+	overflow: hidden;
 	/* background: #57a42790; */
 }
 .login-screen-sign-up img {

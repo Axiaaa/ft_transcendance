@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loginScreen.appendChild(loginScreenTopBar);
     loginScreen.appendChild(loginScreenMiddleBar);
     // DEFAULTS DISPLAY SETTINGS
-    loginScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
     var profiles = document.getElementsByClassName("login-screen-right-profile-box");
     var NewProfile = document.getElementById("new-profile");
     var _loop_1 = function (i) {
@@ -65,8 +65,10 @@ document.addEventListener('DOMContentLoaded', function () {
     backbutton.style.height = '35px';
     backbutton.style.position = 'absolute';
     backbutton.style.left = '5%';
-    backbutton.style.top = '160px';
+    backbutton.style.top = 'calc(50% - 100px)';
     backbutton.style.bottom = '10px';
+    backbutton.style.cursor = 'pointer';
+    backbutton.style.overflow = 'hidden';
     form.appendChild(backbutton);
     backbutton.addEventListener('click', function () {
         form.style.display = 'none';
