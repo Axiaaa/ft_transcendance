@@ -15,8 +15,10 @@ document.addEventListener('DOMContentLoaded', function () {
         var taskbarAppIcon = document.createElement('img');
         taskbarApp.appendChild(taskbarAppIcon);
         taskbarAppIcon.src = iconSrc || './img/Desktop/exe-program-icon.png';
-        taskbarAppIcon.style.height = '25px';
+        taskbarAppIcon.style.height = '35px';
         taskbarAppIcon.style.width = 'auto';
+        taskbarAppIcon.style.top = '-1px';
+        taskbarAppIcon.style.left = '3px';
         taskbarAppIcon.style.position = 'relative';
         taskbarAppIcon.style.margin = '2px 2px';
         taskbarAppIcon.style.transition = 'transform 0.2s ease';
