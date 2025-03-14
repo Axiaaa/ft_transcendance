@@ -1,3 +1,48 @@
+
+
+let	titleScreenBackground = document.createElement('div');
+titleScreenBackground.id = 'title-screen-background';
+document.body.appendChild(titleScreenBackground);
+titleScreenBackground.style.width = '100%';
+titleScreenBackground.style.height = '100%';
+titleScreenBackground.style.position = 'absolute';
+titleScreenBackground.style.zIndex = '9999';
+titleScreenBackground.style.display = 'block';
+titleScreenBackground.style.top = '0';
+titleScreenBackground.style.left = '0';
+titleScreenBackground.style.backgroundColor = 'black';
+titleScreenBackground.style.overflow = 'hidden';
+titleScreenBackground.style.transition = 'all 0.75s ease-in-out';
+
+let	titleScreen = document.createElement('img');
+titleScreen.id = 'title-screen';
+titleScreenBackground.appendChild(titleScreen);
+titleScreen.src = './img/Login_Screen/WindowsXPong_TitleScreen.gif';
+titleScreen.style.width = '100%';
+titleScreen.style.height = 'auto';
+titleScreen.style.maxWidth = '1280px';
+titleScreen.style.maxHeight = '720px';
+titleScreen.style.margin = 'auto';
+titleScreen.style.position = 'absolute';
+titleScreen.style.zIndex = '9999';
+titleScreen.style.display = 'block';
+titleScreen.style.top = '50%';
+titleScreen.style.transform = 'translateY(-50%)';
+titleScreen.style.left = '50%';
+titleScreen.style.transform = 'translate(-50%, -50%)';
+
+setTimeout(() => {
+	titleScreenBackground.style.opacity = '0';
+	setTimeout(() => {
+		titleScreenBackground.style.display = 'none';
+		titleScreenBackground.remove();
+	}
+	, 500);
+}, 2000);
+
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
 	
 	let loginScreen = document.getElementsByClassName("login-screen")[0] as HTMLElement;
