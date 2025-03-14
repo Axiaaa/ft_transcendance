@@ -10,32 +10,42 @@ document.addEventListener('DOMContentLoaded', () => {
 		let category = document.createElement('div');
 		category.classList.add('category');
 		category.id = "settings-app-" + name + '-category';
-		category.textContent = name;
-		category.style.color = 'white';
-		category.style.fontSize = '12px';
-		category.style.fontWeight = 'bold';
+		let categoryText = document.createElement('h5');
+		category.appendChild(categoryText);
+		categoryText.textContent = name;
+		categoryText.style.color = 'white';
+		categoryText.style.fontSize = '13px';
+		categoryText.style.lineHeight = 'normal';
+		categoryText.style.fontWeight = 'bold';
+		categoryText.style.textAlign = 'left';
+		categoryText.style.width = 'calc(100% - 50px)';
+		categoryText.style.height = 'fit-content';
+		categoryText.style.margin = '0px';
+		categoryText.style.left = '60px';
+		categoryText.style.top = 'calc(50% - 10px)';
+		categoryText.style.position = 'absolute';
+		categoryText.style.padding = '0 2px';
+		categoryText.style.boxSizing = 'border-box';
+		categoryText.style.textShadow = '1px 1px 1px rgba(0, 0, 0, 0.5)';
+		// categoryText.style.backgroundColor = 'green';
 		category.style.width = '150px';
-		category.style.height = 'auto';
+		category.style.height = '60px';
 		category.style.margin = '10px auto';
-		category.style.display = 'grid';
-		category.style.gridTemplateColumns = '1fr auto';
-		category.style.gridAutoFlow = 'dense';
-		category.style.justifyContent = 'space-between';
 		category.style.position = 'relative';
-		category.style.padding = '0 5px';
+		category.style.padding = '0 10px';
 		category.style.boxSizing = 'border-box';
 		category.style.transition = 'background-color 0.2s ease';
 		category.style.left = '5px';
 		category.style.top = '5px';
+		category.style.cursor = 'pointer';
+		category.style.borderRadius = '2px';
 		
 		category.addEventListener('mouseenter', () => {
-			category.style.backgroundColor = 'rgb(100, 105, 235)';
+			category.style.backgroundColor = 'rgb(75, 78, 178)';
 		});
 		category.addEventListener('mouseleave', () => {
 			category.style.backgroundColor = 'transparent';
 		});
-		category.style.textAlign = 'center';
-		category.style.lineHeight = '40px';
 		let	isOpen = false;
 		let icon = document.createElement('img');
 		category.appendChild(icon);
@@ -45,9 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			icon.src = './img/Control_Panel_XP.png';
 		icon.style.width = '45px';
 		icon.style.height = '45px';
+		icon.style.position = 'absolute';
+		icon.style.top = '5px';
+		icon.style.left = '5px';
+		icon.style.padding = '0 5px';
 		icon.style.marginRight = '5px';
 		icon.style.userSelect = 'none';
 		icon.style.pointerEvents = 'none';
+		icon.style.filter = 'drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.5))';
 		category.insertBefore(icon, category.firstChild);
 		categoryContainer.appendChild(category);
 		return category;
@@ -210,9 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	appContent.appendChild(leftColumn);
 	leftColumn.style.position = 'relative';
 	leftColumn.style.top = '0px';
-	leftColumn.style.width = '35%';
-	leftColumn.style.minWidth = '200px';
-	leftColumn.style.maxWidth = '400px';
+	leftColumn.style.width = '220px';
+	leftColumn.style.minWidth = '220px';
+	leftColumn.style.maxWidth = '220px';
 	leftColumn.style.height = '100%';
 	leftColumn.style.float = 'left';
 	leftColumn.style.background = 'linear-gradient(to bottom, rgb(117, 142, 219), rgb(109, 124, 218), rgb(104, 108, 213))';
@@ -220,8 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	let leftColumnMenus = document.createElement('img');
 	leftColumnMenus.id = 'settings-app-left-column-menus';
 	leftColumn.appendChild(leftColumnMenus);
-	leftColumnMenus.src = './img/xp_controlpanel_left_cmp.png';
-	leftColumnMenus.style.width = '90%';
+	leftColumnMenus.src = './img/Settings_app/xp_controlpanel_left_cmp.png';
+	leftColumnMenus.style.width = '200px';
+	leftColumnMenus.style.overflow = 'hidden';
 	leftColumnMenus.style.height = 'auto';
 	leftColumnMenus.style.margin = '10px auto';
 	leftColumnMenus.style.display = 'block';
@@ -233,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	let rightColumn = document.createElement('div');
 	rightColumn.id = 'settings-app-right-column';
 	appContent.appendChild(rightColumn);
-	rightColumn.style.width = '65%';
+	rightColumn.style.width = 'calc(100% - 225px)';
 	rightColumn.style.height = 'calc(100% - 80px)';
 	rightColumn.style.position = 'absolute';
 	rightColumn.style.boxSizing = 'border-box';
@@ -260,6 +276,21 @@ document.addEventListener('DOMContentLoaded', () => {
 	categoryContainer.style.overflowY = 'scroll';
 	// categoryContainer.style.backgroundColor = 'rgba(88, 93, 223, 0.78)';
 
+	let categoryContainerBackground = document.createElement('img');
+	categoryContainerBackground.id = 'settings-app-category-container-background';
+	categoryContainer.appendChild(categoryContainerBackground);
+	categoryContainerBackground.src = './img/Settings_app/Control_Panel_XP.png';
+	categoryContainerBackground.style.width = '90%';
+	categoryContainerBackground.style.height = 'auto';
+	categoryContainerBackground.style.opacity = '0.1';
+	categoryContainerBackground.style.position = 'absolute';
+	categoryContainerBackground.style.top = '0px';
+	categoryContainerBackground.style.left = '0px';
+	categoryContainerBackground.style.padding = '0 10px';
+	categoryContainerBackground.style.boxSizing = 'border-box';
+	categoryContainerBackground.style.userSelect = 'none';
+	categoryContainerBackground.style.overflow = 'hidden';
+
 	let	rightColumnTitle = document.createElement('div');
 	rightColumnTitle.id = 'settings-app-right-column-title';
 	rightColumn.appendChild(rightColumnTitle);
@@ -279,17 +310,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-	let Appearance = createCategory('Appearance');
-	let Personalization = createCategory('Personalization');
-	let UserAccount = createCategory('User Account');
-	let Network = createCategory('Network');
-	let Hardware = createCategory('Hardware');
-	let System = createCategory('System');
-	let Security = createCategory('Security');
-	let DateAndTime = createCategory('Date and Time');
-	let Accessibility = createCategory('Accessibility');
-	let Speech = createCategory('Speech');
-	let Privacy = createCategory('Privacy');
+	let Appearance = createCategory('Appearance and Theme', './img/Settings_app/appearance-icon.png');
+	let UserAccount = createCategory('User Account', './img/Settings_app/user-account.png');
+	let System = createCategory('System', './img/Settings_app/system-icon.png');
+	let LanguageRegion = createCategory('Language & Region', './img/Settings_app/regions-language.png');
+	let Accessibility = createCategory('Accessibility', './img/Settings_app/accessibility-icon.png');
+	let Privacy = createCategory('Privacy', './img/Settings_app/privacy-icon.png');
 	
 	
 	appWindow.children[1].appendChild(appContent);

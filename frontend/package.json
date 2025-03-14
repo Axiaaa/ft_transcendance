@@ -5,6 +5,7 @@
     "start": "node ./js/index.js"
   },
   "dependencies": {
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "xp.css": "^0.2.6"
   }
 }
