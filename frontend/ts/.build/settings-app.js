@@ -370,7 +370,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var rowsContainer = Container.children[1];
         rowsContainer.appendChild(Setting);
         Setting.style.width = 'calc(100% - 20px)';
-        Setting.style.height = '50px';
+        Setting.style.height = 'auto';
         Setting.style.margin = '10px 10px';
         Setting.style.position = 'relative';
         Setting.style.padding = '0 10px';

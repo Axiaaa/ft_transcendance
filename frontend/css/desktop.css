@@ -20,8 +20,7 @@ html {
 }
 
 body {
-	background-image: url("https://preview.redd.it/u3e2l1jt0ar61.jpg?width=640&crop=smart&auto=webp&s=86fce38a9a88bf8fc6130df37ea169eb7d21707c");
-	/* background-image: url("img/wallpaper.jpg"); */
+	background-image: url("../img/Desktop/linus-wallpaper.jpg");
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-color:rgb(41, 31, 179);
