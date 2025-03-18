@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		let leftColumn = document.createElement('div');
 		leftColumn.style.display = 'flex';
 		leftColumn.style.flexDirection = 'column';
+		leftColumn.style.margin = '5px 0';
 		wallpaperInfo.appendChild(leftColumn);
 
 		let currentWallpaperTitle = document.createElement('span');
@@ -132,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	exampleText.style.position = 'absolute';
 	exampleText.style.right = '35px';
 	exampleText.style.top = '5px';
+	exampleText.style.left = 'calc(100% - 170px)';
 	exampleText.style.fontSize = `15px`;
 	exampleText.style.maxHeight = '50px';
 	exampleText.style.overflow = 'hidden';
@@ -176,6 +178,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	applyButton.textContent = 'Apply';
 	applyButton.style.padding = '5px 5px';
 	applyButton.style.marginLeft = '10px';
+	applyButton.style.left = 'calc(100% - 160px)';
+	applyButton.style.position = 'absolute';
+	applyButton.style.top = '35px';
 	let previousSize = 0;
 	applyButton.addEventListener('click', () => {
 		if (applyButton.classList[0] && applyButton.classList[0].includes('font-size-applied-'))

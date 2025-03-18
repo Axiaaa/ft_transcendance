@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var leftColumn = document.createElement('div');
         leftColumn.style.display = 'flex';
         leftColumn.style.flexDirection = 'column';
+        leftColumn.style.margin = '5px 0';
         wallpaperInfo.appendChild(leftColumn);
         var currentWallpaperTitle = document.createElement('span');
         leftColumn.appendChild(currentWallpaperTitle);
@@ -97,6 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
     exampleText.style.position = 'absolute';
     exampleText.style.right = '35px';
     exampleText.style.top = '5px';
+    exampleText.style.left = 'calc(100% - 170px)';
     exampleText.style.fontSize = "15px";
     exampleText.style.maxHeight = '50px';
     exampleText.style.overflow = 'hidden';
@@ -135,6 +137,9 @@ document.addEventListener('DOMContentLoaded', function () {
     applyButton.textContent = 'Apply';
     applyButton.style.padding = '5px 5px';
     applyButton.style.marginLeft = '10px';
+    applyButton.style.left = 'calc(100% - 160px)';
+    applyButton.style.position = 'absolute';
+    applyButton.style.top = '35px';
     var previousSize = 0;
     applyButton.addEventListener('click', function () {
         if (applyButton.classList[0] && applyButton.classList[0].includes('font-size-applied-')) {

@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		Setting.id = 'settings-app-' + Name + '-setting';
 		let rowsContainer = Container.children[1];
 		rowsContainer.appendChild(Setting);
-		Setting.style.width = 'calc(100% - 20px)';
+		Setting.style.width = 'calc(100% - 5px)';
 		Setting.style.height = 'auto';
 		Setting.style.margin = '10px 10px';
 		Setting.style.position = 'relative';
@@ -406,7 +406,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		Setting.style.top = '0px';
 		Setting.style.left = '0px';
 		Setting.style.overflow = 'hidden';
+		Setting.style.borderRadius = '5px';
 		Setting.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+		Setting.style.boxShadow = '1px 1px 1px black';
 		let SettingText = document.createElement('h4');
 		Setting.appendChild(SettingText);
 		SettingText.textContent = Name;
@@ -418,11 +420,14 @@ document.addEventListener('DOMContentLoaded', () => {
 		SettingText.style.margin = '0px';
 		SettingText.style.textAlign = 'left';
 		SettingText.style.position = 'relative';
-		SettingText.style.padding = '2px 10px';
+		SettingText.style.padding = '5px 10px';
 		SettingText.style.boxSizing = 'border-box';
 		SettingText.style.top = '0px';
 		SettingText.style.left = '0px';
 		SettingText.style.overflow = 'hidden';
+		SettingText.style.borderBottomLeftRadius = '5px';
+		SettingText.style.borderBottomRightRadius = '5px';
+		SettingText.style.boxShadow = '1px 1px 1px black';
 		SettingText.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
 		if (Content)
 		{
