@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
         SettingTitle.style.top = '0px';
         SettingTitle.style.left = '0px';
         SettingTitle.style.overflow = 'hidden';
-        SettingTitle.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+        // SettingTitle.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
         var rowsContainer = document.createElement('div');
         rowsContainer.id = 'settings-app-' + name + '-rows-container';
         settingsContainer.appendChild(rowsContainer);
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function () {
         SettingText.style.margin = '0px';
         SettingText.style.textAlign = 'left';
         SettingText.style.position = 'relative';
-        SettingText.style.padding = '0 10px';
+        SettingText.style.padding = '2px 10px';
         SettingText.style.boxSizing = 'border-box';
         SettingText.style.top = '0px';
         SettingText.style.left = '0px';
