@@ -443,13 +443,15 @@ document.addEventListener('DOMContentLoaded', () => {
 	let appearanceContainer = createSettingsContainer('appearance');
 	
 	let appearanceSetting1 = createSetting('Wallpaper', appearanceContainer);
-	
-
-
 	let appearanceSetting2 = createSetting('Font Size', appearanceContainer);
+
+	let UserAccountContainer = createSettingsContainer('user-account');
+	let UserAccountSetting1 = createSetting('Avatar', UserAccountContainer);
+	let UserAccountSetting2 = createSetting('Account Name', UserAccountContainer);
+	let UserAccountSetting3 = createSetting('Password', UserAccountContainer);
 	
 	let Appearance = createCategory('Appearance and Theme', './img/Settings_app/appearance-icon.png', appearanceContainer);
-	let UserAccount = createCategory('User Account', './img/Settings_app/user-account.png');
+	let UserAccount = createCategory('User Account', './img/Settings_app/user-account.png', UserAccountContainer);
 	let System = createCategory('System', './img/Settings_app/system-icon.png');
 	let LanguageRegion = createCategory('Language & Region', './img/Settings_app/regions-language.png');
 	let Accessibility = createCategory('Accessibility', './img/Settings_app/accessibility-icon.png');

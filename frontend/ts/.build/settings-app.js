@@ -413,8 +413,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var appearanceContainer = createSettingsContainer('appearance');
     var appearanceSetting1 = createSetting('Wallpaper', appearanceContainer);
     var appearanceSetting2 = createSetting('Font Size', appearanceContainer);
+    var UserAccountContainer = createSettingsContainer('user-account');
+    var UserAccountSetting1 = createSetting('Avatar', UserAccountContainer);
+    var UserAccountSetting2 = createSetting('Account Name', UserAccountContainer);
+    var UserAccountSetting3 = createSetting('Password', UserAccountContainer);
     var Appearance = createCategory('Appearance and Theme', './img/Settings_app/appearance-icon.png', appearanceContainer);
-    var UserAccount = createCategory('User Account', './img/Settings_app/user-account.png');
+    var UserAccount = createCategory('User Account', './img/Settings_app/user-account.png', UserAccountContainer);
     var System = createCategory('System', './img/Settings_app/system-icon.png');
     var LanguageRegion = createCategory('Language & Region', './img/Settings_app/regions-language.png');
     var Accessibility = createCategory('Accessibility', './img/Settings_app/accessibility-icon.png');

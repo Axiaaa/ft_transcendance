@@ -13,91 +13,93 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 	//		Wallpaper Settings
 	
-	let wallpaperSettings = document.getElementById('settings-app-Wallpaper-setting') as HTMLElement;
+	{
+		let wallpaperSettings = document.getElementById('settings-app-Wallpaper-setting') as HTMLElement;
 
-	const documentBody = getComputedStyle(document.body);
-	let actualWallpaper = documentBody.getPropertyValue('background-image')
-		.split('/')
-		.pop()
-		?.replace(/['"]/g, '') || 'default.jpg';
+		const documentBody = getComputedStyle(document.body);
+		let actualWallpaper = documentBody.getPropertyValue('background-image')
+			.split('/')
+			.pop()
+			?.replace(/['"]/g, '') || 'default.jpg';
 
-	let wallpaperSettingsContainer = document.createElement('div');
-	wallpaperSettingsContainer.id = 'wallpaper-settings-container';
-	wallpaperSettingsContainer.style.display = 'flex';
-	wallpaperSettingsContainer.style.alignItems = 'center';
-	
-	wallpaperSettings.appendChild(wallpaperSettingsContainer);
-	let wallpaperInfo = document.createElement('div');
-	wallpaperInfo.id = 'wallpaper-info';
-	wallpaperInfo.style.display = 'flex';
-	wallpaperInfo.style.gap = '20px';
+		let wallpaperSettingsContainer = document.createElement('div');
+		wallpaperSettingsContainer.id = 'wallpaper-settings-container';
+		wallpaperSettingsContainer.style.display = 'flex';
+		wallpaperSettingsContainer.style.alignItems = 'center';
+		
+		wallpaperSettings.appendChild(wallpaperSettingsContainer);
+		let wallpaperInfo = document.createElement('div');
+		wallpaperInfo.id = 'wallpaper-info';
+		wallpaperInfo.style.display = 'flex';
+		wallpaperInfo.style.gap = '20px';
 
-	let leftColumn = document.createElement('div');
-	leftColumn.style.display = 'flex';
-	leftColumn.style.flexDirection = 'column';
-	wallpaperInfo.appendChild(leftColumn);
+		let leftColumn = document.createElement('div');
+		leftColumn.style.display = 'flex';
+		leftColumn.style.flexDirection = 'column';
+		wallpaperInfo.appendChild(leftColumn);
 
-	let currentWallpaperTitle = document.createElement('span');
-	leftColumn.appendChild(currentWallpaperTitle);
-	currentWallpaperTitle.textContent = 'Current Wallpaper:';
-	currentWallpaperTitle.style.fontSize = '12px';
-	currentWallpaperTitle.style.marginBottom = '5px';
-	currentWallpaperTitle.style.fontWeight = 'bold';
+		let currentWallpaperTitle = document.createElement('span');
+		leftColumn.appendChild(currentWallpaperTitle);
+		currentWallpaperTitle.textContent = 'Current Wallpaper:';
+		currentWallpaperTitle.style.fontSize = '12px';
+		currentWallpaperTitle.style.marginBottom = '5px';
+		currentWallpaperTitle.style.fontWeight = 'bold';
 
-	let currentWallpaperName = document.createElement('span');
-	leftColumn.appendChild(currentWallpaperName);
-	currentWallpaperName.id = 'current-wallpaper-name';
-	currentWallpaperName.textContent = actualWallpaper;
-	currentWallpaperTitle.style.fontSize = '11px';
-	currentWallpaperName.style.overflow = 'hidden';
-	currentWallpaperName.style.textOverflow = 'ellipsis';
-	currentWallpaperName.style.whiteSpace = 'nowrap';
-	currentWallpaperName.style.maxWidth = '110px';
-	currentWallpaperName.style.maxHeight = '50px';
+		let currentWallpaperName = document.createElement('span');
+		leftColumn.appendChild(currentWallpaperName);
+		currentWallpaperName.id = 'current-wallpaper-name';
+		currentWallpaperName.textContent = actualWallpaper;
+		currentWallpaperTitle.style.fontSize = '11px';
+		currentWallpaperName.style.overflow = 'hidden';
+		currentWallpaperName.style.textOverflow = 'ellipsis';
+		currentWallpaperName.style.whiteSpace = 'nowrap';
+		currentWallpaperName.style.maxWidth = '110px';
+		currentWallpaperName.style.maxHeight = '50px';
 
-	let rightColumn = document.createElement('div');
-	rightColumn.style.display = 'flex';
-	rightColumn.style.flexDirection = 'column';
-	rightColumn.style.marginLeft = 'calc(100% - 270px)';
-	wallpaperInfo.appendChild(rightColumn);
+		let rightColumn = document.createElement('div');
+		rightColumn.style.display = 'flex';
+		rightColumn.style.flexDirection = 'column';
+		rightColumn.style.marginLeft = 'calc(100% - 310px)';
+		wallpaperInfo.appendChild(rightColumn);
 
-	let importButton = document.createElement('button');
-	rightColumn.appendChild(importButton);
-	importButton.id = 'import-button';
-	importButton.textContent = 'Change Wallpaper';
-	importButton.style.padding = '5px 10px';
-	importButton.style.marginBottom = '5px';
+		let importButton = document.createElement('button');
+		rightColumn.appendChild(importButton);
+		importButton.id = 'import-button';
+		importButton.textContent = 'Change Wallpaper';
+		importButton.style.padding = '5px 10px';
+		importButton.style.marginBottom = '5px';
 
-	let fileInput = document.createElement('input');
-	rightColumn.appendChild(fileInput);
-	fileInput.id = 'file-input';
-	fileInput.type = 'file';
-	fileInput.accept = 'image/*';
-	fileInput.style.display = 'none';
+		let fileInput = document.createElement('input');
+		rightColumn.appendChild(fileInput);
+		fileInput.id = 'file-input';
+		fileInput.type = 'file';
+		fileInput.accept = 'image/*';
+		fileInput.style.display = 'none';
 
-	importButton.onclick = () => fileInput.click();
+		importButton.onclick = () => fileInput.click();
 
-	fileInput.onchange = (e) => {
-		const file = (e.target as HTMLInputElement).files?.[0];
-		if (file) {
-			currentWallpaperName.textContent = file.name;
-			document.body.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
-			sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
-		}
-		else
-			sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
-	};
+		fileInput.onchange = (e) => {
+			const file = (e.target as HTMLInputElement).files?.[0];
+			if (file) {
+				currentWallpaperName.textContent = file.name;
+				document.body.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+				sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
+			}
+			else
+				sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
+		};
 
-	let resolutionText = document.createElement('span');
-	rightColumn.appendChild(resolutionText);
-	resolutionText.id = 'resolution-text';
-	resolutionText.textContent = 'Recommended: 1920x1080';
-	resolutionText.style.color = '#666';
-	resolutionText.style.fontSize = '10px';
-	resolutionText.style.padding = '5px';
+		let resolutionText = document.createElement('span');
+		rightColumn.appendChild(resolutionText);
+		resolutionText.id = 'resolution-text';
+		resolutionText.textContent = 'Recommended: 1920x1080';
+		resolutionText.style.color = '#666';
+		resolutionText.style.fontSize = '10px';
+		resolutionText.style.padding = '5px';
 
 
-	wallpaperSettings.appendChild(wallpaperInfo);
+		wallpaperSettings.appendChild(wallpaperInfo);
+	}
 
 
 
@@ -199,4 +201,259 @@ document.addEventListener('DOMContentLoaded', () => {
 		else
 			sendNotification('Font Size Changed', `Font size reset`, "./img/Utils/font-icon.png");
 	});
+
+
+
+
+	// User Account Settings
+
+	let userAccountContainer = document.getElementById('settings-app-user-account-container') as HTMLElement;
+
+	{
+		let UserAccountAvatar = document.getElementById('settings-app-Avatar-setting') as HTMLElement;
+
+		let avatarSettings = document.createElement('div');
+		avatarSettings.id = 'avatar-settings-container';
+		avatarSettings.style.display = 'flex';
+		avatarSettings.style.alignItems = 'center';
+
+		UserAccountAvatar.appendChild(avatarSettings);
+
+		let avatarInfo = document.createElement('div');
+		avatarInfo.id = 'avatar-info';
+		avatarInfo.style.display = 'flex';
+		avatarInfo.style.gap = '20px';
+
+		let leftColumn = document.createElement('div');
+		leftColumn.style.display = 'flex';
+		leftColumn.style.flexDirection = 'column';
+		avatarInfo.appendChild(leftColumn);
+
+		let currentAvatarTitle = document.createElement('span');
+		leftColumn.appendChild(currentAvatarTitle);
+		currentAvatarTitle.textContent = 'Current Avatar:';
+		currentAvatarTitle.style.fontSize = '12px';
+		currentAvatarTitle.style.marginBottom = '5px';
+		currentAvatarTitle.style.fontWeight = 'bold';
+
+		let currentAvatarPreview = document.createElement('img');
+		leftColumn.appendChild(currentAvatarPreview);
+		currentAvatarPreview.id = 'current-avatar-preview';
+		currentAvatarPreview.src = './img/Login_Screen/demo-user-profile-icon.jpg';
+		currentAvatarPreview.style.width = '55px';
+		currentAvatarPreview.style.height = '55px';
+		currentAvatarPreview.style.borderRadius = '10%';
+		currentAvatarPreview.style.marginBottom = '10px';
+		currentAvatarPreview.style.objectFit = 'cover';
+
+		let currentAvatarName = document.createElement('span');
+		leftColumn.appendChild(currentAvatarName);
+		currentAvatarName.id = 'current-avatar-name';
+		currentAvatarName.textContent = 'default.jpg';
+		currentAvatarName.style.fontSize = '11px';
+		currentAvatarName.style.overflow = 'hidden';
+		currentAvatarName.style.textOverflow = 'ellipsis';
+		currentAvatarName.style.whiteSpace = 'nowrap';
+		currentAvatarName.style.maxWidth = '110px';
+		currentAvatarName.style.maxHeight = '50px';
+		currentAvatarName.style.marginBottom = '10px';
+
+		let rightColumn = document.createElement('div');
+		rightColumn.style.display = 'flex';
+		rightColumn.style.flexDirection = 'column';
+		rightColumn.style.marginLeft = 'calc(100% - 270px)';
+		rightColumn.style.transform = 'translateY(+25%)';
+		avatarInfo.appendChild(rightColumn);
+
+		let importButton = document.createElement('button');
+		rightColumn.appendChild(importButton);
+		importButton.id = 'avatar-import-button';
+		importButton.textContent = 'Change Avatar';
+		importButton.style.padding = '5px 10px';
+		importButton.style.marginBottom = '5px';
+
+		let fileInput = document.createElement('input');
+		rightColumn.appendChild(fileInput);
+		fileInput.id = 'avatar-file-input';
+		fileInput.type = 'file';
+		fileInput.accept = 'image/*';
+		fileInput.style.display = 'none';
+
+		importButton.onclick = () => fileInput.click();
+
+		fileInput.onchange = (e) => {
+			const file = (e.target as HTMLInputElement).files?.[0];
+			if (file) {
+				currentAvatarName.textContent = file.name;
+				currentAvatarPreview.src = URL.createObjectURL(file);
+				sendNotification('Avatar Changed', `Avatar changed to ${file.name}`, "./img/Utils/profile-icon.png");
+			}
+			else {
+				sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
+			}
+		};
+
+		let resolutionText = document.createElement('span');
+		rightColumn.appendChild(resolutionText);
+		resolutionText.id = 'avatar-resolution-text';
+		resolutionText.textContent = 'Recommended: 256x256';
+		resolutionText.style.color = '#666';
+		resolutionText.style.fontSize = '10px';
+		resolutionText.style.padding = '5px';
+
+		UserAccountAvatar.appendChild(avatarInfo);
+	}
+
+
+	let userAccountName = document.getElementById('settings-app-Account Name-setting') as HTMLElement;
+	{
+		let nameSettings = document.createElement('div');
+		nameSettings.style.display = 'flex';
+		nameSettings.style.alignItems = 'center';
+		userAccountName.appendChild(nameSettings);
+
+		let nameInfo = document.createElement('div');
+		nameInfo.style.display = 'flex';
+		nameInfo.style.gap = '20px';
+
+		let leftColumn = document.createElement('div');
+		leftColumn.style.display = 'flex';
+		leftColumn.style.flexDirection = 'column';
+		nameInfo.appendChild(leftColumn);
+
+		let currentNameTitle = document.createElement('span');
+		leftColumn.appendChild(currentNameTitle);
+		currentNameTitle.textContent = 'New Username:';
+		currentNameTitle.style.fontSize = '12px';
+		currentNameTitle.style.marginBottom = '5px';
+		currentNameTitle.style.fontWeight = 'bold';
+
+		let nameInput = document.createElement('input');
+		leftColumn.appendChild(nameInput);
+		nameInput.type = 'text';
+		nameInput.pattern = '[A-Za-z0-9_]+';
+		nameInput.title = 'Only letters, numbers and underscore allowed';
+		nameInput.style.width = '150px';
+		nameInput.style.marginBottom = '5px';
+
+		let rightColumn = document.createElement('div');
+		rightColumn.style.display = 'flex';
+		rightColumn.style.flexDirection = 'column';
+		rightColumn.style.marginLeft = 'calc(100% - 310px)';
+		nameInfo.appendChild(rightColumn);
+
+		let applyButton = document.createElement('button');
+		rightColumn.appendChild(applyButton);
+		applyButton.textContent = 'Change Username';
+		applyButton.style.padding = '5px 10px';
+
+		applyButton.onclick = () => {
+			if (!nameInput.value.match(/^[A-Za-z0-9_]+$/)) {
+				sendNotification('Error', 'Invalid username format', "./img/Utils/error-icon.png");
+				return;
+			}
+			if (confirm(`Are you sure you want to change your username to "${nameInput.value}"?`)) {
+				sendNotification('Username Changed', `Username changed to ${nameInput.value}`, "./img/Utils/profile-icon.png");
+				nameInput.value = '';
+			}
+		};
+		let usernameText = document.createElement('span');
+		rightColumn.appendChild(usernameText);
+		usernameText.textContent = 'Only letters, numbers and underscores allowed';
+		usernameText.style.color = '#666';
+		usernameText.style.fontSize = '10px';
+		usernameText.style.padding = '5px';
+		userAccountName.appendChild(nameInfo);
+	}
+
+
+	
+	let userAccountPassword = document.getElementById('settings-app-Password-setting') as HTMLElement;
+	{
+		let passwordSettings = document.createElement('div');
+		passwordSettings.style.display = 'flex';
+		passwordSettings.style.alignItems = 'center';
+		userAccountPassword.appendChild(passwordSettings);
+
+		let passwordInfo = document.createElement('div');
+		passwordInfo.style.display = 'flex';
+		passwordInfo.style.gap = '20px';
+
+		let leftColumn = document.createElement('div');
+		leftColumn.style.display = 'flex';
+		leftColumn.style.flexDirection = 'column';
+		passwordInfo.appendChild(leftColumn);
+
+		let newPasswordTitle = document.createElement('span');
+		leftColumn.appendChild(newPasswordTitle);
+		newPasswordTitle.textContent = 'New Password:';
+		newPasswordTitle.style.fontSize = '12px';
+		newPasswordTitle.style.marginBottom = '5px';
+		newPasswordTitle.style.fontWeight = 'bold';
+
+		let passwordInput = document.createElement('input');
+		leftColumn.appendChild(passwordInput);
+		passwordInput.type = 'password';
+		passwordInput.style.width = '150px';
+		passwordInput.style.marginBottom = '10px';
+
+		let confirmPasswordTitle = document.createElement('span');
+		leftColumn.appendChild(confirmPasswordTitle);
+		confirmPasswordTitle.textContent = 'Confirm Password:';
+		confirmPasswordTitle.style.fontSize = '12px';
+		confirmPasswordTitle.style.marginBottom = '5px';
+		confirmPasswordTitle.style.fontWeight = 'bold';
+
+		let confirmPasswordInput = document.createElement('input');
+		leftColumn.appendChild(confirmPasswordInput);
+		confirmPasswordInput.type = 'password';
+		confirmPasswordInput.style.width = '150px';
+		confirmPasswordInput.style.marginBottom = '5px';
+
+		let rightColumn = document.createElement('div');
+		rightColumn.style.display = 'flex';
+		rightColumn.style.flexDirection = 'column';
+		rightColumn.style.marginLeft = 'calc(100% - 310px)';
+		passwordInfo.appendChild(rightColumn);
+
+		let applyButton = document.createElement('button');
+		rightColumn.appendChild(applyButton);
+		applyButton.textContent = 'Change Password';
+		applyButton.style.padding = '5px 10px';
+
+		applyButton.onclick = () => {
+			if (passwordInput.value !== confirmPasswordInput.value) {
+				sendNotification('Error', 'Passwords do not match', "./img/Utils/error-icon.png");
+				return;
+			}
+			if (passwordInput.value.length < 8) {
+				sendNotification('Error', 'Password must be at least 8 characters', "./img/Utils/error-icon.png");
+				return;
+			}
+			if (!/[A-Z]/.test(passwordInput.value)) {
+				sendNotification('Error', 'Password must contain at least 1 uppercase letter', "./img/Utils/error-icon.png");
+				return;
+			}
+			if (!/[a-z]/.test(passwordInput.value)) {
+				sendNotification('Error', 'Password must contain at least 1 lowercase letter', "./img/Utils/error-icon.png");
+				return;
+			}
+			if (!/[0-9]/.test(passwordInput.value)) {
+				sendNotification('Error', 'Password must contain at least 1 number', "./img/Utils/error-icon.png");
+				return;
+			}
+			if (confirm('Are you sure you want to change your password?')) {
+				sendNotification('Password Changed', 'Password successfully changed', "./img/Utils/profile-icon.png");
+				passwordInput.value = '';
+				confirmPasswordInput.value = '';
+			}
+		};
+		let passwordText = document.createElement('span');
+		rightColumn.appendChild(passwordText);
+		passwordText.textContent = 'At least 8 characters, 1 uppercase, 1 lowercase, 1 number';
+		passwordText.style.color = '#666';
+		passwordText.style.fontSize = '10px';
+		passwordText.style.padding = '5px';
+		userAccountPassword.appendChild(passwordInfo);
+	}
 });
