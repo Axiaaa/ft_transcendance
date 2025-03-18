@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementsByClassName("login-screen-formulary")[0];
     form.style.display = 'none';
     var backbutton = document.createElement('img');
-    backbutton.src = './img/back-icon.png';
+    backbutton.src = './img/Utils/back-icon.png';
     backbutton.style.width = '35px';
     backbutton.style.height = '35px';
     backbutton.style.position = 'absolute';

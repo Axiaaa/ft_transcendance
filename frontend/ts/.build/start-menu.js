@@ -9,13 +9,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     startMenu.style.display = 'none';
     var base = document.createElement('img');
-    base.src = './img/start-button-1.png';
+    base.src = './img/Taskbar/start-button-1.png';
     base.height = 35;
     var hover = document.createElement('img');
-    hover.src = './img/start-button-2.png';
+    hover.src = './img/Taskbar/start-button-2.png';
     hover.height = 35;
     var held = document.createElement('img');
-    held.src = './img/start-button-3.png';
+    held.src = './img/Taskbar/start-button-3.png';
     held.height = 35;
     var isHeld = false;
     var isHovered = false;

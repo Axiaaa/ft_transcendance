@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	form.style.display = 'none';
 
 	let backbutton = document.createElement('img');
-	backbutton.src = './img/back-icon.png';
+	backbutton.src = './img/Utils/back-icon.png';
 	backbutton.style.width = '35px';
 	backbutton.style.height = '35px';
 	backbutton.style.position = 'absolute';

@@ -13,13 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	startMenu.style.display = 'none';
 	let base = document.createElement('img');
-		base.src = './img/start-button-1.png';
+		base.src = './img/Taskbar/start-button-1.png';
 		base.height = 35;
 	let hover = document.createElement('img');
-		hover.src = './img/start-button-2.png';
+		hover.src = './img/Taskbar/start-button-2.png';
 		hover.height = 35;
 	let held = document.createElement('img');
-		held.src = './img/start-button-3.png';
+		held.src = './img/Taskbar/start-button-3.png';
 		held.height = 35;
 	let isHeld = false;
 	let isHovered = false;

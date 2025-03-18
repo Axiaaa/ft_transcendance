@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	let appWindowBody = appWindow.children[1] as HTMLElement;
 
 
-	function createCategory(name: string, img?: string): HTMLDivElement {
+	function createCategory(name: string, img: string, settingpage?: HTMLDivElement): HTMLDivElement {
 		let category = document.createElement('div');
 		category.classList.add('category');
 		category.id = "settings-app-" + name + '-category';
@@ -46,6 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		category.addEventListener('mouseleave', () => {
 			category.style.backgroundColor = 'transparent';
 		});
+		category.addEventListener('click', () => {
+			categoryContainer.style.display = 'none';
+			rightColumnTitle.style.display = 'none';
+			if (settingpage)
+				settingpage.style.display = 'block';
+		});
+
 		let	isOpen = false;
 		let icon = document.createElement('img');
 		category.appendChild(icon);
@@ -181,6 +188,31 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	let backButton = createButton('./img/Settings_app/back-icon.png');
+	backButton.id = 'settings-app-back-button';
+	backButton.addEventListener('click', () => {
+		categoryContainer.style.display = 'grid';
+		rightColumnTitle.style.display = 'block';
+		const appearanceContainer = document.getElementById('settings-app-appearance-container');
+		if (appearanceContainer)
+			appearanceContainer.style.display = 'none';
+		const UserAccountContainer = document.getElementById('settings-app-user-account-container');
+		if (UserAccountContainer)
+			UserAccountContainer.style.display = 'none';
+		const SystemContainer = document.getElementById('settings-app-system-container');
+		if (SystemContainer)
+			SystemContainer.style.display = 'none';
+		const LanguageRegionContainer = document.getElementById('settings-app-language-region-container');
+		if (LanguageRegionContainer)
+			LanguageRegionContainer.style.display = 'none';
+		const AccessibilityContainer = document.getElementById('settings-app-accessibility-container');
+		if (AccessibilityContainer)
+			AccessibilityContainer.style.display = 'none';
+		const PrivacyContainer = document.getElementById('settings-app-privacy-container');
+		if (PrivacyContainer)
+			PrivacyContainer.style.display = 'none';
+	});
+
+
 	let forwardButton = createButton('./img/Settings_app/back-icon.png');
 	forwardButton.style.transform = 'scaleX(-1)';
 	let SearchButton = createButton('./img/Settings_app/search-icon.png');
@@ -206,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	SearchButton.addEventListener('click', () => {
 		Searchbar.focus();
 	});
+
 	let GoSearchButton = createButton('./img/Settings_app/go-button.png');
 	GoSearchButton.id = 'settings-app-search-button-go';
 	GoSearchButton.style.width = '20px';
@@ -309,15 +342,119 @@ document.addEventListener('DOMContentLoaded', () => {
 	rightColumnTitle.style.top = '12px';
 	rightColumnTitle.style.left = '15px';
 
+	
+	function createSettingsContainer(name: string): HTMLDivElement {
+		let settingsContainer = document.createElement('div');
+		settingsContainer.id = 'settings-app-' + name + '-container';
+		rightColumn.appendChild(settingsContainer);
+		settingsContainer.style.width = '100%';
+		settingsContainer.style.height = '100%';
+		settingsContainer.style.position = 'absolute';
+		settingsContainer.style.top = '0px';
+		settingsContainer.style.left = '0px';
+		settingsContainer.style.display = 'none';
+		settingsContainer.style.backgroundColor = 'rgba(255, 3, 3, 0.07)';
+		let SettingTitle = document.createElement('h3');
+		settingsContainer.appendChild(SettingTitle);
+		SettingTitle.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+		SettingTitle.style.color = 'white';
+		SettingTitle.style.fontSize = '24px';
+		SettingTitle.style.fontWeight = 'bold';
+		SettingTitle.style.width = 'calc(100% - 20px)';
+		SettingTitle.style.height = '50px';
+		SettingTitle.style.margin = '10px 10px';
+		SettingTitle.style.textAlign = 'left';
+		SettingTitle.style.position = 'relative';
+		SettingTitle.style.padding = '0 10px';
+		SettingTitle.style.boxSizing = 'border-box';
+		SettingTitle.style.top = '0px';
+		SettingTitle.style.left = '0px';
+		SettingTitle.style.overflow = 'hidden';
+		SettingTitle.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+		let rowsContainer = document.createElement('div');
+		rowsContainer.id = 'settings-app-' + name + '-rows-container';
+		settingsContainer.appendChild(rowsContainer);
+		rowsContainer.style.width = 'calc(100% - 20px)';
+		rowsContainer.style.height = 'calc(100% - 70px)';
+		rowsContainer.style.position = 'relative';
+		rowsContainer.style.top = '0px';
+		rowsContainer.style.left = '0px';
+		rowsContainer.style.display = 'row';
+		rowsContainer.style.justifyContent = 'space-around';
+		rowsContainer.style.padding = '5px 5px';
+		rowsContainer.style.boxSizing = 'border-box';
+		rowsContainer.style.bottom = '0px';
+		rowsContainer.style.left = '0px';
+		rowsContainer.style.overflowX = 'scroll';
+		rowsContainer.style.overflowY = 'scroll';
+		return settingsContainer;
+	}
+
+	function createSetting(Name: string, Container: HTMLElement, Content?: HTMLElement): HTMLElement
+	{
+		let Setting = document.createElement('div');
+		Setting.classList.add('setting');
+		Setting.id = 'settings-app-' + Name + '-setting';
+		let rowsContainer = Container.children[1];
+		rowsContainer.appendChild(Setting);
+		Setting.style.width = 'calc(100% - 20px)';
+		Setting.style.height = '50px';
+		Setting.style.margin = '10px 10px';
+		Setting.style.position = 'relative';
+		Setting.style.padding = '0 10px';
+		Setting.style.boxSizing = 'border-box';
+		Setting.style.top = '0px';
+		Setting.style.left = '0px';
+		Setting.style.overflow = 'hidden';
+		Setting.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+		let SettingText = document.createElement('h4');
+		Setting.appendChild(SettingText);
+		SettingText.textContent = Name;
+		SettingText.style.color = 'black';
+		SettingText.style.fontSize = '14px';
+		SettingText.style.fontWeight = 'bold';
+		SettingText.style.width = 'fit-content';
+		SettingText.style.height = '30px';
+		SettingText.style.margin = '0px';
+		SettingText.style.textAlign = 'left';
+		SettingText.style.position = 'relative';
+		SettingText.style.padding = '0 10px';
+		SettingText.style.boxSizing = 'border-box';
+		SettingText.style.top = '0px';
+		SettingText.style.left = '0px';
+		SettingText.style.overflow = 'hidden';
+		SettingText.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+		if (Content)
+		{
+			Setting.appendChild(Content);
+			Content.style.width = 'calc(100% - 20px)';
+			Content.style.height = 'calc(100% - 50px)';
+			Content.style.margin = '0px';
+			Content.style.position = 'relative';
+			Content.style.padding = '0 10px';
+			Content.style.boxSizing = 'border-box';
+			Content.style.top = '0px';
+			Content.style.left = '0px';
+			Content.style.overflow = 'hidden';
+		}
+		return Setting;
+	}
+	
+	let appearanceContainer = createSettingsContainer('appearance');
+	
+	let appearanceSetting1 = createSetting('Wallpaper', appearanceContainer);
+	
 
 
-	let Appearance = createCategory('Appearance and Theme', './img/Settings_app/appearance-icon.png');
+	let appearanceSetting2 = createSetting('Font Size', appearanceContainer);
+	
+	let Appearance = createCategory('Appearance and Theme', './img/Settings_app/appearance-icon.png', appearanceContainer);
 	let UserAccount = createCategory('User Account', './img/Settings_app/user-account.png');
 	let System = createCategory('System', './img/Settings_app/system-icon.png');
 	let LanguageRegion = createCategory('Language & Region', './img/Settings_app/regions-language.png');
 	let Accessibility = createCategory('Accessibility', './img/Settings_app/accessibility-icon.png');
 	let Privacy = createCategory('Privacy', './img/Settings_app/privacy-icon.png');
-	
-	
+
+
 	appWindow.children[1].appendChild(appContent);
 });
