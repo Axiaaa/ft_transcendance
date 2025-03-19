@@ -690,9 +690,15 @@ document.addEventListener('DOMContentLoaded', () => {
 			restoreSystemButton.style.marginTop = '0';
 			restoreSystemButton.style.marginBottom = '0';
 			restoreSystemButton.onclick = () => {
+				restoreSystemButton.disabled = true;
+				restoreSystemButton.textContent = 'Restoring...';
 				if (confirm('Are you sure you want to restore the system ?')) {
 					sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
 				}
+				setTimeout(() => {
+					restoreSystemButton.disabled = false;
+					restoreSystemButton.textContent = 'Restore System';
+				}, 3000);
 			}
 		}
 	}

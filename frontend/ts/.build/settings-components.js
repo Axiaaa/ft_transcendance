@@ -575,17 +575,23 @@ document.addEventListener('DOMContentLoaded', function () {
             systemRestoreContainer.style.flexDirection = 'column';
             systemRestoreContainer.style.alignItems = 'center';
             var restoreInfo1 = createInformationElement('Restore System', systemRestoreContainer);
-            var restoreSystemButton = document.createElement('button');
-            restoreInfo1.appendChild(restoreSystemButton);
-            restoreSystemButton.textContent = 'Restore System';
-            restoreSystemButton.style.padding = '5px 10px';
-            restoreSystemButton.style.margin = '10px';
-            restoreSystemButton.style.marginTop = '0';
-            restoreSystemButton.style.marginBottom = '0';
-            restoreSystemButton.onclick = function () {
+            var restoreSystemButton_1 = document.createElement('button');
+            restoreInfo1.appendChild(restoreSystemButton_1);
+            restoreSystemButton_1.textContent = 'Restore System';
+            restoreSystemButton_1.style.padding = '5px 10px';
+            restoreSystemButton_1.style.margin = '10px';
+            restoreSystemButton_1.style.marginTop = '0';
+            restoreSystemButton_1.style.marginBottom = '0';
+            restoreSystemButton_1.onclick = function () {
+                restoreSystemButton_1.disabled = true;
+                restoreSystemButton_1.textContent = 'Restoring...';
                 if (confirm('Are you sure you want to restore the system ?')) {
                     sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
                 }
+                setTimeout(function () {
+                    restoreSystemButton_1.disabled = false;
+                    restoreSystemButton_1.textContent = 'Restore System';
+                }, 3000);
             };
         }
     }

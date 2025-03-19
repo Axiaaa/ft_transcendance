@@ -18,7 +18,7 @@ export function sendNotification(title, message, icon) {
     notification.style.border = '2px solid rgba(0, 0, 0, 0.85)';
     notification.style.boxShadow = '2 2 8px rgba(0, 0, 0, 0.75)';
     notification.style.background = 'rgb(255, 254, 216)';
-    notification.style.transition = 'opacity 0.5s ease';
+    notification.style.transition = 'opacity 0.75s ease-in, opacity 0.1s ease-out';
     notification.style.opacity = '0';
     setTimeout(function () {
         notification.style.opacity = '1';
@@ -162,7 +162,7 @@ export function sendNotification(title, message, icon) {
         setTimeout(function () {
             notification.style.display = 'none';
             notification.remove();
-        }, 500);
+        }, 100);
     });
     setTimeout(function () {
         if (isHovering)
