@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
         currentWallpaperName_1.style.whiteSpace = 'nowrap';
         currentWallpaperName_1.style.maxWidth = '110px';
         currentWallpaperName_1.style.maxHeight = '50px';
+        currentWallpaperName_1.style.fontSize = '11px';
         var rightColumn = document.createElement('div');
         rightColumn.style.display = 'flex';
         rightColumn.style.flexDirection = 'column';

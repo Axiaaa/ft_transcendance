@@ -78,6 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		let isDragging: boolean = false;
 		let isMaximised = false;
 		let isMinimised = false;
+
+		let windowTitle = windowHeader.children[0] as HTMLElement;
+		windowTitle.style.fontSize = '13px';
 		let isOpened = windowElement.classList.contains('opened-window');
 		try {
 			console.log(`Traitement de la fenêtre ${i}`);

@@ -69,6 +69,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var isDragging = false;
         var isMaximised = false;
         var isMinimised = false;
+        var windowTitle = windowHeader.children[0];
+        windowTitle.style.fontSize = '13px';
         var isOpened = windowElement.classList.contains('opened-window');
         try {
             console.log("Traitement de la fen\u00EAtre ".concat(i));
