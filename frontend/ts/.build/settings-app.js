@@ -422,9 +422,13 @@ document.addEventListener('DOMContentLoaded', function () {
     var UserAccountSetting1 = createSetting('Avatar', UserAccountContainer);
     var UserAccountSetting2 = createSetting('Account Name', UserAccountContainer);
     var UserAccountSetting3 = createSetting('Password', UserAccountContainer);
+    var SystemContainer = createSettingsContainer('system');
+    var SystemSetting1 = createSetting('System Information', SystemContainer);
+    var SystemSetting2 = createSetting('System Update', SystemContainer);
+    var SystemSetting3 = createSetting('System Restore', SystemContainer);
     var Appearance = createCategory('Appearance and Theme', './img/Settings_app/appearance-icon.png', appearanceContainer);
     var UserAccount = createCategory('User Account', './img/Settings_app/user-account.png', UserAccountContainer);
-    var System = createCategory('System', './img/Settings_app/system-icon.png');
+    var System = createCategory('System', './img/Settings_app/system-icon.png', SystemContainer);
     var LanguageRegion = createCategory('Language & Region', './img/Settings_app/regions-language.png');
     var Accessibility = createCategory('Accessibility', './img/Settings_app/accessibility-icon.png');
     var Privacy = createCategory('Privacy', './img/Settings_app/privacy-icon.png');

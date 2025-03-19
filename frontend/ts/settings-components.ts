@@ -1,3 +1,4 @@
+import { sys } from "../node_modules/typescript/lib/typescript.js";
 import { sendNotification } from "./notification.js";
 
 
@@ -460,5 +461,239 @@ document.addEventListener('DOMContentLoaded', () => {
 		passwordText.style.fontSize = '10px';
 		passwordText.style.padding = '5px';
 		userAccountPassword.appendChild(passwordInfo);
+	}
+
+
+
+	// System Settings
+
+	function createInformationElement(Name: string, Container: HTMLElement): HTMLElement
+	{
+		let Element = document.createElement('div');
+		Element.id = Name.toLowerCase().replace(' ', '-') + "-info";
+		Container.appendChild(Element);
+		Element.style.position = 'relative';
+		Element.style.width = 'calc(100% - 20px)';
+		Element.style.padding = '10px';
+		Element.style.border = '1px solid #ddd';
+		Element.style.borderRadius = '5px';
+		Element.style.backgroundColor = '#f9f9f9';
+		Element.style.boxShadow = '0 0 5px rgba(0, 0, 0, 0.1)';
+		Element.style.display = 'flex';
+		Element.style.flexDirection = 'column';
+		Element.style.gap = '5px';
+		Element.style.margin = '10px';
+		let ElementTitle = document.createElement('span');
+		Element.appendChild(ElementTitle);
+		ElementTitle.textContent = Name;
+		ElementTitle.style.fontSize = '12px';
+		ElementTitle.style.fontWeight = 'bold';
+		ElementTitle.style.margin = '5px';
+		ElementTitle.style.marginBottom = '0';
+		ElementTitle.style.textShadow = '0 0 5px rgba(0, 0, 0, 0.1)';
+		let ElementSubTitleBar = document.createElement('hr');
+		Element.appendChild(ElementSubTitleBar);
+		ElementSubTitleBar.style.width = '100%';
+		ElementSubTitleBar.style.margin = '5px';
+		ElementSubTitleBar.style.marginTop = '0';
+		ElementSubTitleBar.style.marginBottom = '10px';
+		ElementSubTitleBar.style.border = '0';
+		ElementSubTitleBar.style.borderTop = '1px solid #ddd';
+		ElementSubTitleBar.style.borderBottom = '1px solid #fff';
+		ElementSubTitleBar.style.height = '1px';
+		ElementSubTitleBar.style.backgroundColor = 'rgba(0, 0, 0, 0.39)';
+		ElementSubTitleBar.style.boxShadow = '0 0 5px rgba(0, 0, 0, 0.1)';
+		return Element;
+	}
+
+	function createFormatedSpan(Container: HTMLElement): HTMLElement
+	{
+		let Span = document.createElement('span');
+		Container.appendChild(Span);
+		Span.style.overflow = 'hidden';
+		Span.style.textOverflow = 'ellipsis';
+		Span.style.whiteSpace = 'nowrap';
+		Span.style.maxWidth = 'calc(100% - 20px)';
+		Span.style.maxHeight = '50px';
+		Span.style.fontSize = '11px';
+		Span.style.margin = '10px';
+		Span.style.marginTop = '0';
+		Span.style.marginBottom = '0';
+		return Span;
+	}
+
+	let systemSettingsContainer = document.getElementById('settings-app-system-settings-container') as HTMLElement;
+	{
+		// System Informations
+
+		let systemInformationsBox = document.getElementById('settings-app-System Information-setting') as HTMLElement;
+		{
+			let systemInformationsContainer = document.createElement('div');
+			systemInformationsBox.appendChild(systemInformationsContainer);
+			systemInformationsContainer.id = 'system-informations-container';
+			systemInformationsContainer.style.display = 'flex';
+			systemInformationsContainer.style.flexDirection = 'column';
+			systemInformationsContainer.style.alignItems = 'center';
+
+			
+
+			let sysInfo1 = createInformationElement('System Name', systemInformationsContainer);
+			let sysInfo2 = createInformationElement('System Version', systemInformationsContainer);
+			let sysInfo3 = createInformationElement('Creators', systemInformationsContainer);
+			let sysInfo4 = createInformationElement('Creation Date', systemInformationsContainer);
+			let sysInfo5 = createInformationElement('Last Update', systemInformationsContainer);
+			let sysInfo6 = createInformationElement('Github Repository', systemInformationsContainer);
+			let sysInfo7 = createInformationElement('License', systemInformationsContainer);
+
+
+			let systemName = createFormatedSpan(sysInfo1);
+			systemName.textContent = "Windows XPong (Transcendance Edition)";
+			let systemVersion = createFormatedSpan(sysInfo2);
+			systemVersion.textContent = "Beta 0.7";
+
+			let creators = createFormatedSpan(sysInfo3);
+			creators.textContent = "Jcuzin; Lcamerly; Mcourbon; Aammirat; Yallo";
+			let creationDate = createFormatedSpan(sysInfo4);
+			creationDate.textContent = "2025-01-12";
+			let lastUpdate = createFormatedSpan(sysInfo5);
+			let lastUpdateText = "";
+			fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/commits/main')
+			.then(response => response.json())
+			.then(data => {
+				lastUpdateText = data.commit.author.date.split('T')[0];
+				console.log('Last commit date:', lastUpdateText);
+				lastUpdate.textContent = lastUpdateText;
+			})
+			.catch(error => {
+				console.error('Error fetching last commit date:', error);
+				lastUpdateText = "2025-01-12"; // Fallback date if fetch fails
+				lastUpdate.textContent = lastUpdateText;
+			});
+			let githubRepoURL = document.createElement('a');
+			githubRepoURL.href = 'https://github.com/Axiaaa/ft_transcendance';
+			githubRepoURL.textContent = 'Open on Github';
+			githubRepoURL.target = '_blank'; // Add this line to open in new tab
+			githubRepoURL.style.color = '#007bff';
+			githubRepoURL.style.textDecoration = 'none';
+			let githubRepo = createFormatedSpan(sysInfo6);
+			githubRepo.appendChild(githubRepoURL);
+
+			let license = createFormatedSpan(sysInfo7);
+			let licensePromise = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/license')
+			.then(response => response.json())
+			.then(data => {
+				return data.license?.name || 'License information not available';
+			})
+			.catch(error => {
+				console.error('Error fetching license:', error);
+				return 'License information not available';
+			});
+			licensePromise.then(licenseText => license.textContent = licenseText);
+
+			sysInfo1.appendChild(systemName);
+			sysInfo2.appendChild(systemVersion);
+			sysInfo3.appendChild(creators);
+			sysInfo4.appendChild(creationDate);
+			sysInfo5.appendChild(lastUpdate);
+			sysInfo6.appendChild(githubRepo);
+			sysInfo7.appendChild(license);
+		}
+
+		let systemUpdatesBox = document.getElementById('settings-app-System Update-setting') as HTMLElement;
+		{
+			let systemUpdatesContainer = document.createElement('div');
+			systemUpdatesBox.appendChild(systemUpdatesContainer);
+			systemUpdatesContainer.id = 'system-updates-container';
+			systemUpdatesContainer.style.display = 'flex';
+			systemUpdatesContainer.style.flexDirection = 'column';
+			systemUpdatesContainer.style.alignItems = 'center';
+
+			let updateInfo1 = createInformationElement('Current Version', systemUpdatesContainer);
+			let updateInfo2 = createInformationElement('Latest Version Status', systemUpdatesContainer);
+
+			let currentVersion = createFormatedSpan(updateInfo1);
+			let currentVersionText = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
+				.then(response => response.json())
+				.then(data => {
+					let version = data.tag_name;
+					if (version.startsWith('0.')) {
+						version = 'Beta ' + version;
+					}
+					currentVersion.textContent = version;
+					return version;
+				})
+				.catch(error => {
+					console.error('Error fetching current version:', error);
+					let fallbackVersion = 'Beta 0.7';
+					currentVersion.textContent = fallbackVersion;
+					return fallbackVersion;
+				});
+
+
+			let latestVersionStatus = createFormatedSpan(updateInfo2);
+			let latestVersionStatusText = "";
+			let latestVersionStatusCheckButton = document.createElement('button');
+			updateInfo2.appendChild(latestVersionStatusCheckButton);
+			latestVersionStatusCheckButton.onclick = () => {
+				latestVersionStatusCheckButton.textContent = 'Checking...';
+				latestVersionStatusCheckButton.disabled = true;
+				fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
+				.then(response => response.json())
+				.then(data => {
+					latestVersionStatusText = data.tag_name;
+					console.log('Latest version:', latestVersionStatusText);
+					latestVersionStatus.textContent = latestVersionStatusText;
+					if (!latestVersionStatusText || latestVersionStatusText.includes('API rate limit exceeded')) {
+						sendNotification('Error', 'Failed to check version', "./img/Utils/error-icon.png");
+					} else if (latestVersionStatusText === currentVersion.textContent) {
+						sendNotification('System Update', 'System is up to date', "./img/Utils/update-icon.png");
+					} else {
+						sendNotification('System Update', 'New version available', "./img/Utils/update-icon.png");
+					}
+					latestVersionStatusCheckButton.textContent = 'Check for Updates';
+				})
+				.catch(error => {
+					console.error('Error fetching latest version:', error);
+					latestVersionStatusText = "Beta 0.7"; // Fallback version if fetch fails
+					latestVersionStatus.textContent = latestVersionStatusText;
+					sendNotification('Error', 'Failed to check for updates', "./img/Utils/error-icon.png");
+					latestVersionStatusCheckButton.textContent = 'Check for Updates';
+				});
+				setTimeout(() => latestVersionStatusCheckButton.disabled = false, 3000);
+			};
+			latestVersionStatusCheckButton.textContent = 'Check for Updates';
+			latestVersionStatusCheckButton.style.padding = '5px 10px';
+			latestVersionStatusCheckButton.style.margin = '10px';
+			latestVersionStatusCheckButton.style.marginTop = '0';
+			latestVersionStatusCheckButton.style.marginBottom = '0';
+
+			updateInfo1.appendChild(currentVersion);
+			updateInfo2.appendChild(latestVersionStatus);
+		}
+
+		let systemRestoreBox = document.getElementById('settings-app-System Restore-setting') as HTMLElement;
+		{
+			let systemRestoreContainer = document.createElement('div');
+			systemRestoreBox.appendChild(systemRestoreContainer);
+			systemRestoreContainer.id = 'system-restore-container';
+			systemRestoreContainer.style.display = 'flex';
+			systemRestoreContainer.style.flexDirection = 'column';
+			systemRestoreContainer.style.alignItems = 'center';
+
+			let restoreInfo1 = createInformationElement('Restore System', systemRestoreContainer);
+
+			let restoreSystemButton = document.createElement('button');
+			restoreInfo1.appendChild(restoreSystemButton);
+			restoreSystemButton.textContent = 'Restore System';
+			restoreSystemButton.style.padding = '5px 10px';
+			restoreSystemButton.style.margin = '10px';
+			restoreSystemButton.style.marginTop = '0';
+			restoreSystemButton.style.marginBottom = '0';
+			restoreSystemButton.onclick = () => {
+				if (confirm('Are you sure you want to restore the system ?')) {
+					sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
+				}
+			}
+		}
 	}
 });

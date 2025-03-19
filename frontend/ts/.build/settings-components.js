@@ -378,4 +378,215 @@ document.addEventListener('DOMContentLoaded', function () {
         passwordText.style.padding = '5px';
         userAccountPassword.appendChild(passwordInfo);
     }
+    // System Settings
+    function createInformationElement(Name, Container) {
+        var Element = document.createElement('div');
+        Element.id = Name.toLowerCase().replace(' ', '-') + "-info";
+        Container.appendChild(Element);
+        Element.style.position = 'relative';
+        Element.style.width = 'calc(100% - 20px)';
+        Element.style.padding = '10px';
+        Element.style.border = '1px solid #ddd';
+        Element.style.borderRadius = '5px';
+        Element.style.backgroundColor = '#f9f9f9';
+        Element.style.boxShadow = '0 0 5px rgba(0, 0, 0, 0.1)';
+        Element.style.display = 'flex';
+        Element.style.flexDirection = 'column';
+        Element.style.gap = '5px';
+        Element.style.margin = '10px';
+        var ElementTitle = document.createElement('span');
+        Element.appendChild(ElementTitle);
+        ElementTitle.textContent = Name;
+        ElementTitle.style.fontSize = '12px';
+        ElementTitle.style.fontWeight = 'bold';
+        ElementTitle.style.margin = '5px';
+        ElementTitle.style.marginBottom = '0';
+        ElementTitle.style.textShadow = '0 0 5px rgba(0, 0, 0, 0.1)';
+        var ElementSubTitleBar = document.createElement('hr');
+        Element.appendChild(ElementSubTitleBar);
+        ElementSubTitleBar.style.width = '100%';
+        ElementSubTitleBar.style.margin = '5px';
+        ElementSubTitleBar.style.marginTop = '0';
+        ElementSubTitleBar.style.marginBottom = '10px';
+        ElementSubTitleBar.style.border = '0';
+        ElementSubTitleBar.style.borderTop = '1px solid #ddd';
+        ElementSubTitleBar.style.borderBottom = '1px solid #fff';
+        ElementSubTitleBar.style.height = '1px';
+        ElementSubTitleBar.style.backgroundColor = 'rgba(0, 0, 0, 0.39)';
+        ElementSubTitleBar.style.boxShadow = '0 0 5px rgba(0, 0, 0, 0.1)';
+        return Element;
+    }
+    function createFormatedSpan(Container) {
+        var Span = document.createElement('span');
+        Container.appendChild(Span);
+        Span.style.overflow = 'hidden';
+        Span.style.textOverflow = 'ellipsis';
+        Span.style.whiteSpace = 'nowrap';
+        Span.style.maxWidth = 'calc(100% - 20px)';
+        Span.style.maxHeight = '50px';
+        Span.style.fontSize = '11px';
+        Span.style.margin = '10px';
+        Span.style.marginTop = '0';
+        Span.style.marginBottom = '0';
+        return Span;
+    }
+    var systemSettingsContainer = document.getElementById('settings-app-system-settings-container');
+    {
+        // System Informations
+        var systemInformationsBox = document.getElementById('settings-app-System Information-setting');
+        {
+            var systemInformationsContainer = document.createElement('div');
+            systemInformationsBox.appendChild(systemInformationsContainer);
+            systemInformationsContainer.id = 'system-informations-container';
+            systemInformationsContainer.style.display = 'flex';
+            systemInformationsContainer.style.flexDirection = 'column';
+            systemInformationsContainer.style.alignItems = 'center';
+            var sysInfo1 = createInformationElement('System Name', systemInformationsContainer);
+            var sysInfo2 = createInformationElement('System Version', systemInformationsContainer);
+            var sysInfo3 = createInformationElement('Creators', systemInformationsContainer);
+            var sysInfo4 = createInformationElement('Creation Date', systemInformationsContainer);
+            var sysInfo5 = createInformationElement('Last Update', systemInformationsContainer);
+            var sysInfo6 = createInformationElement('Github Repository', systemInformationsContainer);
+            var sysInfo7 = createInformationElement('License', systemInformationsContainer);
+            var systemName = createFormatedSpan(sysInfo1);
+            systemName.textContent = "Windows XPong (Transcendance Edition)";
+            var systemVersion = createFormatedSpan(sysInfo2);
+            systemVersion.textContent = "Beta 0.7";
+            var creators = createFormatedSpan(sysInfo3);
+            creators.textContent = "Jcuzin; Lcamerly; Mcourbon; Aammirat; Yallo";
+            var creationDate = createFormatedSpan(sysInfo4);
+            creationDate.textContent = "2025-01-12";
+            var lastUpdate_1 = createFormatedSpan(sysInfo5);
+            var lastUpdateText_1 = "";
+            fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/commits/main')
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                lastUpdateText_1 = data.commit.author.date.split('T')[0];
+                console.log('Last commit date:', lastUpdateText_1);
+                lastUpdate_1.textContent = lastUpdateText_1;
+            })
+                .catch(function (error) {
+                console.error('Error fetching last commit date:', error);
+                lastUpdateText_1 = "2025-01-12"; // Fallback date if fetch fails
+                lastUpdate_1.textContent = lastUpdateText_1;
+            });
+            var githubRepoURL = document.createElement('a');
+            githubRepoURL.href = 'https://github.com/Axiaaa/ft_transcendance';
+            githubRepoURL.textContent = 'Open on Github';
+            githubRepoURL.target = '_blank'; // Add this line to open in new tab
+            githubRepoURL.style.color = '#007bff';
+            githubRepoURL.style.textDecoration = 'none';
+            var githubRepo = createFormatedSpan(sysInfo6);
+            githubRepo.appendChild(githubRepoURL);
+            var license_1 = createFormatedSpan(sysInfo7);
+            var licensePromise = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/license')
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                var _a;
+                return ((_a = data.license) === null || _a === void 0 ? void 0 : _a.name) || 'License information not available';
+            })
+                .catch(function (error) {
+                console.error('Error fetching license:', error);
+                return 'License information not available';
+            });
+            licensePromise.then(function (licenseText) { return license_1.textContent = licenseText; });
+            sysInfo1.appendChild(systemName);
+            sysInfo2.appendChild(systemVersion);
+            sysInfo3.appendChild(creators);
+            sysInfo4.appendChild(creationDate);
+            sysInfo5.appendChild(lastUpdate_1);
+            sysInfo6.appendChild(githubRepo);
+            sysInfo7.appendChild(license_1);
+        }
+        var systemUpdatesBox = document.getElementById('settings-app-System Update-setting');
+        {
+            var systemUpdatesContainer = document.createElement('div');
+            systemUpdatesBox.appendChild(systemUpdatesContainer);
+            systemUpdatesContainer.id = 'system-updates-container';
+            systemUpdatesContainer.style.display = 'flex';
+            systemUpdatesContainer.style.flexDirection = 'column';
+            systemUpdatesContainer.style.alignItems = 'center';
+            var updateInfo1 = createInformationElement('Current Version', systemUpdatesContainer);
+            var updateInfo2 = createInformationElement('Latest Version Status', systemUpdatesContainer);
+            var currentVersion_1 = createFormatedSpan(updateInfo1);
+            var currentVersionText = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                var version = data.tag_name;
+                if (version.startsWith('0.')) {
+                    version = 'Beta ' + version;
+                }
+                currentVersion_1.textContent = version;
+                return version;
+            })
+                .catch(function (error) {
+                console.error('Error fetching current version:', error);
+                var fallbackVersion = 'Beta 0.7';
+                currentVersion_1.textContent = fallbackVersion;
+                return fallbackVersion;
+            });
+            var latestVersionStatus_1 = createFormatedSpan(updateInfo2);
+            var latestVersionStatusText_1 = "";
+            var latestVersionStatusCheckButton_1 = document.createElement('button');
+            updateInfo2.appendChild(latestVersionStatusCheckButton_1);
+            latestVersionStatusCheckButton_1.onclick = function () {
+                latestVersionStatusCheckButton_1.textContent = 'Checking...';
+                latestVersionStatusCheckButton_1.disabled = true;
+                fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
+                    .then(function (response) { return response.json(); })
+                    .then(function (data) {
+                    latestVersionStatusText_1 = data.tag_name;
+                    console.log('Latest version:', latestVersionStatusText_1);
+                    latestVersionStatus_1.textContent = latestVersionStatusText_1;
+                    if (!latestVersionStatusText_1 || latestVersionStatusText_1.includes('API rate limit exceeded')) {
+                        sendNotification('Error', 'Failed to check version', "./img/Utils/error-icon.png");
+                    }
+                    else if (latestVersionStatusText_1 === currentVersion_1.textContent) {
+                        sendNotification('System Update', 'System is up to date', "./img/Utils/update-icon.png");
+                    }
+                    else {
+                        sendNotification('System Update', 'New version available', "./img/Utils/update-icon.png");
+                    }
+                    latestVersionStatusCheckButton_1.textContent = 'Check for Updates';
+                })
+                    .catch(function (error) {
+                    console.error('Error fetching latest version:', error);
+                    latestVersionStatusText_1 = "Beta 0.7"; // Fallback version if fetch fails
+                    latestVersionStatus_1.textContent = latestVersionStatusText_1;
+                    sendNotification('Error', 'Failed to check for updates', "./img/Utils/error-icon.png");
+                    latestVersionStatusCheckButton_1.textContent = 'Check for Updates';
+                });
+                setTimeout(function () { return latestVersionStatusCheckButton_1.disabled = false; }, 3000);
+            };
+            latestVersionStatusCheckButton_1.textContent = 'Check for Updates';
+            latestVersionStatusCheckButton_1.style.padding = '5px 10px';
+            latestVersionStatusCheckButton_1.style.margin = '10px';
+            latestVersionStatusCheckButton_1.style.marginTop = '0';
+            latestVersionStatusCheckButton_1.style.marginBottom = '0';
+            updateInfo1.appendChild(currentVersion_1);
+            updateInfo2.appendChild(latestVersionStatus_1);
+        }
+        var systemRestoreBox = document.getElementById('settings-app-System Restore-setting');
+        {
+            var systemRestoreContainer = document.createElement('div');
+            systemRestoreBox.appendChild(systemRestoreContainer);
+            systemRestoreContainer.id = 'system-restore-container';
+            systemRestoreContainer.style.display = 'flex';
+            systemRestoreContainer.style.flexDirection = 'column';
+            systemRestoreContainer.style.alignItems = 'center';
+            var restoreInfo1 = createInformationElement('Restore System', systemRestoreContainer);
+            var restoreSystemButton = document.createElement('button');
+            restoreInfo1.appendChild(restoreSystemButton);
+            restoreSystemButton.textContent = 'Restore System';
+            restoreSystemButton.style.padding = '5px 10px';
+            restoreSystemButton.style.margin = '10px';
+            restoreSystemButton.style.marginTop = '0';
+            restoreSystemButton.style.marginBottom = '0';
+            restoreSystemButton.onclick = function () {
+                if (confirm('Are you sure you want to restore the system ?')) {
+                    sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
+                }
+            };
+        }
+    }
 });

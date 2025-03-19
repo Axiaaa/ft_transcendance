@@ -454,10 +454,15 @@ document.addEventListener('DOMContentLoaded', () => {
 	let UserAccountSetting1 = createSetting('Avatar', UserAccountContainer);
 	let UserAccountSetting2 = createSetting('Account Name', UserAccountContainer);
 	let UserAccountSetting3 = createSetting('Password', UserAccountContainer);
+
+	let SystemContainer = createSettingsContainer('system');
+	let SystemSetting1 = createSetting('System Information', SystemContainer);
+	let SystemSetting2 = createSetting('System Update', SystemContainer);
+	let SystemSetting3 = createSetting('System Restore', SystemContainer);
 	
 	let Appearance = createCategory('Appearance and Theme', './img/Settings_app/appearance-icon.png', appearanceContainer);
 	let UserAccount = createCategory('User Account', './img/Settings_app/user-account.png', UserAccountContainer);
-	let System = createCategory('System', './img/Settings_app/system-icon.png');
+	let System = createCategory('System', './img/Settings_app/system-icon.png', SystemContainer);
 	let LanguageRegion = createCategory('Language & Region', './img/Settings_app/regions-language.png');
 	let Accessibility = createCategory('Accessibility', './img/Settings_app/accessibility-icon.png');
 	let Privacy = createCategory('Privacy', './img/Settings_app/privacy-icon.png');
