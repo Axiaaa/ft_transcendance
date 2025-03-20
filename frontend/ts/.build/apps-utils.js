@@ -39,11 +39,6 @@ document.addEventListener('DOMContentLoaded', function () {
         EasterEgg_1.width = '100%';
         EasterEgg_1.height = '100%';
         EasterEgg_1.style.border = 'none';
-        EasterEgg_1.onload = function () {
-            if (EasterEgg_1.contentWindow) {
-                EasterEgg_1.contentWindow.postMessage({ command: 'mute' }, '*');
-            }
-        };
         var clickCount_1 = 0;
         var lastClickTime_1 = 0;
         CurrentContent_1.addEventListener('dblclick', function () {

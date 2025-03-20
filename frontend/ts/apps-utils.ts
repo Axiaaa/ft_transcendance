@@ -52,12 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		EasterEgg.width = '100%';
 		EasterEgg.height = '100%';
 		EasterEgg.style.border = 'none';
-		EasterEgg.onload = () => {
-			if (EasterEgg.contentWindow) {
-				EasterEgg.contentWindow.postMessage({ command: 'mute' }, '*');
-			}
-		};
-		
 		let clickCount = 0;
 		let lastClickTime = 0;
 		CurrentContent.addEventListener('dblclick', () => {
