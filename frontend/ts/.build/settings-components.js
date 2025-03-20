@@ -510,22 +510,26 @@ document.addEventListener('DOMContentLoaded', function () {
             var updateInfo1 = createInformationElement('Current Version', systemUpdatesContainer);
             var updateInfo2 = createInformationElement('Latest Version Status', systemUpdatesContainer);
             var currentVersion_1 = createFormatedSpan(updateInfo1);
-            var currentVersionText = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
-                .then(function (response) { return response.json(); })
-                .then(function (data) {
-                var version = data.tag_name;
-                if (version.startsWith('0.')) {
-                    version = 'Beta ' + version;
-                }
-                currentVersion_1.textContent = version;
-                return version;
-            })
-                .catch(function (error) {
-                console.error('Error fetching current version:', error);
-                var fallbackVersion = 'Beta 0.7';
-                currentVersion_1.textContent = fallbackVersion;
-                return fallbackVersion;
-            });
+            currentVersion_1.textContent = "Beta 0.7";
+            var systemCategoryButton = document.getElementById('settings-app-System-category');
+            systemCategoryButton.onclick = function () {
+                var currentVersionText = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
+                    .then(function (response) { return response.json(); })
+                    .then(function (data) {
+                    var version = data.tag_name;
+                    if (version.startsWith('0.')) {
+                        version = 'Beta ' + version;
+                    }
+                    currentVersion_1.textContent = version;
+                    return version;
+                })
+                    .catch(function (error) {
+                    console.error('Error fetching current version:', error);
+                    var fallbackVersion = 'Beta 0.7';
+                    currentVersion_1.textContent = fallbackVersion;
+                    return fallbackVersion;
+                });
+            };
             var latestVersionStatus_1 = createFormatedSpan(updateInfo2);
             var latestVersionStatusText_1 = "";
             var latestVersionStatusCheckButton_1 = document.createElement('button');

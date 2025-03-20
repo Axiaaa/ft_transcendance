@@ -613,7 +613,10 @@ document.addEventListener('DOMContentLoaded', () => {
 			let updateInfo2 = createInformationElement('Latest Version Status', systemUpdatesContainer);
 
 			let currentVersion = createFormatedSpan(updateInfo1);
-			let currentVersionText = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
+			currentVersion.textContent = "Beta 0.7";
+			let systemCategoryButton = document.getElementById('settings-app-System-category') as HTMLElement;
+			systemCategoryButton.onclick = () => {
+				let currentVersionText = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
 				.then(response => response.json())
 				.then(data => {
 					let version = data.tag_name;
@@ -629,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					currentVersion.textContent = fallbackVersion;
 					return fallbackVersion;
 				});
-
+			};
 
 			let latestVersionStatus = createFormatedSpan(updateInfo2);
 			let latestVersionStatusText = "";

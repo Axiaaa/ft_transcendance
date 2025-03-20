@@ -64,7 +64,7 @@ export function sendNotification(title: string, message: string, icon: string) {
 	notificationText.style.overflowX = 'scroll';
 	notificationText.style.overflowY = 'hidden';
 	let scrollSpeed = 0;
-	let scrollAnimation: number;
+	let scrollAnimation: NodeJS.Timeout | undefined;
 
 	notificationText.addEventListener('wheel', (e) => {
 		e.preventDefault();

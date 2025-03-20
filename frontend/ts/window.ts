@@ -161,10 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		let isResizing = false;
 		let resizeHandle = document.createElement('div');
 		resizeHandle.style.position = 'absolute';
-		resizeHandle.style.width = '15px';
-		resizeHandle.style.height = '15px';
-		resizeHandle.style.right = '-5px';
-		resizeHandle.style.bottom = '-5px';
+		resizeHandle.style.width = '20px';
+		resizeHandle.style.height = '20px';
+		resizeHandle.style.right = '-10px';
+		resizeHandle.style.bottom = '-10px';
 		resizeHandle.style.zIndex = '0';
 		windowElement.appendChild(resizeHandle);
 
