@@ -53,6 +53,49 @@ document.addEventListener('DOMContentLoaded', function () {
     sleepScreen.style.justifyContent = 'center';
     sleepScreen.style.alignItems = 'center';
     sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
+    // sleepScreen.style.opacity = '1';
+    // sleepScreen.style.display = 'block';
+    var sleepLogo = document.createElement('img');
+    sleepScreen.appendChild(sleepLogo);
+    sleepLogo.src = './img/Utils/windows-xp-logo.png';
+    sleepLogo.style.width = '100px';
+    sleepLogo.style.height = '100px';
+    sleepLogo.style.position = 'absolute';
+    sleepLogo.style.padding = '0 10px';
+    function animateLogo(Logo) {
+        if (!Logo)
+            return;
+        if (!sleepScreen)
+            return;
+        if (sleepScreen.style.display === 'none' || sleepScreen.style.opacity === '0')
+            return;
+        console.log("sleepcreen.display:", sleepScreen.style.display, "sleepcreen.opacity:", sleepScreen.style.opacity);
+        var screenBorderTop = 0;
+        var screenBorderBottom = sleepScreen.clientHeight - (Logo.clientHeight);
+        var screenBorderLeft = 0;
+        var screenBorderRight = sleepScreen.clientWidth - (Logo.clientWidth);
+        console.log("Screen borders - Bottom:", screenBorderBottom, "Right:", screenBorderRight);
+        console.log("Screen dimensions - Height:", sleepScreen.clientHeight, "Width:", sleepScreen.clientWidth);
+        console.log("Logo dimensions - Height:", Logo.clientHeight, "Width:", Logo.clientWidth);
+        var x = screenBorderLeft;
+        var y = screenBorderTop;
+        var dx = Math.round((Math.random() * 2 - 1) * 10) / 10;
+        var dy = Math.round((Math.random() * 2 - 1) * 10) / 10;
+        console.log("SleepScreen X/Y direction" + dx + "/" + dy);
+        var speed = 5;
+        var interval = 50;
+        var animation = setInterval(function () {
+            Logo.style.left = x + 'px';
+            Logo.style.top = y + 'px';
+            x += dx * speed;
+            y += dy * speed;
+            if (x > screenBorderRight || x < screenBorderLeft)
+                dx *= -1;
+            if (y > screenBorderBottom || y < screenBorderTop)
+                dy *= -1;
+        }, interval);
+    }
+    animateLogo(sleepLogo);
     var timeoutId;
     var INACTIVE_TIMEOUT = 10000; // 10 seconds of inactivity
     function resetTimer() {
@@ -62,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Reset screen state immediately
         sleepScreen.style.opacity = '0';
         sleepScreen.style.display = 'none';
+        sleepLogo.style.display = 'none';
         // Set new timeout
         timeoutId = setTimeout(function () { return __awaiter(_this, void 0, void 0, function () {
             var error_1;
@@ -86,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             return [2 /*return*/];
                         console.log('Inactive Blackout');
                         sleepScreen.style.opacity = '1';
+                        sleepLogo.style.display = 'block';
                         return [3 /*break*/, 4];
                     case 3:
                         error_1 = _a.sent();

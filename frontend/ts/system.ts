@@ -22,6 +22,52 @@ document.addEventListener('DOMContentLoaded', () => {
 	sleepScreen.style.alignItems = 'center';
 	sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
 
+	// sleepScreen.style.opacity = '1';
+	// sleepScreen.style.display = 'block';
+
+	let sleepLogo = document.createElement('img');
+	sleepScreen.appendChild(sleepLogo);
+	sleepLogo.src = './img/Utils/windows-xp-logo.png';
+	sleepLogo.style.width = '100px';
+	sleepLogo.style.height = '100px';
+	sleepLogo.style.position = 'absolute';
+	sleepLogo.style.padding = '0 10px';
+	
+	function animateLogo(Logo: HTMLElement)
+	{
+		if (!Logo) return
+		if (!sleepScreen) return
+		if (sleepScreen.style.display === 'none' || sleepScreen.style.opacity === '0') return
+		console.log("sleepcreen.display:", sleepScreen.style.display, "sleepcreen.opacity:", sleepScreen.style.opacity);
+		let screenBorderTop = 0;
+		let screenBorderBottom = sleepScreen.clientHeight - (Logo.clientHeight);
+		let screenBorderLeft = 0;
+		let screenBorderRight = sleepScreen.clientWidth - (Logo.clientWidth);
+		console.log("Screen borders - Bottom:", screenBorderBottom, "Right:", screenBorderRight);
+		console.log("Screen dimensions - Height:", sleepScreen.clientHeight, "Width:", sleepScreen.clientWidth);
+		console.log("Logo dimensions - Height:", Logo.clientHeight, "Width:", Logo.clientWidth);
+		let x = screenBorderLeft;
+		let y = screenBorderTop;
+		let dx = Math.round((Math.random() * 2 - 1) * 10) / 10;
+		let dy = Math.round((Math.random() * 2 - 1) * 10) / 10;
+		console.log("SleepScreen X/Y direction" + dx + "/" + dy);
+		let speed = 5;
+		let interval = 50;
+		let animation = setInterval(() => {
+			Logo.style.left = x + 'px';
+			Logo.style.top = y + 'px';
+			x += dx * speed;
+			y += dy * speed;
+			if (x > screenBorderRight || x < screenBorderLeft)
+				dx *= -1;
+			if (y > screenBorderBottom || y < screenBorderTop)
+				dy *= -1;
+		}, interval);
+	}
+	
+	animateLogo(sleepLogo);
+
+
 	let timeoutId: NodeJS.Timeout;
 	const INACTIVE_TIMEOUT = 10000; // 10 seconds of inactivity
 
@@ -32,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		// Reset screen state immediately
 		sleepScreen.style.opacity = '0';
 		sleepScreen.style.display = 'none';
+		sleepLogo.style.display = 'none';
 		
 		// Set new timeout
 		timeoutId = setTimeout(async () => {
@@ -47,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				if (sleepScreen.style.display === 'none') return;
 				console.log('Inactive Blackout');
 				sleepScreen.style.opacity = '1';
+				sleepLogo.style.display = 'block';
 			} catch (error) {
 				console.error('Error in inactivity timer:', error);
 			}
