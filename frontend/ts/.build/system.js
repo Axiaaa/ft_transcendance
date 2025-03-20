@@ -36,10 +36,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { sendNotification } from "./notification.js";
 document.addEventListener('DOMContentLoaded', function () {
-    // window.addEventListener('beforeunload', (event) => {
-    // 	event.preventDefault();
-    // 	return 'Your data will be lost if you reload or leave this page. Are you sure ?';
-    // });
+    window.addEventListener('beforeunload', function (event) {
+        event.preventDefault();
+        return 'Your data will be lost if you reload or leave this page. Are you sure ?';
+    });
     var sleepScreen = document.createElement('div');
     document.body.appendChild(sleepScreen);
     sleepScreen.id = 'sleep-screen';
