@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 InternetExplorerWindow.style.maxHeight = '510px';
                 InternetExplorerWindow.style.width = '625px';
                 InternetExplorerWindow.style.height = '510px';
-                sendNotification('Easter Egg activated', 'Enjoy a game of Space Cadet Pinball !', 'img/Utils/pinball-icon.png');
+                sendNotification('Easter Egg activated', 'Enjoy a game of Space Cadet Pinball ! Credit: https://alula.github.io/SpaceCadetPinball/', 'img/Utils/pinball-icon.png');
             }
         });
         closeButton.addEventListener('click', function () {
