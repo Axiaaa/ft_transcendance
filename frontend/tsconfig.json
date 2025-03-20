@@ -1,23 +1,21 @@
 {
 	"compilerOptions": {
-		"lib": ["es2015", "dom"],
+		"lib": ["es2020", "dom"],
 		"target": "es5",
 		"module": "es6",
+		"moduleResolution": "node",
 		"outDir": "./ts/.build",
 		"rootDir": "./ts",
 		"baseUrl": "./ts",
-		"strict": true
+		// "paths": {
+		// 	"game": ["./game"]
+		// },
+		"strict": true,
+		// "composite": true    // Décommentez cette ligne
 	},
 	"include": ["ts/**/*.ts"],
-    "exclude": ["node_modules"]
-	// "files": [
-	// 	"window.ts",
-	// 	"app-icon.ts",
-	// 	"start-menu.ts",
-	// 	"login-screen.ts",
-	// 	"taskbar.ts",
-	// 	"settings-app.ts",
-	// 	"notification.ts",
-	// 	"terminal-app.ts"
+	"exclude": ["node_modules"],
+	// "references": [
+	// 	{ "path": "./game" }
 	// ]
 }
