@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"lib": ["es2015", "dom"],
+		"target": "es5",
+		"module": "es6",
+		"outDir": "./js/.build/",
+		"rootDir": ".",
+		"strict": true
+	},
+	"files": [
+		"./js/window.ts",
+		"./js/app-icon.ts",
+		"./js/start-menu.ts",
+		"./js/login-screen.ts",
+		"./js/taskbar.ts",
+		"./js/settings-app.ts",
+		"./js/notification.ts",
+		"./js/terminal-app.ts"
+	]
+}
