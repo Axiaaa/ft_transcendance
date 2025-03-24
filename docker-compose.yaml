@@ -32,6 +32,7 @@ services:
       - ${NGINX_PORT}:443
     volumes:
       - certs:/etc/nginx/certs
+      - ./frontend/:/usr/share/nginx/html
     networks:
       - ft_transcendence
     depends_on:
@@ -66,8 +67,8 @@ services:
       - sqlite_data:/usr/src/app/db/
     environment:
       - PORT=${FASTIFY_PORT}
-      - API_USERNAME=${API_USERNAME}
-      - API_PASSWORD=${API_PASSWORD}
+      # - API_USERNAME=${API_USERNAME}
+      # - API_PASSWORD=${API_PASSWORD}
     depends_on:
       - sqlite
       - nginx
@@ -93,9 +94,9 @@ services:
     networks:
       - ft_transcendence
     healthcheck:
-        test: ['CMD-SHELL', '[ -f config/certs/elasticsearch/elasticsearch.crt ]']
-        interval: 1s
-        timeout: 5s
+        test: ['CMD-SHELL', '[ -f /usr/share/elasticsearch/config/certs/elasticsearch.crt ]']
+        interval: 20s
+        timeout: 100s
         retries: 120
 
 
@@ -120,15 +121,11 @@ services:
     - LICENSE=${LICENSE}
     - KIBANA_PASSWORD=${KIBANA_PASSWORD}
    mem_limit: ${ES_MEM_LIMIT}
-   ulimits:
-     memlock:
-       soft: -1
-       hard: -1
    restart: always
    healthcheck:
-     test: ["CMD-SHELL", "curl -k https://elastic:${ELASTIC_PASSWORD}@localhost:9200"]
-     interval: 2s
-     timeout: 10s
+     test: ["CMD-SHELL", "curl -k https://elastic:$${ELASTIC_PASSWORD}@localhost:9200"]
+     interval: 20s
+     timeout: 100s
      retries: 10
 
   kibana:
