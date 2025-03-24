@@ -67,8 +67,8 @@ services:
       - sqlite_data:/usr/src/app/db/
     environment:
       - PORT=${FASTIFY_PORT}
-      # - API_USERNAME=${API_USERNAME}
-      # - API_PASSWORD=${API_PASSWORD}
+      - API_USERNAME=${API_USERNAME}
+      - API_PASSWORD=${API_PASSWORD}
     depends_on:
       - sqlite
       - nginx
