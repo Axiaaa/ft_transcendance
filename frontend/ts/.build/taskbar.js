@@ -107,9 +107,9 @@ document.addEventListener('DOMContentLoaded', function () {
     taskbarClock.style.fontFamily = 'DotGothic16';
     taskbarClock.style.textShadow = '1px 0.5px rgba(0, 0, 0, 0.3)';
     // taskbarClock.style.backgroundColor = 'rgba(88, 255, 88, 0.76)';
-    taskbarClock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    taskbarClock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     setInterval(function () {
-        taskbarClock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        taskbarClock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }, 1000);
     var accessibilityIcon = document.createElement('div');
     accessibilityIcon.id = 'accessibility-icon';
