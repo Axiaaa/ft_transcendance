@@ -2,9 +2,24 @@ import { isAppOpen } from "./taskbar.js";
 import { setIsAppOpen } from "./taskbar.js";
 
 
-export function openAppWindow(appName: string): void {
+export function openAppWindow(appName: string, rawName?:string ): void {
 	let appWindow = document.getElementById(appName + '-window') as HTMLElement;
-	console.log('Open ' + appName + " = " + appWindow);
+	console.log('Searching ' + appName + " = " + appWindow);
+	if (!appWindow) {
+		console.log('App not found');
+		if (rawName) {
+			console.log('Testing Raw name: ' + rawName);
+			appWindow = document.getElementById(rawName) as HTMLElement;
+			if (!appWindow) {
+				console.log('Raw name not found');
+				return;
+			}
+			console.log('Raw name found');
+		}
+		else
+			return;
+	};
+	console.log('App found, opening...');
 	appWindow.style.display = 'block';
 	appWindow.classList.add('opened-window');
 	let appTaskbarIcon = document.getElementById(appName + '-taskbar-icon') as HTMLElement;
@@ -120,14 +135,19 @@ document.addEventListener('DOMContentLoaded', () =>
 	console.log("App created: Id: " + terminalApp.id + " Class: " + terminalApp.className);
 	
 	let ExplorerApp = createApp('internet explorer');
-	console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
 	let ExplorerContent = ExplorerApp.children[1] as HTMLElement;
 	let ExplorerContentTemp = document.createElement('img');
 	ExplorerContentTemp.src = 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXh2ZTljZWw2ZHd4dWMwc254dzN6M2Y1dHk1Z2JjY2hiMm11azZzaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jNztZhObQPjbsSNNkm/giphy.gif';
 	ExplorerContent.appendChild(ExplorerContentTemp);
 	ExplorerContentTemp.style.position = 'absolute';
 	renderWindowContent(ExplorerApp.children[1].children[0] as HTMLElement);
-	
+	console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
+
+
+	let profileApp = createApp('profile');
+	renderWindowContent(profileApp.children[1].children[0] as HTMLElement);
+	console.log("App created: Id: " + profileApp.id + " Class: " + profileApp.className);
+
 
 	const desktop = document.getElementById('desktop') as HTMLElement;
 	const windowsContainer = document.getElementById('windows-container') as HTMLElement;

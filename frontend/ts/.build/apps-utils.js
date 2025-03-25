@@ -1,8 +1,11 @@
 import { sendNotification } from "./notification.js";
 function resetEasterEgg(CurrentContent, InternetExplorerWindow, InternetExplorerWindowBody, EasterEgg, windowTitle) {
-    CurrentContent.style.display = 'block';
-    CurrentContent.style.opacity = '1';
-    InternetExplorerWindowBody.removeChild(EasterEgg);
+    if (CurrentContent) {
+        CurrentContent.style.display = 'block';
+        CurrentContent.style.opacity = '1';
+    }
+    if (EasterEgg && InternetExplorerWindowBody && InternetExplorerWindowBody.contains(EasterEgg))
+        InternetExplorerWindowBody.removeChild(EasterEgg);
     setTimeout(function () {
         CurrentContent.style.transition = '';
     }, 100);

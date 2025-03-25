@@ -1,7 +1,23 @@
 import { setIsAppOpen } from "./taskbar.js";
-export function openAppWindow(appName) {
+export function openAppWindow(appName, rawName) {
     var appWindow = document.getElementById(appName + '-window');
-    console.log('Open ' + appName + " = " + appWindow);
+    console.log('Searching ' + appName + " = " + appWindow);
+    if (!appWindow) {
+        console.log('App not found');
+        if (rawName) {
+            console.log('Testing Raw name: ' + rawName);
+            appWindow = document.getElementById(rawName);
+            if (!appWindow) {
+                console.log('Raw name not found');
+                return;
+            }
+            console.log('Raw name found');
+        }
+        else
+            return;
+    }
+    ;
+    console.log('App found, opening...');
     appWindow.style.display = 'block';
     appWindow.classList.add('opened-window');
     var appTaskbarIcon = document.getElementById(appName + '-taskbar-icon');
@@ -100,13 +116,16 @@ document.addEventListener('DOMContentLoaded', function () {
     renderWindowContent(terminalApp.children[1].children[0]);
     console.log("App created: Id: " + terminalApp.id + " Class: " + terminalApp.className);
     var ExplorerApp = createApp('internet explorer');
-    console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
     var ExplorerContent = ExplorerApp.children[1];
     var ExplorerContentTemp = document.createElement('img');
     ExplorerContentTemp.src = 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXh2ZTljZWw2ZHd4dWMwc254dzN6M2Y1dHk1Z2JjY2hiMm11azZzaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jNztZhObQPjbsSNNkm/giphy.gif';
     ExplorerContent.appendChild(ExplorerContentTemp);
     ExplorerContentTemp.style.position = 'absolute';
     renderWindowContent(ExplorerApp.children[1].children[0]);
+    console.log("App created: Id: " + ExplorerApp.id + " Class: " + ExplorerApp.className);
+    var profileApp = createApp('profile');
+    renderWindowContent(profileApp.children[1].children[0]);
+    console.log("App created: Id: " + profileApp.id + " Class: " + profileApp.className);
     var desktop = document.getElementById('desktop');
     var windowsContainer = document.getElementById('windows-container');
     var gridSize = 90; // Taille de la grille

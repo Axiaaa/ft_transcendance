@@ -4,9 +4,12 @@ import { sendNotification } from "./notification.js";
 
 function resetEasterEgg(CurrentContent: HTMLElement, InternetExplorerWindow: HTMLElement, InternetExplorerWindowBody: HTMLElement, EasterEgg: HTMLIFrameElement, windowTitle: HTMLElement)
 {
-	CurrentContent.style.display = 'block';
-	CurrentContent.style.opacity = '1';
-	InternetExplorerWindowBody.removeChild(EasterEgg);
+	if (CurrentContent) {
+		CurrentContent.style.display = 'block';
+		CurrentContent.style.opacity = '1';
+	}
+	if (EasterEgg && InternetExplorerWindowBody && InternetExplorerWindowBody.contains(EasterEgg))
+		InternetExplorerWindowBody.removeChild(EasterEgg);
 	setTimeout(() => {
 		CurrentContent.style.transition = '';
 	}, 100);

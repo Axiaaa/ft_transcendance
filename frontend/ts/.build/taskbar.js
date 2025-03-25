@@ -65,10 +65,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var settingsWindow = document.getElementById('settings-app-window');
     var terminalWindow = document.getElementById('terminal-app-window');
     var internetExplorerWindow = document.getElementById('internet explorer-app-window');
+    var profileWindow = document.getElementById('profile-app-window');
     var pongApp = createTaskbarApp('pong-app', './img/Desktop/pong-game.png');
     var settingsApp = createTaskbarApp('settings-app', './img/Desktop/settings-icon.png');
     var terminalApp = createTaskbarApp('terminal-app', './img/Desktop/terminal-icon.png');
     var internetExplorerApp = createTaskbarApp('internet explorer-app', './img/Start_Menu/internet-explorer-icon.png');
+    var profileApp = createTaskbarApp('profile-app', './img/Start_Menu/profile-icon.png');
     if (pongWindow)
         taskbarIconVisibility(pongApp, pongWindow);
     if (settingsWindow)
@@ -77,6 +79,8 @@ document.addEventListener('DOMContentLoaded', function () {
         taskbarIconVisibility(terminalApp, terminalWindow);
     if (internetExplorerWindow)
         taskbarIconVisibility(internetExplorerApp, internetExplorerWindow);
+    if (profileWindow)
+        taskbarIconVisibility(profileApp, profileWindow);
     var rightSide = document.createElement('div');
     rightSide.classList.add('taskbar-right-side');
     rightSide.style.position = 'absolute';
