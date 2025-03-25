@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					// User avatar image
 					// API CALL NEEDED: Fetch user's profile picture from the backend
 					let avatarImg = document.createElement('img');
-					avatarImg.src = './img/Utils/default-avatar.png'; // Default avatar - replace with user's actual avatar from API
+					avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar - replace with user's actual avatar from API
 					avatarImg.style.width = '100%';
 					avatarImg.style.height = '100%';
 					avatarImg.style.objectFit = 'cover';
@@ -360,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					// Username display
 					// API CALL NEEDED: Fetch user's username from the backend
 					let usernameDisplay = document.createElement('h3');
-					usernameDisplay.innerText = 'Username'; // Replace with actual username from API
+					usernameDisplay.innerText = 'Xxx_D4rkS4suke36_xxX'; // Default Username
 					usernameDisplay.style.color = '#333';
 					usernameDisplay.style.fontSize = '18px';
 					usernameDisplay.style.fontWeight = 'bold';
@@ -442,6 +442,8 @@ document.addEventListener('DOMContentLoaded', () => {
 						if (settingsApp)
 						{
 							openAppWindow('', 'settings-app-window');
+							App.style.zIndex = '24';
+							settingsApp.style.zIndex = '25';
 							let UserAccountTab = document.getElementById('settings-app-User Account-category') as HTMLElement;
 							if (UserAccountTab) {
 								UserAccountTab.click();
@@ -560,7 +562,8 @@ document.addEventListener('DOMContentLoaded', () => {
 				statsTable.style.color = 'white';
 				statsTable.style.fontSize = '14px';
 
-				// Dummy data - replace with API call
+				// API Call to get the game statistics
+					// Dummy data - replace with API call
 				const totalMatches = wins + losses;
 				const pointsScored = 254;
 				const avgMatchDuration = '3m 42s';

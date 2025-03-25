@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // User avatar image
                     // API CALL NEEDED: Fetch user's profile picture from the backend
                     var avatarImg = document.createElement('img');
-                    avatarImg.src = './img/Utils/default-avatar.png'; // Default avatar - replace with user's actual avatar from API
+                    avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar - replace with user's actual avatar from API
                     avatarImg.style.width = '100%';
                     avatarImg.style.height = '100%';
                     avatarImg.style.objectFit = 'cover';
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Username display
                     // API CALL NEEDED: Fetch user's username from the backend
                     var usernameDisplay = document.createElement('h3');
-                    usernameDisplay.innerText = 'Username'; // Replace with actual username from API
+                    usernameDisplay.innerText = 'Xxx_D4rkS4suke36_xxX'; // Default Username
                     usernameDisplay.style.color = '#333';
                     usernameDisplay.style.fontSize = '18px';
                     usernameDisplay.style.fontWeight = 'bold';
@@ -388,6 +388,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         var settingsApp = document.getElementById('settings-app-window');
                         if (settingsApp) {
                             openAppWindow('', 'settings-app-window');
+                            App.style.zIndex = '24';
+                            settingsApp.style.zIndex = '25';
                             var UserAccountTab = document.getElementById('settings-app-User Account-category');
                             if (UserAccountTab) {
                                 UserAccountTab.click();
@@ -491,6 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 statsTable_1.style.borderCollapse = 'collapse';
                 statsTable_1.style.color = 'white';
                 statsTable_1.style.fontSize = '14px';
+                // API Call to get the game statistics
                 // Dummy data - replace with API call
                 var totalMatches = wins + losses;
                 var pointsScored = 254;
