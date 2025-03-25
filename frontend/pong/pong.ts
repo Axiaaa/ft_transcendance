@@ -1,8 +1,8 @@
 import * as BABYLON from '@babylonjs/core';
+import * as GUI from '@babylonjs/gui';
 import '@babylonjs/loaders';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
-
-
+import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
 
 // Create the canvas element and append it to the document html
 const canvas = document.getElementById('canvas') as unknown as HTMLCanvasElement;
@@ -18,12 +18,42 @@ const scene: BABYLON.Scene = new BABYLON.Scene(engine);
 // Set background color
 scene.clearColor = new BABYLON.Color4(0, 0, 0, 1); // Black
 // Create a camera to control it
-const camera: BABYLON.UniversalCamera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 6.5, 9), scene);
+// const camera: BABYLON.UniversalCamera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 6.5, 9), scene);
+const camera: BABYLON.UniversalCamera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 8, 10), scene);
 camera.setTarget(BABYLON.Vector3.Zero());
-camera.fov = Math.PI / 2;
 camera.minZ = 0.1;
 camera.maxZ = 1000;
 camera.inputs.clear(); // Disable camera controls with arrowLeft and arrowRight
+// Jcuzin update on size of the canvas
+const globalContainer = document.getElementById("global-container") as HTMLDivElement;
+let resizePending = false;
+const updateCanvasSize = () => {
+    if (resizePending) return; // Avoid infinity loop
+    resizePending = true;
+    requestAnimationFrame(() => {
+        const containerWidth = window.innerWidth;
+        const containerHeight = window.innerHeight;
+        
+        canvas.width = containerWidth;
+        canvas.height = containerHeight;
+
+        const aspectRatio = containerWidth / containerHeight;
+        const BASE_FOV = BABYLON.Tools.ToRadians(150);
+        camera.fov = Math.min(BASE_FOV, BASE_FOV / aspectRatio);
+        engine.resize();
+
+        const scaleFactor = Math.min(containerWidth / 1280, containerHeight / 720); // Resolution's reference
+        document.documentElement.style.setProperty("--scale-factor", scaleFactor.toString());
+
+        updateScoreSize();
+        updateKeySize();
+
+        resizePending = false;
+    });
+};
+updateCanvasSize();
+const resizeObserver = new ResizeObserver(updateCanvasSize);
+resizeObserver.observe(globalContainer);
 
 // Add a hemispheric light
 const light: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 5, 5), scene);
@@ -297,12 +327,15 @@ scoreElement.style.transition = 'transform 0.1s ease-out'; // Animation for chan
 document.body.appendChild(scoreElement);
 
 scoreElement.style.animation = 'neonGlow 1.5s infinite alternate'; // Pulsating animation
-const style: HTMLStyleElement = document.createElement('style');
-style.textContent = `@keyframes neonGlow {
+if (!document.getElementById('neon-style')) {
+    const style: HTMLStyleElement = document.createElement('style');
+    style.id = 'neon-style';
+    style.textContent = `@keyframes neonGlow {
         0% { text-shadow: 0 0 2px #0ff,  0 0 4px #0ff,  0 0 6px #00f, 0 0 8px #00f; }
         100% { text-shadow: 0 0 3px #0ff, 0 0 5px #0ff, 0 0 7px #00f, 0 0 10px #00f; }
-}`;
-document.head.appendChild(style);
+    }`;
+    document.head.appendChild(style);
+}
 
 function updateScores(): void {
     scoreElement.textContent = `${score1} - ${score2}`;
@@ -312,6 +345,14 @@ function updateScores(): void {
     }, 100);
 }
 updateScores();
+
+const updateScoreSize = () => {
+    const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
+    
+    scoreElement.style.fontSize = `${48 * scaleFactor}px`;
+    scoreElement.style.top = `${20 * scaleFactor}px`;
+    scoreElement.style.letterSpacing = `${4 * scaleFactor}px`;
+};
 
 //////////////////////////////// KEYS PRINT ////////////////////////////////
 // Keys creation
@@ -368,6 +409,18 @@ styleKeys.textContent = `
     }
 `;
 document.head.appendChild(styleKeys);
+
+const updateKeySize = () => {
+    const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
+    
+    document.querySelectorAll(".key-display").forEach((key) => {
+        const element = key as HTMLElement;
+        element.style.width = `${50 * scaleFactor}px`;
+        element.style.height = `${50 * scaleFactor}px`;
+        element.style.fontSize = `${24 * scaleFactor}px`;
+        element.style.borderRadius = `${8 * scaleFactor}px`;
+    });
+};
 
 // Visual effect when pressed
 document.addEventListener("keydown", (event: KeyboardEvent) => {
@@ -498,7 +551,7 @@ function reset(): void {
     paddle2.position.set(0, fieldHeight + 0.2, -6.5);
     ball.position.set(0, fieldHeight + 0.2, 0);
     isZooming = false;
-    camera.position.set(0, 6.5, 9);
+    camera.position.set(0, 8, 10);
     paddleSpeed = 0.1;
     numHit = 0;
     if (lastScorer === 1) {
@@ -513,16 +566,23 @@ function reset(): void {
 
 let gameIsFinished = false;
 
-function endGame() {
+function endGame(): void {
     gameIsFinished = true;
     document.removeEventListener("keydown", handleKeyPress);
-    // Stop loop ?
+    const winnerText = document.getElementById("winner");
+    if (winnerText) {
+        winnerText.style.display = "block";
+        const winnerColor = score1 > 9 ? player1Color.toHexString() : player2Color.toHexString();
+        winnerText.style.color = "white";
+        winnerText.style.textShadow = `0 0 5px ${winnerColor}, 0 0 10px ${winnerColor}, 0 0 20px ${winnerColor}`;
+    }
+
     setTimeout(() => {
         const restartButton = document.createElement("button-endgame");
         restartButton.textContent = "Restart Game";
         restartButton.onclick = restartGame;
         document.body.appendChild(restartButton);
-    }, 1000)
+    }, 2500);
 }
 function handleKeyPress(event: KeyboardEvent): void {
     if (event.code == 'Space' || event.code == 'Enter') {
@@ -536,13 +596,27 @@ function restartGame() {
     gameIsFinished = false;
     score1 = 0;
     score2 = 0;
+    lastScorer = null;
     isPaused = true;
     reset();
     document.removeEventListener("keydown", handleKeyPress);
     document.addEventListener("keydown", handleKeyPress);
     const restartButton = document.querySelector("button-endgame");
     if (restartButton) restartButton.remove();
+    const winnerText = document.querySelector("#winner") as HTMLElement;
+    if(winnerText) winnerText.style.display = "none";
+    updateScores();
 }
+
+//////////////////////////////// MOUSE LEAVE ////////////////////////////////
+
+window.addEventListener("blur", () => { // Here we need to loose the focus on the window to stop the game, like clicking outisde the game, more natural
+    isPaused = true;
+});
+window.addEventListener("focus", () => { // Click again to play
+    if (gameIsFinished) return;
+    isPaused = false;
+});
 
 //////////////////////////////// COLLISION ////////////////////////////////
 
