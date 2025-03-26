@@ -469,8 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	let AccessibilitySetting1 = createSetting('Work in progress', AccessibilityContainer);
 
 	let PrivacyContainer = createSettingsContainer('privacy');
-	let PrivacySetting1 = createSetting('Personnal Datas', PrivacyContainer);
-	let PrivacySetting2 = createSetting('Cookies', PrivacyContainer);
+	let PrivacySetting1 = createSetting('Privacy Policy', PrivacyContainer);
 
 	let Appearance = createCategory('Appearance and Theme', './img/Settings_app/appearance-icon.png', appearanceContainer);
 	let UserAccount = createCategory('User Account', './img/Settings_app/user-account.png', UserAccountContainer);

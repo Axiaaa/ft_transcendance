@@ -931,4 +931,161 @@ document.addEventListener('DOMContentLoaded', function () {
             comingSoonLabel.style.width = '80%';
         }
     }
+    var privacyCategory = document.getElementById('settings-app-privacy-category-container');
+    {
+        var privacyPolicySettings = document.getElementById('settings-app-Privacy Policy-setting');
+        {
+            var privacyContainer = document.createElement('div');
+            privacyPolicySettings.appendChild(privacyContainer);
+            privacyContainer.id = 'privacy-policy-container';
+            privacyContainer.style.display = 'flex';
+            privacyContainer.style.flexDirection = 'column';
+            privacyContainer.style.alignItems = 'center';
+            // Main privacy policy information
+            var policyInfo = createInformationElement('Privacy Policy', privacyContainer);
+            // Create a styled div for the policy text that resembles a Windows XP text area
+            var policyTextArea = document.createElement('div');
+            policyInfo.appendChild(policyTextArea);
+            policyTextArea.style.backgroundColor = '#FFFFFF';
+            policyTextArea.style.border = '1px solid #7A9BC8';
+            policyTextArea.style.padding = '10px';
+            policyTextArea.style.margin = '5px 0';
+            policyTextArea.style.borderRadius = '3px';
+            policyTextArea.style.height = '200px';
+            policyTextArea.style.overflowY = 'auto';
+            policyTextArea.style.fontSize = '11px';
+            policyTextArea.style.color = '#333333';
+            policyTextArea.style.lineHeight = '1.4';
+            // Privacy policy content with Windows XP style formatting
+            policyTextArea.innerHTML = "\n\t\t\t\t<div style=\"font-weight:bold; color:#003399; margin-bottom:10px; font-size:12px;\">Windows XPong Privacy Commitment</div>\n\t\t\t\t\n\t\t\t\t<p>At Windows XPong, we are committed to protecting your privacy and ensuring your personal data remains secure. Unlike many online services, our platform operates with minimal data collection and adheres to strict privacy principles.</p>\n\t\t\t\t\n\t\t\t\t<p>We believe your gaming experience should be free from unwanted distractions. That's why we <span style=\"font-weight:bold;\">do not employ any targeted advertising</span> on our platform. Your activity within Windows XPong is never tracked for marketing purposes, and we do not build user profiles for advertisers.</p>\n\t\t\t\t\n\t\t\t\t<p>Furthermore, we've designed Windows XPong to be accessible with minimal personal information. Most features and functions of our platform are available without requiring you to provide sensitive personal details. We only collect information that is necessary to provide you with our services.</p>\n\t\t\t\t\n\t\t\t\t<div style=\"font-weight:bold; color:#003399; margin:10px 0; font-size:12px;\">Your Data Rights (GDPR Compliance)</div>\n\t\t\t\t\n\t\t\t\t<p>Windows XPong fully complies with the European General Data Protection Regulation (GDPR). This means you have the right to:</p>\n\t\t\t\t\n\t\t\t\t<ul style=\"margin-left:20px; margin-top:5px;\">\n\t\t\t\t\t<li>Access your personal data that we may hold</li>\n\t\t\t\t\t<li>Request the correction of inaccurate information</li>\n\t\t\t\t\t<li>Request the deletion of your personal data</li>\n\t\t\t\t\t<li>Object to the processing of your data</li>\n\t\t\t\t\t<li>Request the transfer of your data (data portability)</li>\n\t\t\t\t</ul>\n\t\t\t\t\n\t\t\t\t<p>As stated in Article 5 of the GDPR, personal data shall be: \"collected for specified, explicit and legitimate purposes and not further processed in a manner that is incompatible with those purposes.\"</p>\n\t\t\t\t\n\t\t\t\t<p>For more information about your rights under the GDPR, you can visit the <a href=\"https://gdpr-info.eu/\" style=\"color:#0066CC; text-decoration:underline;\">official GDPR portal</a> or the <a href=\"https://ec.europa.eu/info/law/law-topic/data-protection_en\" style=\"color:#0066CC; text-decoration:underline;\">European Commission's data protection website</a>.</p>\n\t\t\t\t\n\t\t\t\t<div style=\"font-weight:bold; color:#003399; margin:10px 0; font-size:12px;\">Cookies and Local Storage</div>\n\t\t\t\t\n\t\t\t\t<p>Windows XPong uses only essential cookies and local storage that are necessary for the platform to function properly. We do not use any tracking cookies for marketing or analytics purposes that could compromise your privacy.</p>\n\t\t\t\t\n\t\t\t\t<div style=\"font-weight:bold; color:#003399; margin:10px 0; font-size:12px;\">Contact Information</div>\n\t\t\t\t\n\t\t\t\t<p>If you have any questions or concerns about our privacy practices, please don't hesitate to contact our data protection team at <a href=\"mailto:privacy@windowsxpong.example\" style=\"color:#0066CC; text-decoration:underline;\">privacy@windowsxpong.example</a>.</p>\n\t\t\t\t\n\t\t\t\t<div style=\"background-color:#F2F5FB; border:1px solid #D1E0F0; padding:10px; margin-top:10px; border-radius:3px;\">\n\t\t\t\t\t<p style=\"margin:0; font-style:italic;\">\"The protection of natural persons in relation to the processing of personal data is a fundamental right.\" \u2014 Recital 1, GDPR</p>\n\t\t\t\t</div>\n\t\t\t";
+            // GDPR information element
+            var gdprInfo = createInformationElement('GDPR Compliance', privacyContainer);
+            // Create GDPR information with Windows XP style
+            var gdprContent = document.createElement('div');
+            gdprInfo.appendChild(gdprContent);
+            gdprContent.style.padding = '5px';
+            var gdprText = document.createElement('p');
+            gdprContent.appendChild(gdprText);
+            gdprText.innerHTML = "Windows XPong complies with the General Data Protection Regulation (GDPR), which protects EU citizens' data privacy. We implement appropriate technical and organizational measures to ensure data security.";
+            gdprText.style.fontSize = '11px';
+            gdprText.style.margin = '5px 0';
+            // Add Windows XP themed GDPR shield icon
+            var gdprShield = document.createElement('div');
+            gdprContent.appendChild(gdprShield);
+            gdprShield.style.display = 'flex';
+            gdprShield.style.alignItems = 'center';
+            gdprShield.style.justifyContent = 'center';
+            gdprShield.style.margin = '10px 0';
+            var shieldIcon = document.createElement('img');
+            gdprShield.appendChild(shieldIcon);
+            shieldIcon.src = './img/Settings_app/privacy-icon.png';
+            shieldIcon.alt = 'GDPR Protection Shield';
+            shieldIcon.style.width = '32px';
+            shieldIcon.style.height = '32px';
+            shieldIcon.style.marginRight = '10px';
+            var shieldText = document.createElement('span');
+            gdprShield.appendChild(shieldText);
+            shieldText.textContent = 'Your data is protected under GDPR guidelines';
+            shieldText.style.fontSize = '11px';
+            shieldText.style.fontWeight = 'bold';
+            shieldText.style.color = '#003399';
+            // Add GDPR related links
+            var gdprLinks_1 = document.createElement('div');
+            gdprContent.appendChild(gdprLinks_1);
+            gdprLinks_1.style.marginTop = '10px';
+            var linksTitle = document.createElement('span');
+            gdprLinks_1.appendChild(linksTitle);
+            linksTitle.textContent = 'Learn more about data protection:';
+            linksTitle.style.display = 'block';
+            linksTitle.style.fontSize = '11px';
+            linksTitle.style.marginBottom = '5px';
+            // Create Windows XP style links
+            var createXpLink = function (text, url) {
+                var link = document.createElement('a');
+                gdprLinks_1.appendChild(link);
+                link.href = url;
+                link.textContent = text;
+                link.target = '_blank';
+                link.style.display = 'block';
+                link.style.fontSize = '11px';
+                link.style.color = '#0066CC';
+                link.style.textDecoration = 'none';
+                link.style.padding = '2px 0 2px 20px';
+                link.style.backgroundImage = 'url("./img/Utils/link-icon.png")';
+                link.style.backgroundRepeat = 'no-repeat';
+                link.style.backgroundPosition = 'left center';
+                link.style.backgroundSize = '16px 16px';
+                link.onmouseover = function () {
+                    link.style.textDecoration = 'underline';
+                };
+                link.onmouseout = function () {
+                    link.style.textDecoration = 'none';
+                };
+                return link;
+            };
+            createXpLink('Official EU GDPR Portal', 'https://gdpr-info.eu/');
+            createXpLink('European Commission - Data Protection', 'https://ec.europa.eu/info/law/law-topic/data-protection_en');
+            createXpLink('Your GDPR Rights Explained', 'https://gdpr.eu/rights-data-subjects/');
+            // Data collection information
+            var dataInfo = createInformationElement('Data Collection', privacyContainer);
+            var dataContent_1 = document.createElement('div');
+            dataInfo.appendChild(dataContent_1);
+            dataContent_1.style.padding = '5px';
+            // Create Windows XP themed toggle switches for data collection options
+            var createToggleOption = function (optionText, defaultChecked) {
+                var optionContainer = document.createElement('div');
+                dataContent_1.appendChild(optionContainer);
+                optionContainer.style.display = 'flex';
+                optionContainer.style.alignItems = 'center';
+                optionContainer.style.margin = '5px 0';
+                var checkbox = document.createElement('input');
+                optionContainer.appendChild(checkbox);
+                checkbox.type = 'checkbox';
+                checkbox.checked = defaultChecked;
+                checkbox.style.marginRight = '10px';
+                var label = document.createElement('span');
+                optionContainer.appendChild(label);
+                label.textContent = optionText;
+                label.style.fontSize = '11px';
+                return optionContainer;
+            };
+            var dataIntro = document.createElement('p');
+            dataContent_1.appendChild(dataIntro);
+            dataIntro.textContent = 'Control what data Windows XPong collects. Most features work without any data collection.';
+            dataIntro.style.fontSize = '11px';
+            dataIntro.style.margin = '5px 0 10px 0';
+            // Add Windows XP themed toggle options
+            createToggleOption('Allow essential cookies for basic functionality', true);
+            createToggleOption('Participate in anonymous usage statistics', false);
+            createToggleOption('Save game preferences locally', true);
+            createToggleOption('Remember login session', true);
+            var dataNote = document.createElement('p');
+            dataContent_1.appendChild(dataNote);
+            dataNote.innerHTML = '<strong>Note:</strong> Changes to privacy settings may require a system restart to take effect.';
+            dataNote.style.fontSize = '10px';
+            dataNote.style.fontStyle = 'italic';
+            dataNote.style.margin = '10px 0 5px 0';
+            dataNote.style.color = '#666666';
+            // Add Windows XP themed "Apply Changes" button
+            var applyButton_3 = document.createElement('button');
+            dataContent_1.appendChild(applyButton_3);
+            applyButton_3.textContent = 'Apply Changes';
+            applyButton_3.style.marginTop = '10px';
+            applyButton_3.style.padding = '3px 10px';
+            applyButton_3.onclick = function () {
+                var _a, _b, _c, _d, _e, _f, _g, _h;
+                // Collect privacy settings from checkboxes
+                var privacySettings = {
+                    essentialCookies: (_b = (_a = document.querySelector('input[type="checkbox"]:nth-of-type(1)')) === null || _a === void 0 ? void 0 : _a.checked) !== null && _b !== void 0 ? _b : true,
+                    usageStatistics: (_d = (_c = document.querySelector('input[type="checkbox"]:nth-of-type(2)')) === null || _c === void 0 ? void 0 : _c.checked) !== null && _d !== void 0 ? _d : false,
+                    saveGamePreferences: (_f = (_e = document.querySelector('input[type="checkbox"]:nth-of-type(3)')) === null || _e === void 0 ? void 0 : _e.checked) !== null && _f !== void 0 ? _f : true,
+                    rememberLogin: (_h = (_g = document.querySelector('input[type="checkbox"]:nth-of-type(4)')) === null || _g === void 0 ? void 0 : _g.checked) !== null && _h !== void 0 ? _h : true
+                };
+                // Temporary notification until API is integrated
+                sendNotification('Privacy Settings', 'Your privacy settings have been updated', "./img/Settings_app/privacy-icon.png");
+                // For development testing only - log the settings that would be sent
+                console.log('Privacy settings to be sent to API:', privacySettings);
+            };
+        }
+    }
 });

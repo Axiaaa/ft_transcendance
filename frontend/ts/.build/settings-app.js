@@ -433,8 +433,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var AccessibilityContainer = createSettingsContainer('accessibility');
     var AccessibilitySetting1 = createSetting('Work in progress', AccessibilityContainer);
     var PrivacyContainer = createSettingsContainer('privacy');
-    var PrivacySetting1 = createSetting('Personnal Datas', PrivacyContainer);
-    var PrivacySetting2 = createSetting('Cookies', PrivacyContainer);
+    var PrivacySetting1 = createSetting('Privacy Policy', PrivacyContainer);
     var Appearance = createCategory('Appearance and Theme', './img/Settings_app/appearance-icon.png', appearanceContainer);
     var UserAccount = createCategory('User Account', './img/Settings_app/user-account.png', UserAccountContainer);
     var System = createCategory('System', './img/Settings_app/system-icon.png', SystemContainer);
