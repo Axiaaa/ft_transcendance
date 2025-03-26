@@ -460,12 +460,25 @@ document.addEventListener('DOMContentLoaded', () => {
 	let SystemSetting2 = createSetting('System Update', SystemContainer);
 	let SystemSetting3 = createSetting('System Restore', SystemContainer);
 	
+	let regionsContainer = createSettingsContainer('language-region');
+	let regionsSetting1 = createSetting('Region', regionsContainer);
+	let regionsSetting2 = createSetting('Language', regionsContainer);
+	let regionsSetting3 = createSetting('Time Zone', regionsContainer);
+
+	let AccessibilityContainer = createSettingsContainer('accessibility');
+	let AccessibilitySetting1 = createSetting('Work in progress', AccessibilityContainer);
+
+	let PrivacyContainer = createSettingsContainer('privacy');
+	let PrivacySetting1 = createSetting('Personnal Datas', PrivacyContainer);
+	let PrivacySetting2 = createSetting('Cookies', PrivacyContainer);
+
 	let Appearance = createCategory('Appearance and Theme', './img/Settings_app/appearance-icon.png', appearanceContainer);
 	let UserAccount = createCategory('User Account', './img/Settings_app/user-account.png', UserAccountContainer);
 	let System = createCategory('System', './img/Settings_app/system-icon.png', SystemContainer);
-	let LanguageRegion = createCategory('Language & Region', './img/Settings_app/regions-language.png');
-	let Accessibility = createCategory('Accessibility', './img/Settings_app/accessibility-icon.png');
-	let Privacy = createCategory('Privacy', './img/Settings_app/privacy-icon.png');
+	let LanguageRegion = createCategory('Language & Region', './img/Settings_app/regions-language.png', regionsContainer);
+	let Accessibility = createCategory('Accessibility', './img/Settings_app/accessibility-icon.png', AccessibilityContainer);
+	let Privacy = createCategory('Privacy', './img/Settings_app/privacy-icon.png', PrivacyContainer);
+
 
 
 	appWindow.children[1].appendChild(appContent);

@@ -600,4 +600,275 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         }
     }
+    var regionCategory = document.getElementById('settings-app-region-category-container');
+    {
+        var regionSettings = document.getElementById('settings-app-Region-setting');
+        {
+            var regionContainer = document.createElement('div');
+            regionSettings.appendChild(regionContainer);
+            regionContainer.id = 'region-settings-container';
+            regionContainer.style.display = 'flex';
+            regionContainer.style.flexDirection = 'column';
+            regionContainer.style.alignItems = 'center';
+            // Create information element for region settings
+            var regionInfo = createInformationElement('Region Settings', regionContainer);
+            // Current region selection
+            var regionSelectContainer = document.createElement('div');
+            regionInfo.appendChild(regionSelectContainer);
+            regionSelectContainer.style.display = 'flex';
+            regionSelectContainer.style.alignItems = 'center';
+            regionSelectContainer.style.marginBottom = '10px';
+            var regionLabel = document.createElement('span');
+            regionSelectContainer.appendChild(regionLabel);
+            regionLabel.textContent = 'Current Region:';
+            regionLabel.style.fontSize = '12px';
+            regionLabel.style.marginRight = '10px';
+            var regionSelect_1 = document.createElement('select');
+            regionSelectContainer.appendChild(regionSelect_1);
+            regionSelect_1.disabled = true;
+            regionSelect_1.style.width = '150px';
+            // Add some common regions
+            var regions = [
+                "United States", "European Union", "United Kingdom",
+                "Canada", "Australia", "Japan", "China", "Brazil",
+                "India", "Russia", "South Korea", "France"
+            ];
+            regions.forEach(function (region) {
+                var option = document.createElement('option');
+                option.value = region.toLowerCase().replace(/\s+/g, '-');
+                option.textContent = region;
+                if (region === "European Union") {
+                    option.selected = true;
+                }
+                regionSelect_1.appendChild(option);
+            });
+            // Add unavailable message
+            var unavailableMessage = document.createElement('div');
+            regionInfo.appendChild(unavailableMessage);
+            unavailableMessage.style.backgroundColor = '#FFFFC1';
+            unavailableMessage.style.border = '1px solid #DEDB87';
+            unavailableMessage.style.padding = '10px';
+            unavailableMessage.style.margin = '10px 0';
+            unavailableMessage.style.borderRadius = '5px';
+            unavailableMessage.style.position = 'relative';
+            var warningIcon = document.createElement('div');
+            unavailableMessage.appendChild(warningIcon);
+            warningIcon.innerHTML = '&#9888;'; // Warning triangle symbol
+            warningIcon.style.position = 'absolute';
+            warningIcon.style.left = '10px';
+            warningIcon.style.top = '50%';
+            warningIcon.style.transform = 'translateY(-50%)';
+            warningIcon.style.fontSize = '16px';
+            warningIcon.style.color = '#E5AD00';
+            var messageText = document.createElement('p');
+            unavailableMessage.appendChild(messageText);
+            messageText.textContent = 'Region settings are not available in this version. This feature will be implemented in a future update.';
+            messageText.style.margin = '0 0 0 25px';
+            messageText.style.fontSize = '11px';
+            messageText.style.color = '#555';
+            // Add "Coming Soon" label
+            var comingSoonLabel = document.createElement('div');
+            regionInfo.appendChild(comingSoonLabel);
+            comingSoonLabel.textContent = 'Coming Soon in Windows XPong Update';
+            comingSoonLabel.style.color = '#003399';
+            comingSoonLabel.style.fontSize = '11px';
+            comingSoonLabel.style.fontStyle = 'italic';
+            comingSoonLabel.style.fontWeight = 'bold';
+            comingSoonLabel.style.textAlign = 'center';
+            comingSoonLabel.style.marginTop = '5px';
+        }
+        var languageSettings = document.getElementById('settings-app-Language-setting');
+        {
+            var languageContainer = document.createElement('div');
+            languageSettings.appendChild(languageContainer);
+            languageContainer.id = 'language-settings-container';
+            languageContainer.style.display = 'flex';
+            languageContainer.style.flexDirection = 'column';
+            languageContainer.style.alignItems = 'center';
+            // Create information element for language settings
+            var languageInfo = createInformationElement('Language Settings', languageContainer);
+            // Current language selection
+            var languageSelectContainer = document.createElement('div');
+            languageInfo.appendChild(languageSelectContainer);
+            languageSelectContainer.style.display = 'flex';
+            languageSelectContainer.style.alignItems = 'center';
+            languageSelectContainer.style.marginBottom = '10px';
+            var languageLabel = document.createElement('span');
+            languageSelectContainer.appendChild(languageLabel);
+            languageLabel.textContent = 'Current Language:';
+            languageLabel.style.fontSize = '12px';
+            languageLabel.style.marginRight = '10px';
+            var languageSelect_1 = document.createElement('select');
+            languageSelectContainer.appendChild(languageSelect_1);
+            languageSelect_1.disabled = true;
+            languageSelect_1.style.width = '150px';
+            // Add common languages
+            var languages = [
+                "English (US)", "English (UK)", "French", "German",
+                "Spanish", "Italian", "Portuguese", "Dutch",
+                "Russian", "Chinese (Simplified)", "Japanese", "Korean"
+            ];
+            languages.forEach(function (language) {
+                var option = document.createElement('option');
+                option.value = language.toLowerCase().replace(/[\s()]+/g, '-');
+                option.textContent = language;
+                if (language === "English (US)") {
+                    option.selected = true;
+                }
+                languageSelect_1.appendChild(option);
+            });
+            // Add unavailable message
+            var unavailableMessage = document.createElement('div');
+            languageInfo.appendChild(unavailableMessage);
+            unavailableMessage.style.backgroundColor = '#FFFFC1';
+            unavailableMessage.style.border = '1px solid #DEDB87';
+            unavailableMessage.style.padding = '10px';
+            unavailableMessage.style.margin = '10px 0';
+            unavailableMessage.style.borderRadius = '5px';
+            unavailableMessage.style.position = 'relative';
+            var warningIcon = document.createElement('div');
+            unavailableMessage.appendChild(warningIcon);
+            warningIcon.innerHTML = '&#9888;'; // Warning triangle symbol
+            warningIcon.style.position = 'absolute';
+            warningIcon.style.left = '10px';
+            warningIcon.style.top = '50%';
+            warningIcon.style.transform = 'translateY(-50%)';
+            warningIcon.style.fontSize = '16px';
+            warningIcon.style.color = '#E5AD00';
+            var messageText = document.createElement('p');
+            unavailableMessage.appendChild(messageText);
+            messageText.textContent = 'Language settings are not available in this version. This feature will be implemented in a future update.';
+            messageText.style.margin = '0 0 0 25px';
+            messageText.style.fontSize = '11px';
+            messageText.style.color = '#555';
+            // Add "Coming Soon" label
+            var comingSoonLabel = document.createElement('div');
+            languageInfo.appendChild(comingSoonLabel);
+            comingSoonLabel.textContent = 'Coming Soon in Windows XPong Update';
+            comingSoonLabel.style.color = '#003399';
+            comingSoonLabel.style.fontSize = '11px';
+            comingSoonLabel.style.fontStyle = 'italic';
+            comingSoonLabel.style.fontWeight = 'bold';
+            comingSoonLabel.style.textAlign = 'center';
+            comingSoonLabel.style.marginTop = '5px';
+        }
+        var timezoneSettings = document.getElementById('settings-app-Time Zone-setting');
+        {
+            var timezoneContainer = document.createElement('div');
+            timezoneSettings.appendChild(timezoneContainer);
+            timezoneContainer.id = 'timezone-settings-container';
+            timezoneContainer.style.display = 'flex';
+            timezoneContainer.style.flexDirection = 'column';
+            timezoneContainer.style.alignItems = 'center';
+            // Create information element for timezone settings
+            var timezoneInfo = createInformationElement('Timezone Settings', timezoneContainer);
+            // Current timezone selection
+            var timezoneSelectContainer = document.createElement('div');
+            timezoneInfo.appendChild(timezoneSelectContainer);
+            timezoneSelectContainer.style.display = 'flex';
+            timezoneSelectContainer.style.alignItems = 'center';
+            timezoneSelectContainer.style.marginBottom = '10px';
+            var timezoneLabel = document.createElement('span');
+            timezoneSelectContainer.appendChild(timezoneLabel);
+            timezoneLabel.textContent = 'Current Timezone:';
+            timezoneLabel.style.fontSize = '12px';
+            timezoneLabel.style.marginRight = '10px';
+            var timezoneSelect_1 = document.createElement('select');
+            timezoneSelectContainer.appendChild(timezoneSelect_1);
+            timezoneSelect_1.disabled = true;
+            timezoneSelect_1.style.width = '150px';
+            // Add common timezones
+            var timezones = [
+                "(GMT-12:00) International Date Line West",
+                "(GMT-11:00) Midway Island, Samoa",
+                "(GMT-10:00) Hawaii",
+                "(GMT-09:00) Alaska",
+                "(GMT-08:00) Pacific Time (US & Canada)",
+                "(GMT-07:00) Mountain Time (US & Canada)",
+                "(GMT-06:00) Central Time (US & Canada)",
+                "(GMT-05:00) Eastern Time (US & Canada)",
+                "(GMT-04:00) Atlantic Time (Canada)",
+                "(GMT-03:00) Brasilia, Buenos Aires",
+                "(GMT-02:00) Mid-Atlantic",
+                "(GMT-01:00) Azores, Cape Verde Is.",
+                "(GMT+00:00) Greenwich Mean Time, Dublin, London",
+                "(GMT+01:00) Amsterdam, Berlin, Paris, Rome",
+                "(GMT+02:00) Athens, Cairo, Istanbul",
+                "(GMT+03:00) Moscow, St. Petersburg",
+                "(GMT+04:00) Abu Dhabi, Dubai",
+                "(GMT+05:00) Islamabad, Karachi",
+                "(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi",
+                "(GMT+06:00) Dhaka",
+                "(GMT+07:00) Bangkok, Hanoi, Jakarta",
+                "(GMT+08:00) Beijing, Hong Kong, Singapore",
+                "(GMT+09:00) Tokyo, Seoul",
+                "(GMT+10:00) Brisbane, Melbourne, Sydney",
+                "(GMT+11:00) Magadan, Solomon Is.",
+                "(GMT+12:00) Auckland, Wellington"
+            ];
+            timezones.forEach(function (timezone) {
+                var option = document.createElement('option');
+                option.value = timezone.toLowerCase().replace(/[\s()&:,\.]+/g, '-');
+                option.textContent = timezone;
+                if (timezone === "(GMT+01:00) Amsterdam, Berlin, Paris, Rome") {
+                    option.selected = true; // Default to European timezone
+                }
+                timezoneSelect_1.appendChild(option);
+            });
+            // Add current time display
+            var currentTimeContainer = document.createElement('div');
+            timezoneInfo.appendChild(currentTimeContainer);
+            currentTimeContainer.style.display = 'flex';
+            currentTimeContainer.style.alignItems = 'center';
+            currentTimeContainer.style.marginBottom = '10px';
+            var currentTimeLabel = document.createElement('span');
+            currentTimeContainer.appendChild(currentTimeLabel);
+            currentTimeLabel.textContent = 'Current Time:';
+            currentTimeLabel.style.fontSize = '12px';
+            currentTimeLabel.style.marginRight = '10px';
+            var currentTimeDisplay_1 = document.createElement('span');
+            currentTimeContainer.appendChild(currentTimeDisplay_1);
+            currentTimeDisplay_1.textContent = new Date().toLocaleTimeString();
+            currentTimeDisplay_1.style.fontSize = '12px';
+            currentTimeDisplay_1.style.fontWeight = 'bold';
+            // Update time every second
+            setInterval(function () {
+                currentTimeDisplay_1.textContent = new Date().toLocaleTimeString();
+            }, 1000);
+            // Add unavailable message
+            var unavailableMessage = document.createElement('div');
+            timezoneInfo.appendChild(unavailableMessage);
+            unavailableMessage.style.backgroundColor = '#FFFFC1';
+            unavailableMessage.style.border = '1px solid #DEDB87';
+            unavailableMessage.style.padding = '10px';
+            unavailableMessage.style.margin = '10px 0';
+            unavailableMessage.style.borderRadius = '5px';
+            unavailableMessage.style.position = 'relative';
+            var warningIcon = document.createElement('div');
+            unavailableMessage.appendChild(warningIcon);
+            warningIcon.innerHTML = '&#9888;'; // Warning triangle symbol
+            warningIcon.style.position = 'absolute';
+            warningIcon.style.left = '10px';
+            warningIcon.style.top = '50%';
+            warningIcon.style.transform = 'translateY(-50%)';
+            warningIcon.style.fontSize = '16px';
+            warningIcon.style.color = '#E5AD00';
+            var messageText = document.createElement('p');
+            unavailableMessage.appendChild(messageText);
+            messageText.textContent = 'Timezone settings are not available in this version. This feature will be implemented in a future update.';
+            messageText.style.margin = '0 0 0 25px';
+            messageText.style.fontSize = '11px';
+            messageText.style.color = '#555';
+            // Add "Coming Soon" label
+            var comingSoonLabel = document.createElement('div');
+            timezoneInfo.appendChild(comingSoonLabel);
+            comingSoonLabel.textContent = 'Coming Soon in Windows XPong Update';
+            comingSoonLabel.style.color = '#003399';
+            comingSoonLabel.style.fontSize = '11px';
+            comingSoonLabel.style.fontStyle = 'italic';
+            comingSoonLabel.style.fontWeight = 'bold';
+            comingSoonLabel.style.textAlign = 'center';
+            comingSoonLabel.style.marginTop = '5px';
+        }
+    }
 });
