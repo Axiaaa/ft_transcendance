@@ -1012,4 +1012,71 @@ document.addEventListener('DOMContentLoaded', () => {
 			comingSoonLabel.style.marginTop = '5px';
 		}
 	}
+	let accessibilityCategory = document.getElementById('settings-app-accessibility-category-container') as HTMLElement;
+	{
+		let wipMessage = document.getElementById('settings-app-Work in progress-setting');
+		if (wipMessage) {
+			let accessibilityContainer = document.createElement('div');
+			wipMessage.appendChild(accessibilityContainer);
+			accessibilityContainer.id = 'accessibility-settings-container';
+			accessibilityContainer.style.display = 'flex';
+			accessibilityContainer.style.flexDirection = 'column';
+			accessibilityContainer.style.alignItems = 'center';
+			accessibilityContainer.style.padding = '10px';
+
+			// Create information element for accessibility message
+			let accessibilityInfo = createInformationElement('Accessibility Settings', accessibilityContainer);
+
+			// Add feature description
+			let featureDescription = document.createElement('p');
+			accessibilityInfo.appendChild(featureDescription);
+			featureDescription.textContent = 'This section will contain settings for screen readers, high contrast themes, keyboard navigation, and other accessibility features.';
+			featureDescription.style.fontSize = '11px';
+			featureDescription.style.margin = '5px 0 15px 0';
+
+			// Add unavailable message box
+			let unavailableMessage = document.createElement('div');
+			accessibilityInfo.appendChild(unavailableMessage);
+			unavailableMessage.style.backgroundColor = '#FFFFC1';
+			unavailableMessage.style.border = '1px solid #DEDB87';
+			unavailableMessage.style.padding = '10px';
+			unavailableMessage.style.margin = '10px 0';
+			unavailableMessage.style.borderRadius = '5px';
+			unavailableMessage.style.position = 'relative';
+
+			let warningIcon = document.createElement('div');
+			unavailableMessage.appendChild(warningIcon);
+			warningIcon.innerHTML = '&#9888;'; // Warning triangle symbol
+			warningIcon.style.position = 'absolute';
+			warningIcon.style.left = '10px';
+			warningIcon.style.top = '50%';
+			warningIcon.style.transform = 'translateY(-50%)';
+			warningIcon.style.fontSize = '16px';
+			warningIcon.style.color = '#E5AD00';
+
+			let messageText = document.createElement('p');
+			unavailableMessage.appendChild(messageText);
+			messageText.textContent = 'Accessibility settings are not available in this version. These features will be implemented in a future update of Windows XPong.';
+			messageText.style.margin = '0 0 0 25px';
+			messageText.style.fontSize = '11px';
+			messageText.style.color = '#555';
+
+			// Windows XP-style "Coming Soon" label
+			let comingSoonLabel = document.createElement('div');
+			accessibilityInfo.appendChild(comingSoonLabel);
+			comingSoonLabel.textContent = 'Coming Soon in Windows XPong Update';
+			comingSoonLabel.style.color = '#003399';
+			comingSoonLabel.style.fontSize = '11px';
+			comingSoonLabel.style.fontStyle = 'italic';
+			comingSoonLabel.style.fontWeight = 'bold';
+			comingSoonLabel.style.textAlign = 'center';
+			comingSoonLabel.style.marginTop = '10px';
+			comingSoonLabel.style.padding = '5px';
+			comingSoonLabel.style.backgroundImage = 'linear-gradient(to bottom, #E5EFFF, #C4DDFF)';
+			comingSoonLabel.style.border = '1px solid #B1CCEF';
+			comingSoonLabel.style.borderRadius = '3px';
+			comingSoonLabel.style.width = '80%';
+		}
+	}
+
 });
