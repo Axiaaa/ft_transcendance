@@ -20,6 +20,9 @@ scrape_configs:
       - targets: ["elasticsearch_exporter:9114"]
 
   - job_name: "fastify"
+    basic_auth:
+      username: 'username'
+      password: 'password'
     static_configs:
       - targets: ["fastifyapp:4321"]
 

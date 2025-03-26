@@ -1,9 +1,15 @@
 FROM prom/prometheus
 
+USER '0'
+
+ARG ADMIN_USER=${ADMIN_USER}
+ARG ADMIN_PASS=${ADMIN_PASS}
+
 COPY ./config/prometheus.yml /etc/prometheus/prometheus.yml
 COPY ./config/web_config.yml /etc/prometheus/web_config.yml
 COPY ./config/alert_rules.yml /etc/prometheus/alert_rules.yml
 
-USER '0'
+RUN sed -i "s/username:.*/username: ${ADMIN_USER}/" /etc/prometheus/prometheus.yml
+RUN sed -i "s/password:.*/password: ${ADMIN_PASS}/" /etc/prometheus/prometheus.yml
 
 CMD [ "--config.file=/etc/prometheus/prometheus.yml", "--web.config.file=/etc/prometheus/web_config.yml" ]

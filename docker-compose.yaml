@@ -67,8 +67,8 @@ services:
       - sqlite_data:/usr/src/app/db/
     environment:
       - PORT=${FASTIFY_PORT}
-      # - API_USERNAME=${API_USERNAME}
-      # - API_PASSWORD=${API_PASSWORD}
+      - API_USERNAME=${API_USERNAME}
+      - API_PASSWORD=${API_PASSWORD}
     depends_on:
       - sqlite
       - nginx
@@ -202,6 +202,9 @@ services:
     build :
       context: ./services/prometheus
       dockerfile: Dockerfile
+      args:
+        - ADMIN_USER=${API_USERNAME}
+        - ADMIN_PASS=${API_PASSWORD}
     volumes:
       - certs:/etc/prometheus/certs
     ports:
@@ -293,8 +296,6 @@ services:
       dockerfile: Dockerfile
       args: 
         - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
-    env_file:
-      - .env
     ports:
       - ${ALERTMANAGER_PORT}:9093
     volumes:
