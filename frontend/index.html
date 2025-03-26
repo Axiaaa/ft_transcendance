@@ -48,7 +48,7 @@
 						<div class="login-screen-sign-in">
 							<img src="./img/new-profile-icon.png" alt="Profile">
 							<h4>Sign in</h4>
-							<form action="/login" method="post">
+							<form action="/login" method="post" id ="loginform">
 								<div>
 									<input type="text" id="username" name="username" placeholder="Username" required>
 								</div>
@@ -61,7 +61,7 @@
 						<div class="login-screen-sign-up">
 							<h4>Sign up</h4>
 							<img src="./img/sign-up-icon.jpg" alt="Profile">
-							<form action="/signup" method="post">
+							<form action="/signup" method="post" id="signupform">
 								<div>
 									<input type="text" id="newUsername" name="newUsername" placeholder="Username" required>
 								</div>
@@ -195,4 +195,6 @@
 	<script src="./js/.build/js/settings-app.js" type="module"></script>
 	<script src="./js/.build/js/terminal-app.js" type="module"></script>
 	<script src="./js/.build/js/notification.js" type="module"></script>
+	<script src="./js/.build/js/api.js" type="module"></script>
 </body>
+</html>
