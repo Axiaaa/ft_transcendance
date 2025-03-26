@@ -126,6 +126,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var profileApp = createApp('profile');
     renderWindowContent(profileApp.children[1].children[0]);
     console.log("App created: Id: " + profileApp.id + " Class: " + profileApp.className);
+    var socialApp = createApp('social');
+    renderWindowContent(socialApp.children[1].children[0]);
+    console.log("App created: Id: " + socialApp.id + " Class: " + socialApp.className);
     var desktop = document.getElementById('desktop');
     var windowsContainer = document.getElementById('windows-container');
     var gridSize = 90; // Taille de la grille

@@ -1,4 +1,3 @@
-import { send } from "process";
 import { openAppWindow } from "./app-icon.js";
 import { sendNotification } from "./notification.js";
 

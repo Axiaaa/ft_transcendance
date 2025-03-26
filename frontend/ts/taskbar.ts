@@ -77,12 +77,14 @@ document.addEventListener('DOMContentLoaded', () => {
 	let terminalWindow = document.getElementById('terminal-app-window');
 	let internetExplorerWindow = document.getElementById('internet explorer-app-window');
 	let profileWindow = document.getElementById('profile-app-window');
+	let socialWindow = document.getElementById('social-app-window');
 
 	let pongApp = createTaskbarApp('pong-app', './img/Desktop/pong-game.png');
 	let settingsApp = createTaskbarApp('settings-app', './img/Desktop/settings-icon.png');
 	let terminalApp = createTaskbarApp('terminal-app', './img/Desktop/terminal-icon.png');
 	let internetExplorerApp = createTaskbarApp('internet explorer-app', './img/Start_Menu/internet-explorer-icon.png');
 	let profileApp = createTaskbarApp('profile-app', './img/Start_Menu/profile-icon.png');
+	let socialApp = createTaskbarApp('social-app', './img/Desktop/friend-social-icon.png');
 
 	if (pongWindow)
 		taskbarIconVisibility(pongApp, pongWindow);
@@ -94,7 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		taskbarIconVisibility(internetExplorerApp, internetExplorerWindow);
 	if (profileWindow)
 		taskbarIconVisibility(profileApp, profileWindow);
-
+	if (socialWindow)
+		taskbarIconVisibility(socialApp, socialWindow);
 
 	let rightSide = document.createElement('div');
 	rightSide.classList.add('taskbar-right-side');
