@@ -6,15 +6,16 @@ elasticsearch.password: "${KIBANA_PASSWORD}"
 elasticsearch.ssl.certificateAuthorities: ["config/certs/ca/ca.crt"]
 
 #Xpack
-xpack.security.encryptionKey: ${ENCRYPTION_KEY}
-xpack.encryptedSavedObjects.encryptionKey: ${ENCRYPTION_KEY}
-xpack.reporting.encryptionKey: ${ENCRYPTION_KEY}
-
+xpack.security.encryptionKey: "${ENCRYPTION_KEY}"
+xpack.encryptedSavedObjects.encryptionKey: "${ENCRYPTION_KEY}"
+xpack.reporting.encryptionKey: "${ENCRYPTION_KEY}"
 
 #SSL
 server.ssl.enabled: true
 server.ssl.certificate: config/certs/ca/ca.crt
 server.ssl.key: config/certs/ca/ca.key
 
+
 monitoring.ui.container.elasticsearch.enabled: true
+xpack.reporting.roles.enabled: false
 
