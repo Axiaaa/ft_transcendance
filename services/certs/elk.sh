@@ -39,8 +39,26 @@ if [ ! -f config/certs/certs.zip ]; then
     "      - localhost\n"\
     "    ip:\n"\
     "      - 127.0.0.1\n"\
+    > config/certs/instances.yml;
     bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
     unzip config/certs/certs.zip -d config/certs;
+fi;
+
+if [ ! -f config/certs/kibana-certs.zip ]; then
+  echo -e "Creating CSR for Kibana";
+  echo -ne \
+  "instances:\n"\
+  "  - name: kibana-server\n"\
+  "    dns:\n"\
+  "      - kibana-server\n"\
+  "      - kibana\n"\
+  "      - localhost\n"\
+  "    ip:\n"\
+  "      - 127.0.0.1\n"\
+  > config/certs/instances_kibana.yml;
+  bin/elasticsearch-certutil cert --silent --pem -out config/certs/kibana-certs.zip --in config/certs/instances_kibana.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+  mkdir -p config/certs/kibana-server
+  unzip config/certs/kibana-certs.zip -d config/certs/kibana-server/;
 fi;
 
 echo "Setting file permissions"

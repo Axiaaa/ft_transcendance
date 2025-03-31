@@ -40,3 +40,8 @@ scrape_configs:
   - job_name: "nginx"
     static_configs:
       - targets: ["nginx_exporter:9113"]
+
+  - job_mame: "kibana"
+    scheme: https
+    static_configs:
+      - targets: ["kibana_exporter:5602"]

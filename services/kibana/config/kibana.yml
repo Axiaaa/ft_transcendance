@@ -1,5 +1,7 @@
 #BASIC
+server.name: "kibana-server"
 server.host: "0.0.0.0"
+server.publicBaseUrl: "https://localhost:5601"
 elasticsearch.hosts: ["https://elasticsearch:9200"]
 elasticsearch.username: "kibana_system"
 elasticsearch.password: "${KIBANA_PASSWORD}"
@@ -12,8 +14,8 @@ xpack.reporting.encryptionKey: "${ENCRYPTION_KEY}"
 
 #SSL
 server.ssl.enabled: true
-server.ssl.certificate: config/certs/ca/ca.crt
-server.ssl.key: config/certs/ca/ca.key
+server.ssl.certificate: config/certs/kibana-server/kibana-server/kibana-server.crt
+server.ssl.key: config/certs/kibana-server/kibana-server/kibana-server.key
 
 
 monitoring.ui.container.elasticsearch.enabled: true

@@ -131,6 +131,29 @@ services:
      interval: 5s
      timeout: 10s
      retries: 120
+  
+  elasticsearch_data :
+    container_name: elasticsearch_data
+    build :
+      context: ./services/elasticsearch/ilm
+      dockerfile: Dockerfile
+    depends_on :
+      elasticsearch:
+        condition: service_healthy
+      setup :
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+    networks:
+      - ft_transcendence
+    healthcheck:
+      test: ["CMD-SHELL", "docker logs elasticsearch_data | grep -q 'ILM policy created successfully'"]
+      interval: 5s
+      timeout: 10s
+      retries: 120
 
   kibana:
    container_name: kibana
@@ -162,7 +185,7 @@ services:
   kibana_data :
     container_name: kibana_data
     build :
-      context: ./services/kibana/data_view
+      context: ./services/kibana/additionals_data
       dockerfile: Dockerfile
     depends_on :
       elasticsearch:
@@ -177,6 +200,12 @@ services:
       - certs:/usr/share/kibana/config/certs
     networks:
       - ft_transcendence
+    healthcheck:
+      test: ["CMD-SHELL", "docker logs kibana_data | grep -q 'Data views created successfully'"]
+      interval: 5s
+      timeout: 10s
+      retries: 120
+
 
   logstash:
    container_name: logstash
@@ -261,7 +290,6 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
-
   nginx_exporter:
     image: nginx/nginx-prometheus-exporter
     container_name: nginx_exporter
