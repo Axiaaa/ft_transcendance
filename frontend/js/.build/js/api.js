@@ -58,11 +58,7 @@ export async function signup(signup_username, signup_password) {
       if (response.ok) {
           const result = await response.json();
           console.log('Signup successful:', result);
-
-          // Store the token in localStorage for later use
           localStorage.setItem('authToken', result.token);
-
-          // Return success (for handling after signup, like redirecting)
           return result;
       } else {
           const error = await response.json();
@@ -73,6 +69,10 @@ export async function signup(signup_username, signup_password) {
       throw new Error('Error during signup request');
   }
 }
+
+const dotenv = require('dotenv').config({path: '../../../../.env' }); //require not difined in front
+console.log('API_USERNAME:', process.env.API_USERNAME); //process not difined in front
+console.log('API_PASSWORD:', process.env.API_PASSWORD); //so i need to go to the back
 
 // Sign up event listener
 document.getElementById('signupform').addEventListener('submit', async function(event) {
