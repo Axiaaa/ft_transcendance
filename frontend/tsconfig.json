@@ -15,6 +15,7 @@
 		"./js/taskbar.ts",
 		"./js/settings-app.ts",
 		"./js/notification.ts",
-		"./js/terminal-app.ts"
+		"./js/terminal-app.ts",
+		"./js/.build/api.ts"
 	]
 }
