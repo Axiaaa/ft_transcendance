@@ -1,8 +1,9 @@
 export interface ITournament {
     id: number;
     name: string;
-    password: string?;
-    members: Array<User>;
+    password: string | null;
+    members: Array<Number>;
+    matches : Array<Number>;
     creator: User;
     winner: User | null;
     created_at: Date;

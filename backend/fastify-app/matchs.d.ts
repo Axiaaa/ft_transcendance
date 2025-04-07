@@ -1,12 +1,10 @@
 export interface IMatch {
-    id: string;
+    id: number;
     player1: string,
     player2: string,
-    winner: string,
+    winner: string | null,
+    score: string,
+    is_tournament: boolean,
+    tournament_id: number | null,
     created_at: Date,
 }
-
-
-//Handle when a user is delete, show "Deleted User" for the opponent of every match that he did
-//Delete the match if both users are deleted
-//Opponent nullable and if so, print Deleted User

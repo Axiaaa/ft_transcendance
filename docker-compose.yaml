@@ -19,6 +19,29 @@ services:
 
 ###########################################################################
 #                                                                         #
+#                                  NGINX                                  # 
+#                                                                         #
+###########################################################################
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - ${NGINX_PORT}:443
+    volumes:
+      - certs:/etc/nginx/certs
+      - ./frontend/:/usr/share/nginx/html
+    networks:
+      - ft_transcendence
+    depends_on:
+      - setup
+    restart: always
+
+
+###########################################################################
+#                                                                         #
 #                                  BACKEND                                # 
 #                                                                         #
 ###########################################################################
@@ -44,8 +67,11 @@ services:
       - sqlite_data:/usr/src/app/db/
     environment:
       - PORT=${FASTIFY_PORT}
+      - API_USERNAME=${API_USERNAME}
+      - API_PASSWORD=${API_PASSWORD}
     depends_on:
       - sqlite
+      - nginx
     networks:
       - ft_transcendence
       
@@ -56,7 +82,7 @@ services:
 ###########################################################################
 
   setup:
-    container_name: elk_setup
+    container_name: setup
     build:
       context: ./services/certs
       dockerfile: Dockerfile
@@ -95,16 +121,39 @@ services:
     - LICENSE=${LICENSE}
     - KIBANA_PASSWORD=${KIBANA_PASSWORD}
    mem_limit: ${ES_MEM_LIMIT}
+   restart: always
    ulimits:
      memlock:
        soft: -1
        hard: -1
-   restart: always
    healthcheck:
      test: ["CMD-SHELL", "curl -k https://elastic:${ELASTIC_PASSWORD}@localhost:9200"]
-     interval: 2s
+     interval: 5s
      timeout: 10s
-     retries: 10
+     retries: 120
+  
+  elasticsearch_data :
+    container_name: elasticsearch_data
+    build :
+      context: ./services/elasticsearch/ilm
+      dockerfile: Dockerfile
+    depends_on :
+      elasticsearch:
+        condition: service_healthy
+      setup :
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+    networks:
+      - ft_transcendence
+    healthcheck:
+      test: ["CMD-SHELL", "docker logs elasticsearch_data | grep -q 'ILM policy created successfully'"]
+      interval: 5s
+      timeout: 10s
+      retries: 120
 
   kibana:
    container_name: kibana
@@ -126,7 +175,37 @@ services:
    mem_limit: ${KB_MEM_LIMIT}
    networks:
     - ft_transcendence
+   healthcheck:
+     test: ["CMD-SHELL", "curl -k https://elastic:${ELASTIC_PASSWORD}@localhost:5601/api/alerting/_health"]
+     interval: 5s
+     timeout: 10s
+     retries: 120
    restart: always
+
+  kibana_data :
+    container_name: kibana_data
+    build :
+      context: ./services/kibana/additionals_data
+      dockerfile: Dockerfile
+    depends_on :
+      elasticsearch:
+        condition: service_healthy
+      kibana :
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+      - STACK_VERSION=${STACK_VERSION}
+    volumes:
+      - certs:/usr/share/kibana/config/certs
+    networks:
+      - ft_transcendence
+    healthcheck:
+      test: ["CMD-SHELL", "docker logs kibana_data | grep -q 'Data views created successfully'"]
+      interval: 5s
+      timeout: 10s
+      retries: 120
+
 
   logstash:
    container_name: logstash
@@ -180,6 +259,9 @@ services:
     build :
       context: ./services/prometheus
       dockerfile: Dockerfile
+      args:
+        - ADMIN_USER=${API_USERNAME}
+        - ADMIN_PASS=${API_PASSWORD}
     volumes:
       - certs:/etc/prometheus/certs
     ports:
@@ -208,6 +290,21 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter
+    container_name: nginx_exporter
+    user: '0'
+    volumes:
+      - certs:/etc/nginx/certs
+    command: >
+      --nginx.scrape-uri=https://nginx:443/nginx_status
+    ports:
+      - ${NGINX_EXPORTER_PORT}:9113
+    networks:
+      - ft_transcendence
+    restart: always
+    depends_on:
+      - nginx
 
   cadvisor:
     container_name: cadvisor
@@ -255,8 +352,6 @@ services:
       dockerfile: Dockerfile
       args: 
         - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
-    env_file:
-      - .env
     ports:
       - ${ALERTMANAGER_PORT}:9093
     volumes:
@@ -264,3 +359,4 @@ services:
     networks:
       - ft_transcendence
     restart: always
+

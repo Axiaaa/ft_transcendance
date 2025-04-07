@@ -8,9 +8,9 @@ export interface IUser {
     username: string;
     is_online: boolean;
     created_at: Date;
-    history: Array<Match>;
+    history: Array<number>;
     win_nbr: number;
     loss_nbr: number; 
     avatar: string;
-    friend_list: Array<User>;
+    friend_list: Array<number>;
 }

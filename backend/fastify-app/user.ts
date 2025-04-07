@@ -1,22 +1,24 @@
 import { Match } from "./matchs";
 import { db } from ".";
 import { server } from ".";
+import { getMatchFromDb } from "./matchs";
+import path from "path";
 
 export const DEFAULT_AVATAR_URL : string = "https://zizi.fr";
 
 export class User implements User {
 
+    public id: number;
     public username: string;
     public email: string;
     public password: string;
     public is_online: boolean;
     public created_at: Date;
-    public history: Match[];
+    public history: Array<number>;
     public win_nbr: number;
     public loss_nbr: number; 
     public avatar: string;
-    public friend_list: User[];
-    public id: number;
+    public friend_list: Array<number>;
 
     constructor(
         username: string,
@@ -30,11 +32,11 @@ export class User implements User {
         this.password = password;
         this.is_online = false;
         this.created_at = new Date();
-        this.history = new Array<Match>();
+        this.history = new Array<number>();
         this.win_nbr = 0;
         this.loss_nbr = 0;
         this.avatar = DEFAULT_AVATAR_URL;
-        this.friend_list = new Array<User>();
+        this.friend_list = new Array<number>();
     }
 
     
@@ -51,11 +53,6 @@ export class User implements User {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 `);
                 
-                const insertFriend = db.prepare(`
-                    INSERT INTO friends (user_id, friend_id)
-                    VALUES (?, ?)
-                    `);
-                    
                     db.transaction(() => {
                         
                         const result = insertUser.run(
@@ -72,15 +69,9 @@ export class User implements User {
                 const lastId = result.lastInsertRowid as number;
                 this.id = lastId;
                 
-                if (this.friend_list && this.friend_list.length > 0) {
-                    for (const friendId of this.friend_list) {
-                        insertFriend.run(lastId, friendId);
-                    }
-                }
             })();
             server.log.info(`User ${this.username}, ${this.id} inserted in the DB`);
             return null;
-            
         } catch (error) {
             if ((error as any).message.includes("UNIQUE constraint failed: users.email")) {
                 server.log.error(`The email address ${this.email} is already in the DB`);
@@ -91,11 +82,11 @@ export class User implements User {
         }
     }
 
-    async updateUserInDb() {
+    async updateUserInDb() : Promise<string | null> {
 
         if (this.id === 0) {
             server.log.error(`User ${this.username} does not exist in the DB`);
-            return;
+            return "User doesn´t exist in the database";
         }
 
         try {
@@ -120,42 +111,65 @@ export class User implements User {
                     this.id
                 );
                 deleteFriends.run(this.id);
-                this.friend_list.forEach(friend => {
-                    insertFriend.run(this.id, friend.id); 
+                this.friend_list.forEach(friend_id => {
+                    insertFriend.run(this.id, friend_id); 
                 });
             })();
             server.log.info(`User ${this.username}, ${this.id} updated in the DB`);
+            return null;
         } catch (error) {
+            if ((error as any).message.includes("UNIQUE constraint failed: users.email")) {
+                server.log.error(`The email address ${this.email} is already in the DB`);
+                return "Email address already exists!";
+            }
             server.log.error(`Error while updating user ${this.username} in the DB: ${error}`);
+            return "Error while updating user in the DB";
         }
     }
 
-    async deleteUserFromDb() {
+    async deleteUserFromDb() : Promise<string | null>{
         
         if (this.id === 0) {
             server.log.error(`User ${this.username} does not exist in the DB`);
-            return;
+            return "User doesn´t exist in the database";
         }
 
         try {
             const deleteUser = db.prepare(`DELETE FROM users WHERE id = ?`);
+
             db.transaction(() => {
                 deleteUser.run(this.id);
             })();
             server.log.info(`User ${this.username}, ${this.id} deleted from the DB`);
+            return null;
         } catch (error) {
             server.log.error(`Error while deleting user ${this.username} from the DB: ${error}`);
+            return "Error while deleting user from the DB";
         }
     }
 
-    async addFriend(friend: User) {
-        this.friend_list.push(friend);
-        this.updateUserInDb();
+    async addFriend(friend_id: number) : Promise<string | null> {
+        this.friend_list.push(friend_id);
+        const req_message = this.updateUserInDb();
+        return req_message;
     }
 
-    async removeFriend(friend: User) {
-        this.friend_list = this.friend_list.filter(f => f.id !== friend.id);
-        this.updateUserInDb();
+    async removeFriend(friend_id: number) : Promise<string | null> {
+        this.friend_list = this.friend_list.filter(f => f !== friend_id);
+        const req_message = this.updateUserInDb();
+        return req_message;
+    }
+
+    async addMatch(match_id: number) : Promise<string | null> {
+        this.history.push(match_id);
+        const req_message = this.updateUserInDb();
+        return req_message;
+    }
+
+    async removeMatch(match_id: number) : Promise<string | null> {
+        this.history = this.history.filter(m => m !== match_id);
+        const req_message = this.updateUserInDb();
+        return req_message;
     }
 
 }
@@ -163,8 +177,8 @@ export class User implements User {
 export async function getUserFromDb(query: number): Promise<User | null> {
 
     try { 
-        const sqlrequest = "SELECT * FROM users WHERE id = ?";
-        const userRow = db.prepare(sqlrequest).get(query) as { 
+        const sqlRequest = "SELECT * FROM users WHERE id = ?";
+        const userRow = db.prepare(sqlRequest).get(query) as { 
             id: number;
             username: string;
             email: string;
@@ -173,6 +187,7 @@ export async function getUserFromDb(query: number): Promise<User | null> {
             created_at: string;
             win_nbr: number;
             loss_nbr: number;
+            avatar: string;
         } | undefined; 
 
         if (!userRow) return null;
@@ -183,22 +198,29 @@ export async function getUserFromDb(query: number): Promise<User | null> {
         user.created_at = new Date(userRow.created_at);
         user.win_nbr = userRow.win_nbr;
         user.loss_nbr = userRow.loss_nbr;
+        user.avatar = userRow.avatar;
         const friends = await getFriendsFromDb(user.id);
-        if (friends) user.friend_list = friends;
-
+        if (friends) user.friend_list = friends.map(f => f.id);
+        
+        const userId = Number(user.id);
+        const matches = db.prepare("SELECT * FROM matchs").all() as Array<Match>;
+        const userMatches = matches.filter(match => match.player1 === userId.toString() || match.player2 === userId.toString());
+        user.history = userMatches.map(match => match.id);
         return user;
+
     } catch (error) {
-        server.log.error(`Could not fetch uer from DB ${error}`)
+        server.log.error(`Could not fetch user from DB ${error}`)
         return null;
     }
 }
 
-export async function getFriendsFromDb(userId: number): Promise<User[] | null> {
+export async function getFriendsFromDb(userId: number): Promise<Array<User> | null> {
 
     try {
-        const friends = db.prepare("SELECT friend_id FROM friends WHERE user_id = ?").all(userId) as Array<{ friend_id: number }>;
+        const sqlRequest = "SELECT friend_id FROM friends WHERE user_id = ?";
+        const friendsRow = db.prepare(sqlRequest).all(userId) as Array<{ friend_id: number }>;
         const users = new Array<User>();
-        for (const friend of friends) {
+        for (const friend of friendsRow) {
             const user = await getUserFromDb(friend.friend_id);
             if (user) users.push(user);
         }
