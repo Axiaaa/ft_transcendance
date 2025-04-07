@@ -63,6 +63,12 @@ git clone https://github.com/Axiaaa/ft_transcendance.git
 # Navigate to project directory
 cd ft_transcendance
 
+# Copy the example file
+cp .env_example .env
+
+# Edit with your preferred text editor
+nano .env
+
 # Start the application using Docker Compose
 make
 ```
@@ -98,20 +104,22 @@ Then visit `https://localhost:443` in your browser!
 
 The application can be configured through environment variables in the `.env` file:
 
-```
-# Server Configuration
-PORT=3000
-NODE_ENV=development
+1. **Create your environment file**:
+    ```bash
+    # Copy the example file
+    cp .env_example .env
+    
+    # Edit with your preferred text editor
+    nano .env
+    ```
 
-# Database Configuration
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=password
-POSTGRES_DB=transcendance
-
-# OAuth Configuration
-OAUTH_CLIENT_ID=your_client_id
-OAUTH_CLIENT_SECRET=your_client_secret
-```
+2. **Customize your configuration**:
+    For security reasons, we strongly recommend changing the following values:
+    - `ELASTIC_PASSWORD` and `KIBANA_PASSWORD`
+    - `ENCRYPTION_KEY`
+    - `GRAFANA_USER` and `GRAFANA_PASSWORD`
+    - `API_USERNAME` and `API_PASSWORD`
+    - `DISCORD_WEBHOOK_URL` (if you wish to receive notifications)
 
 <div align="center">
 <img src="./frontend/img/Readme/readme-divider-features.jpg" alt="Windows XP Style Divider"/>
