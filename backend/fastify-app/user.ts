@@ -19,6 +19,7 @@ export class User implements User {
     public loss_nbr: number; 
     public avatar: string;
     public friend_list: Array<number>;
+    public pending_friend_list: Array<number>;
 
     constructor(
         username: string,
@@ -37,6 +38,7 @@ export class User implements User {
         this.loss_nbr = 0;
         this.avatar = DEFAULT_AVATAR_URL;
         this.friend_list = new Array<number>();
+        this.pending_friend_list = new Array<number>();
     }
 
     

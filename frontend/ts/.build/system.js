@@ -155,15 +155,16 @@ document.addEventListener('DOMContentLoaded', function () {
     {
         var trashBinApp = document.getElementById('trash-bin-app');
         trashBinApp.addEventListener('click', function (e) { return __awaiter(void 0, void 0, void 0, function () {
-            var credentials, response, users, firstUser, error_2, errorMessage;
+            var credentials, response, user, error_2, errorMessage;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
                         credentials = btoa('admin:adminpassword');
-                        return [4 /*yield*/, fetch('/users', {
+                        return [4 /*yield*/, fetch('https://localhost/api/users/1', {
                                 headers: {
-                                    'Authorization': "Basic ".concat(credentials)
+                                    'Authorization': "Basic ".concat(credentials),
+                                    'Content-Type': 'application/json'
                                 }
                             })];
                     case 1:
@@ -173,14 +174,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         return [4 /*yield*/, response.json()];
                     case 2:
-                        users = _a.sent();
-                        // Check if we got any users back
-                        if (users && users.length > 0) {
-                            firstUser = users[0];
-                            sendNotification('User Data', "First user: ".concat(firstUser.name), './img/Utils/API-icon.png');
+                        user = _a.sent();
+                        console.log("Parsed User Object:", user);
+                        if (user) {
+                            sendNotification('User Data', "User: ".concat(user.username), './img/Utils/API-icon.png');
                         }
                         else {
-                            sendNotification('No Users', 'No users found in database', './img/Utils/API-icon.png');
+                            sendNotification('No User', 'No user found with ID 1', './img/Utils/API-icon.png');
                         }
                         return [3 /*break*/, 4];
                     case 3:

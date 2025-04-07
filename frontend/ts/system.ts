@@ -115,38 +115,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	// SANDBOX AREA
 {
-    let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
-    trashBinApp.addEventListener('click', async (e: MouseEvent) => {
-        try {
-            // Basic authentication credentials (username:password encoded in base64)
-            const credentials = btoa('admin:adminpassword');
-            
-            // Make API request to get all users
-            const response = await fetch('/users', {
-                headers: {
-                    'Authorization': `Basic ${credentials}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const users = await response.json();
-            
-            // Check if we got any users back
-            if (users && users.length > 0) {
-                // Get first user from the array
-                const firstUser = users[0];
-                sendNotification('User Data', `First user: ${firstUser.name}`, './img/Utils/API-icon.png');
-            } else {
-                sendNotification('No Users', 'No users found in database', './img/Utils/API-icon.png');
-            }
+	let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
+	trashBinApp.addEventListener('click', async (e: MouseEvent) => {
+		try {
+			// Basic authentication credentials (username:password encoded in base64)
+			const credentials = btoa('admin:adminpassword');
+			
+			// Make API request to get user with ID 1
+			const response = await fetch('https://localhost/api/users/1', {
+				headers: {
+					'Authorization': `Basic ${credentials}`,
+					'Content-Type': 'application/json'
+				}
+			});
+			
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			/*
+			Create a new user first with that in the terminal:
+			curl -k -X POST "https://localhost/api/users" \
+            	-H "Content-Type: application/json" \
+				-u "admin:adminpassword" \
+				-d '{ "name": "e", "email": "e", "password": "e" }'
+			*/
+			
+			const user = await response.json();
+			console.log("Parsed User Object:", user);		
+			if (user) {
+				sendNotification('User Data', `User: ${user.username}`, './img/Utils/API-icon.png');
+
+			} else {
+				sendNotification('No User', 'No user found with ID 1', './img/Utils/API-icon.png');
+			}
 		} catch (error) {
 			console.error('Error fetching user:', error);
 			const errorMessage = error instanceof Error ? error.message : String(error);
 			sendNotification('API Error', `Failed to fetch user data: ${errorMessage}`, './img/Utils/API-icon.png');
 		}
-    });
+	});
 }
 });

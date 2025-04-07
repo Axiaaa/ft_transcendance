@@ -13,4 +13,5 @@ export interface IUser {
     loss_nbr: number; 
     avatar: string;
     friend_list: Array<number>;
+    pending_friend_list: Array<number>;
 }
