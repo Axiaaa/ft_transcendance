@@ -152,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () =>
 	renderWindowContent(socialApp.children[1].children[0] as HTMLElement);
 	console.log("App created: Id: " + socialApp.id + " Class: " + socialApp.className);
 
+
 	const desktop = document.getElementById('desktop') as HTMLElement;
 	const windowsContainer = document.getElementById('windows-container') as HTMLElement;
 

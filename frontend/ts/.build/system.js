@@ -154,8 +154,44 @@ document.addEventListener('DOMContentLoaded', function () {
     // SANDBOX AREA
     {
         var trashBinApp = document.getElementById('trash-bin-app');
-        trashBinApp.addEventListener('click', function (e) {
-            sendNotification('API Request test', 'You clicked the Trash Bin!', './img/Utils/trash-bin.png');
-        });
+        trashBinApp.addEventListener('click', function (e) { return __awaiter(void 0, void 0, void 0, function () {
+            var credentials, response, users, firstUser, error_2, errorMessage;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        credentials = btoa('admin:adminpassword');
+                        return [4 /*yield*/, fetch('/users', {
+                                headers: {
+                                    'Authorization': "Basic ".concat(credentials)
+                                }
+                            })];
+                    case 1:
+                        response = _a.sent();
+                        if (!response.ok) {
+                            throw new Error("HTTP error! status: ".concat(response.status));
+                        }
+                        return [4 /*yield*/, response.json()];
+                    case 2:
+                        users = _a.sent();
+                        // Check if we got any users back
+                        if (users && users.length > 0) {
+                            firstUser = users[0];
+                            sendNotification('User Data', "First user: ".concat(firstUser.name), './img/Utils/API-icon.png');
+                        }
+                        else {
+                            sendNotification('No Users', 'No users found in database', './img/Utils/API-icon.png');
+                        }
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_2 = _a.sent();
+                        console.error('Error fetching user:', error_2);
+                        errorMessage = error_2 instanceof Error ? error_2.message : String(error_2);
+                        sendNotification('API Error', "Failed to fetch user data: ".concat(errorMessage), './img/Utils/API-icon.png');
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        }); });
     }
 });

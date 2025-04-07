@@ -114,10 +114,39 @@ document.addEventListener('DOMContentLoaded', () => {
 	resetTimer();
 
 	// SANDBOX AREA
-	{
-		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
-		trashBinApp.addEventListener('click', (e: MouseEvent) => {
-			sendNotification('API Request test', 'Test api:', './img/Utils/API-icon.png');
-		});
-	}
+{
+    let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
+    trashBinApp.addEventListener('click', async (e: MouseEvent) => {
+        try {
+            // Basic authentication credentials (username:password encoded in base64)
+            const credentials = btoa('admin:adminpassword');
+            
+            // Make API request to get all users
+            const response = await fetch('/users', {
+                headers: {
+                    'Authorization': `Basic ${credentials}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const users = await response.json();
+            
+            // Check if we got any users back
+            if (users && users.length > 0) {
+                // Get first user from the array
+                const firstUser = users[0];
+                sendNotification('User Data', `First user: ${firstUser.name}`, './img/Utils/API-icon.png');
+            } else {
+                sendNotification('No Users', 'No users found in database', './img/Utils/API-icon.png');
+            }
+		} catch (error) {
+			console.error('Error fetching user:', error);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			sendNotification('API Error', `Failed to fetch user data: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+    });
+}
 });
