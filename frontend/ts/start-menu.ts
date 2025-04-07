@@ -76,4 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 		
 	}
+	{
+		let shutdownButton = document.getElementById('startmenu-shutdown-button') as HTMLElement;
+		shutdownButton.addEventListener('click', (e: MouseEvent) => {
+			alert('Warning: System shutting down\n(It just reloads the page, because... you know, it\'s a web app)');
+			window.location.reload();
+		});
+	}
 });

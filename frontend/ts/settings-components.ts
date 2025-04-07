@@ -687,6 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			let restoreInfo1 = createInformationElement('Restore System', systemRestoreContainer);
 
 			let restoreSystemButton = document.createElement('button');
+			restoreSystemButton.id = 'restore-system-button';
 			restoreInfo1.appendChild(restoreSystemButton);
 			restoreSystemButton.textContent = 'Restore System';
 			restoreSystemButton.style.padding = '5px 10px';

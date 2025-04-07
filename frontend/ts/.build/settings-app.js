@@ -1,4 +1,4 @@
-"use strict";
+import { openAppWindow } from "./app-icon.js";
 document.addEventListener('DOMContentLoaded', function () {
     var appWindow = document.getElementById('settings-app-window');
     appWindow.style.minHeight = '400px';
@@ -199,7 +199,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     var forwardButton = createButton('./img/Settings_app/back-icon.png');
     forwardButton.style.transform = 'scaleX(-1)';
+    forwardButton.style.filter = 'grayscale(100%)';
+    forwardButton.style.pointerEvents = 'none';
     var SearchButton = createButton('./img/Settings_app/search-icon.png');
+    SearchButton.id = 'settings-app-search-button';
     var Searchbar = document.createElement('input');
     ButtonContainer.appendChild(Searchbar);
     Searchbar.type = 'text';
@@ -441,4 +444,36 @@ document.addEventListener('DOMContentLoaded', function () {
     var Accessibility = createCategory('Accessibility', './img/Settings_app/accessibility-icon.png', AccessibilityContainer);
     var Privacy = createCategory('Privacy', './img/Settings_app/privacy-icon.png', PrivacyContainer);
     appWindow.children[1].appendChild(appContent);
+    {
+        var controlPanelIcon = document.getElementById('start-menu-settings');
+        controlPanelIcon.addEventListener('click', function () {
+            openAppWindow('', 'settings-app-window');
+        });
+    }
+    {
+        var resetSettingsIcon = document.getElementById('start-menu-reset-settings');
+        resetSettingsIcon.addEventListener('click', function () {
+            openAppWindow('', 'settings-app-window');
+            var systemSetting = document.getElementById('settings-app-System-category');
+            systemSetting.click();
+            var systemRestore = document.getElementById('restore-system-button');
+            systemRestore.click();
+        });
+    }
+    {
+        var helpIcon = document.getElementById('start-menu-help');
+        helpIcon.addEventListener('click', function () {
+            openAppWindow('', 'settings-app-window');
+            var privacySetting = document.getElementById('settings-app-Privacy-category');
+            privacySetting.click();
+        });
+    }
+    {
+        var searchIcon = document.getElementById('start-menu-search');
+        searchIcon.addEventListener('click', function () {
+            openAppWindow('', 'settings-app-window');
+            var searchButton = document.getElementById('settings-app-search-button');
+            searchButton.click();
+        });
+    }
 });

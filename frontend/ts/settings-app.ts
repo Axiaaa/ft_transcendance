@@ -1,3 +1,5 @@
+import { openAppWindow } from "./app-icon.js";
+
 document.addEventListener('DOMContentLoaded', () => {
 
 	let appWindow = document.getElementById('settings-app-window') as HTMLElement;
@@ -215,7 +217,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	let forwardButton = createButton('./img/Settings_app/back-icon.png');
 	forwardButton.style.transform = 'scaleX(-1)';
+	forwardButton.style.filter = 'grayscale(100%)';
+	forwardButton.style.pointerEvents = 'none';
 	let SearchButton = createButton('./img/Settings_app/search-icon.png');
+	SearchButton.id = 'settings-app-search-button';
 	let Searchbar = document.createElement('input');
 	ButtonContainer.appendChild(Searchbar);
 	Searchbar.type = 'text';
@@ -481,4 +486,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 	appWindow.children[1].appendChild(appContent);
+
+	{
+		let	controlPanelIcon = document.getElementById('start-menu-settings') as HTMLElement;
+		controlPanelIcon.addEventListener('click', () => {
+			openAppWindow('', 'settings-app-window');
+		});
+	}
+	{
+		let resetSettingsIcon = document.getElementById('start-menu-reset-settings') as HTMLElement;
+		resetSettingsIcon.addEventListener('click', () => {
+			openAppWindow('', 'settings-app-window');
+			let systemSetting = document.getElementById('settings-app-System-category') as HTMLElement;
+			systemSetting.click();
+			let systemRestore = document.getElementById('restore-system-button') as HTMLElement;
+			systemRestore.click();
+		});
+	}
+	{
+		let helpIcon = document.getElementById('start-menu-help') as HTMLElement;
+		helpIcon.addEventListener('click', () => {
+			openAppWindow('', 'settings-app-window');
+			let privacySetting = document.getElementById('settings-app-Privacy-category') as HTMLElement;
+			privacySetting.click();
+		});
+	}
+	{
+		let searchIcon = document.getElementById('start-menu-search') as HTMLElement;
+		searchIcon.addEventListener('click', () => {
+			openAppWindow('', 'settings-app-window');
+			let searchButton = document.getElementById('settings-app-search-button') as HTMLElement;
+			searchButton.click();
+		});
+	}
 });

@@ -581,6 +581,7 @@ document.addEventListener('DOMContentLoaded', function () {
             systemRestoreContainer.style.alignItems = 'center';
             var restoreInfo1 = createInformationElement('Restore System', systemRestoreContainer);
             var restoreSystemButton_1 = document.createElement('button');
+            restoreSystemButton_1.id = 'restore-system-button';
             restoreInfo1.appendChild(restoreSystemButton_1);
             restoreSystemButton_1.textContent = 'Restore System';
             restoreSystemButton_1.style.padding = '5px 10px';

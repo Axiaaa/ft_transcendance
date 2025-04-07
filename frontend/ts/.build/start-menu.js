@@ -71,4 +71,11 @@ document.addEventListener('DOMContentLoaded', function () {
     for (var i = 0; i < menuItems.length; i++) {
         _loop_1(i);
     }
+    {
+        var shutdownButton = document.getElementById('startmenu-shutdown-button');
+        shutdownButton.addEventListener('click', function (e) {
+            alert('Warning: System shutting down\n(It just reloads the page, because... you know, it\'s a web app)');
+            window.location.reload();
+        });
+    }
 });
