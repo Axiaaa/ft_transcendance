@@ -1,27 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong 3D</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="style.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Pong 3D</title>
+	<link href="style.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 
-        <script type="importmap">
-			{
-				"imports": {
-				"three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
-                "jsm/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
-        }
+	<script type="importmap">
+		{
+			"imports": {
+				"@babylonjs/core": "https://cdn.jsdelivr.net/npm/@babylonjs/core@6.27.0/+esm",
+				"@babylonjs/loaders": "https://cdn.jsdelivr.net/npm/@babylonjs/loaders@6.27.0/+esm",
+				"@babylonjs/gui": "https://cdn.jsdelivr.net/npm/@babylonjs/gui@6.27.0/+esm"
 			}
-		</script>
+		}
+	</script>
+	
 </head>
 <body>
-    <canvas id="pong-game-canvas" style="height: 50%; width: 50%;">
-        
-    </canvas>
-    <div id="particles-js"></div>
-    <script type="module" src="pong.js"></script>
+	<div id="menu">
+		<h1>PONG</h1>
+		<button id="playButton">PLAY</button>
+	</div>
+	<div id="countdown-container">
+		<span id="countdown"></span>
+		<span id="countdown-go">GO!</span>
+	</div>
+	<canvas id="canvas"></canvas>
+	<script type="module" src="./.build/pong.js"></script>
 </body>
 </html>

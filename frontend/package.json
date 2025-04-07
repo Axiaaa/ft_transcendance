@@ -5,6 +5,12 @@
     "start": "node ./js/index.js"
   },
   "dependencies": {
-    "typescript": "^5.7.3"
+    "@babylonjs/core": "^7.54.0",
+    "@babylonjs/loaders": "^7.54.0",
+    "typescript": "^5.7.3",
+    "xp.css": "^0.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10"
   }
 }

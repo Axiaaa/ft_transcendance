@@ -1,20 +1,21 @@
 {
 	"compilerOptions": {
-		"lib": ["es2015", "dom"],
+		"lib": ["es2020", "dom"],
 		"target": "es5",
 		"module": "es6",
-		"outDir": "./js/.build/",
-		"rootDir": ".",
-		"strict": true
+		"moduleResolution": "node",
+		"outDir": "./ts/.build",
+		"rootDir": "./ts",
+		"baseUrl": "./ts",
+		// "paths": {
+		// 	"game": ["./game"]
+		// },
+		"strict": true,
+		// "composite": true    // Décommentez cette ligne
 	},
-	"files": [
-		"./js/window.ts",
-		"./js/app-icon.ts",
-		"./js/start-menu.ts",
-		"./js/login-screen.ts",
-		"./js/taskbar.ts",
-		"./js/settings-app.ts",
-		"./js/notification.ts",
-		"./js/terminal-app.ts"
-	]
+	"include": ["ts/**/*.ts"],
+	"exclude": ["node_modules"],
+	// "references": [
+	// 	{ "path": "./game" }
+	// ]
 }
