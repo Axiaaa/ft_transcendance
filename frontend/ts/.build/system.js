@@ -151,4 +151,11 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('scroll', resetTimer);
     // Start the initial timer
     resetTimer();
+    // SANDBOX AREA
+    {
+        var trashBinApp = document.getElementById('trash-bin-app');
+        trashBinApp.addEventListener('click', function (e) {
+            sendNotification('API Request test', 'You clicked the Trash Bin!', './img/Utils/trash-bin.png');
+        });
+    }
 });

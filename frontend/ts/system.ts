@@ -112,4 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	// Start the initial timer
 	resetTimer();
+
+	// SANDBOX AREA
+	{
+		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
+		trashBinApp.addEventListener('click', (e: MouseEvent) => {
+			sendNotification('API Request test', 'Test api:', './img/Utils/API-icon.png');
+		});
+	}
 });
