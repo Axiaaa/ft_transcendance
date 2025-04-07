@@ -1,7 +1,7 @@
 # 🖥️ ft_transcendance (Windows XPong) 🖥️
 
 <div align="center">
-<img src="./frontend/img/Utils/WindowsXPong.jpg" alt="Windows XP Banner" width="600"/>
+<img src="./frontend/img/Readme/WindowsXPong.jpg" alt="Windows XP Banner" width="900"/>
 
 *A nostalgic web-based multiplayer Pong game with modern features*
 
@@ -32,49 +32,45 @@ This project is the culmination of the 42 school common core, a **feature-rich m
 **ft_transcendance** transforms the classic Pong game into a modern web application. We've built it using NestJS for the backend, with a PostgreSQL database, and a responsive frontend - all containerized with Docker for easy deployment.
 
 <div align="center">
-<img src="https://i.imgur.com/w2Wnm9S.png" alt="Windows XP Style Divider" width="500"/>
+<img src="./frontend/img/Readme/readme-divider-features.jpg" alt="Windows XP Style Divider"/>
 </div>
 
 ## ✨ Features
 
 ### 🎮 Game Features
 - **Real-time Pong Gameplay** - Experience smooth, responsive gameplay
-- **Matchmaking System** - Get paired with players of similar skill levels
 - **Tournaments** - Compete in organized tournaments
-- **Custom Game Modes** - Change game speed, paddle size, and more!
 
 ### 👤 User Features
 - **User Authentication** - Secure login with OAuth 2.0
 - **Profile Customization** - Avatars, stats, and achievement displays
-- **Two-Factor Authentication** - Enhanced account security
 - **Friend System** - Add friends and challenge them to matches
 
 ### 💬 Social Features
-- **Live Chat** - Public chat rooms and private messaging
-- **Game Spectating** - Watch ongoing matches
+- **Game Stats** - Watch your games history with stats
 - **Leaderboards** - See who ranks highest
 
 <div align="center">
-<img src="https://i.imgur.com/w2Wnm9S.png" alt="Windows XP Style Divider" width="500"/>
+<img src="./frontend/img/Readme/readme-divider-install.jpg" alt="Windows XP Style Divider"/>
 </div>
 
 ## 💻 Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ft_transcendance.git
+git clone https://github.com/Axiaaa/ft_transcendance.git
 
 # Navigate to project directory
 cd ft_transcendance
 
 # Start the application using Docker Compose
-docker-compose up --build
+make
 ```
 
-Then visit `http://localhost:3000` in your browser!
+Then visit `https://localhost:443` in your browser!
 
 <div align="center">
-<img src="https://i.imgur.com/w2Wnm9S.png" alt="Windows XP Style Divider" width="500"/>
+<img src="./frontend/img/Readme/readme-divider-howtoplay.jpg" alt="Windows XP Style Divider"/>
 </div>
 
 ## 🎮 How to Play
@@ -82,23 +78,20 @@ Then visit `http://localhost:3000` in your browser!
 1. **Create an Account** - Sign up or login through OAuth
 2. **Find a Match** - Use quick play or challenge a friend
 3. **Play the Game** - Control your paddle with mouse or keyboard
-4. **Chat & Connect** - Engage with other players in the chat
 
 <div align="center">
-<img src="https://i.imgur.com/UbO2x2j.png" alt="Game Controls" width="400"/>
+<img src="./frontend/img/Readme/readme-divider-technos.jpg" alt="Game Controls"/>
 </div>
 
 ## 🧩 Technologies
 
-- **Backend**: NestJS
-- **Frontend**: React or Vue.js
-- **Database**: PostgreSQL
-- **Real-time Communication**: Socket.io
-- **Authentication**: OAuth 2.0
+- **Backend**: NodeJS
+- **Frontend**: Typescript & BabylonJS
+- **Database**: SQlite
 - **Containerization**: Docker & Docker Compose
 
 <div align="center">
-<img src="https://i.imgur.com/w2Wnm9S.png" alt="Windows XP Style Divider" width="500"/>
+<img src="./frontend/img/Readme/readme-divider-features.jpg" alt="Windows XP Style Divider"/>
 </div>
 
 ## 🛠️ Configuration
@@ -121,18 +114,20 @@ OAUTH_CLIENT_SECRET=your_client_secret
 ```
 
 <div align="center">
-<img src="https://i.imgur.com/w2Wnm9S.png" alt="Windows XP Style Divider" width="500"/>
+<img src="./frontend/img/Readme/readme-divider-features.jpg" alt="Windows XP Style Divider"/>
 </div>
 
 ## 👥 Team
 
 This project was created with love by:
-- [Team Member 1](https://github.com/username1)
-- [Team Member 2](https://github.com/username2)
-- [Team Member 3](https://github.com/username3)
+- [Jcuzin](https://github.com/Ocyn)
+- [Lcamerly](https://github.com/Axiaaa)
+- [Aammirat](https://github.com/nonomex)
+- [Mcourbon](https://github.com/mcourbon)
+- [Yallo](https://github.com/Sarfoula)
 
 <div align="center">
-<img src="https://i.imgur.com/w2Wnm9S.png" alt="Windows XP Style Divider" width="500"/>
+<img src="./frontend/img/Readme/readme-divider-faq.jpg" alt="Windows XP Style Divider"/>
 </div>
 
 ## ❓ FAQ
@@ -149,9 +144,7 @@ A: Players are matched based on skill level determined by win/loss ratios.
 ---
 
 <div align="center">
-<p>© 2023 ft_transcendance Team | <a href="https://github.com/yourusername/ft_transcendance">GitHub Repository</a></p>
-
-<img src="https://i.imgur.com/eMJTSuA.png" alt="Windows XP Footer" width="300"/>
+<p>© 2023 ft_transcendance Team | <a href="https://github.com/Axiaaa/ft_transcendance.git">GitHub Repository</a></p>
 
 *You've just experienced a blast from the past with our Windows XP-themed README!*
 </div>
