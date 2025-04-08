@@ -151,6 +151,7 @@ export class User implements User {
     }
 
     async addFriend(friend_id: number) : Promise<string | null> {
+        this.pending_friend_list = this.pending_friend_list.filter(f => f !== friend_id);
         this.friend_list.push(friend_id);
         const req_message = this.updateUserInDb();
         return req_message;
@@ -174,6 +175,17 @@ export class User implements User {
         return req_message;
     }
 
+    async addPendingFriend(friend_id: number) : Promise<string | null> {
+        this.pending_friend_list.push(friend_id);
+        const req_message = this.updateUserInDb();
+        return req_message;
+    }
+
+    async removePendingFriend(friend_id: number) : Promise<string | null> {
+        this.pending_friend_list = this.pending_friend_list.filter(f => f !== friend_id);
+        const req_message = this.updateUserInDb();
+        return req_message;
+    }
 }
 
 export async function getUserFromDb(query: number): Promise<User | null> {
@@ -229,6 +241,23 @@ export async function getFriendsFromDb(userId: number): Promise<Array<User> | nu
         return users;
     } catch (error) {
         server.log.error(`Could not fetch friends from DB ${error}`)
+        return null;
+    }
+}
+
+export async function getPendingFriendsListFromDb(userId: number): Promise<Array<User> | null> {
+
+    try {
+        const sqlRequest = "SELECT friend_id FROM pending_friends WHERE user_id = ?";
+        const friendsRow = db.prepare(sqlRequest).all(userId) as Array<{ friend_id: number }>;
+        const users = new Array<User>();
+        for (const friend of friendsRow) {
+            const user = await getUserFromDb(friend.friend_id);
+            if (user) users.push(user);
+        }
+        return users;
+    } catch (error) {
+        server.log.error(`Could not fetch pending friends from DB ${error}`)
         return null;
     }
 }
