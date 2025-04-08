@@ -175,7 +175,11 @@ export async function userRoutes(server : FastifyInstance) {
         if (friend.id === user.id) {
             reply.code(409).send({error: "Can't add yourself as a pending friend"});
             return;
-        }   
+        }
+        if (user.friend_list.includes(friend.id)) {
+            reply.code(409).send({error: "Friend already in friend list"});
+            return;
+        }
         if (user.pending_friend_list.find(f => f === friend.id) == undefined) {
             const req_message = await user.addPendingFriend(friend.id);
             req_message === null ? reply.code(201).send({ id : user.id}) : reply.code(409).send({ error : req_message });

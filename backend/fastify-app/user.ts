@@ -101,6 +101,9 @@ export class User implements User {
             const deleteFriends = db.prepare(`DELETE FROM friends WHERE user_id = ?`);
             const insertFriend = db.prepare(`INSERT INTO friends (user_id, friend_id) VALUES (?, ?)`);
 
+            const deletePendingFriends = db.prepare(`DELETE FROM pending_friends WHERE user_id = ?`);
+            const insertPendingFriend = db.prepare(`INSERT INTO pending_friends (user_id, friend_id) VALUES (?, ?)`);
+
             db.transaction(() => {
                 updateUser.run(
                     this.username,
@@ -115,6 +118,10 @@ export class User implements User {
                 deleteFriends.run(this.id);
                 this.friend_list.forEach(friend_id => {
                     insertFriend.run(this.id, friend_id); 
+                });
+                deletePendingFriends.run(this.id);
+                this.pending_friend_list.forEach(friend_id => {
+                    insertPendingFriend.run(this.id, friend_id); 
                 });
             })();
             server.log.info(`User ${this.username}, ${this.id} updated in the DB`);
@@ -215,6 +222,8 @@ export async function getUserFromDb(query: number): Promise<User | null> {
         user.avatar = userRow.avatar;
         const friends = await getFriendsFromDb(user.id);
         if (friends) user.friend_list = friends.map(f => f.id);
+        const pending_friends = await getPendingFriendsListFromDb(user.id)
+        if (pending_friends) user.pending_friend_list = pending_friends.map(f => f.id); 
         
         const userId = Number(user.id);
         const matches = db.prepare("SELECT * FROM matchs").all() as Array<Match>;
