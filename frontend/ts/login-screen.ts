@@ -1,4 +1,6 @@
-
+import { getCurrentUser, updateUser } from "./API.js";
+import { getUser } from "./API.js";
+import { createUser } from "./API.js";
 
 let	titleScreenBackground = document.createElement('div');
 titleScreenBackground.id = 'title-screen-background';
@@ -172,4 +174,38 @@ document.addEventListener('DOMContentLoaded', () => {
 		form.style.display = 'block';
 	});
 	
+
 });
+
+// SANDBOX AREA
+{
+	let signUpForm = document.getElementById("sign-up-form") as HTMLFormElement;
+	let signUpButton = document.getElementById("sign-up-button") as HTMLButtonElement;
+	let signUpUsername = document.getElementById("sign-up-username") as HTMLInputElement;
+	let signUpPassword = document.getElementById("sign-up-password") as HTMLInputElement;
+	if (signUpButton) {
+		signUpButton.addEventListener("click", async (event) => {
+			event.preventDefault();
+			if (signUpUsername && signUpPassword) {
+				const username = signUpUsername.value;
+				const password = signUpPassword.value;
+				if (username && password) {
+					try {
+						const newUser = await createUser({ username, password });
+						console.log("User created:", newUser);
+						// Optionally, redirect to a different page or show a success message
+					} catch (error) {
+						console.error("Error creating user:", error);
+						// Optionally, show an error message to the user
+					}
+				}
+			}
+		});
+	}
+
+
+	let signInForm = document.getElementById("sign-in-form") as HTMLFormElement;
+	let signInButton = document.getElementById("sign-in-button") as HTMLButtonElement;
+	let signInUsername = document.getElementById("sign-in-username") as HTMLInputElement;
+	let signInPassword = document.getElementById("sign-in-password") as HTMLInputElement;
+}
