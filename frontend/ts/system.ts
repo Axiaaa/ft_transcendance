@@ -4,6 +4,7 @@ import { getCurrentUser, updateUser } from "./API.js";
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
 import { create } from "domain";
+import { get } from "http";
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -119,6 +120,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// SANDBOX AREA
 	{
+		let CurrentUser = await getUser(1);
+		if (!CurrentUser) {
+			CurrentUser = await createUser({username: 'Guest', password: 'guest', email: 'guest@guest.com'});
+		}
 		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
 			try {
