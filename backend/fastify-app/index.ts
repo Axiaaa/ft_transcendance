@@ -4,6 +4,7 @@ import metrics from "fastify-metrics"
 import { userRoutes } from "./routes/user";
 import { tournamentRoutes } from "./routes/tournaments";
 import { matchsRoutes } from "./routes/matchs";
+import { keepAliveRoute } from "./routes/keep_alive";
 
 const Port = process.env.PORT || 4321
 const envUser = process.env.API_USERNAME || 'admin'
@@ -48,6 +49,7 @@ const start = async () => {
         await server.register(tournamentRoutes, { prefix: '/api' });
         await server.register(userRoutes, { prefix: '/api' });
         await server.register(matchsRoutes, { prefix: '/api' });
+        await server.register(keepAliveRoute, { prefix: '/api' });
         await server.listen({ port: Number(Port) , host: '0.0.0.0'})
         console.log('Server started sucessfully')
     } catch (err) {
