@@ -70,7 +70,7 @@ export async function userRoutes(server : FastifyInstance) {
         if (background) { user.background = background; }
         if (last_login) { user.last_login = new Date(last_login); }
         if (font_size)  { 
-            user.font_size = Math.max(0, Math.min(font_size, 20));
+            user.font_size = Math.max(10, Math.min(font_size, 20));
         }
         
         const req_message = await user.updateUserInDb();

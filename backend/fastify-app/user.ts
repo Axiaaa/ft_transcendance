@@ -45,7 +45,7 @@ export class User implements User {
         this.background = DEFAULT_BACKGROUND_URL;
         this.friend_list = new Array<number>();
         this.pending_friend_list = new Array<number>();
-        this.font_size = 12;
+        this.font_size = 15;
     }
 
     
