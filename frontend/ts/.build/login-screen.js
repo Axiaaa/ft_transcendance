@@ -35,6 +35,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { createUser } from "./API.js";
+import { initHistoryAPI } from "./system.js";
+import { goToLoginPage } from "./system.js";
 var titleScreenBackground = document.createElement('div');
 titleScreenBackground.id = 'title-screen-background';
 document.body.appendChild(titleScreenBackground);
@@ -79,6 +81,7 @@ setTimeout(function () {
         titleScreenBackground.remove();
     }, 750);
 }, 4000);
+initHistoryAPI();
 document.addEventListener('DOMContentLoaded', function () {
     var loginScreen = document.getElementsByClassName("login-screen")[0];
     // Visual Effect Addons
@@ -95,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loginScreen.appendChild(loginScreenTopBar);
     loginScreen.appendChild(loginScreenMiddleBar);
     // DEFAULTS DISPLAY SETTINGS
-    loginScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
     var profiles = document.getElementsByClassName("login-screen-right-profile-box");
     var NewProfile = document.getElementById("new-profile");
     var _loop_1 = function (i) {
@@ -140,6 +143,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementsByClassName("login-screen-formulary")[0];
     form.style.display = 'none';
     var backbutton = document.createElement('img');
+    backbutton.id = 'login-screen-back-button';
+    backbutton.className = 'go-to-login';
     backbutton.src = './img/Utils/back-icon.png';
     backbutton.style.width = '35px';
     backbutton.style.height = '35px';
@@ -151,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
     backbutton.style.overflow = 'hidden';
     form.appendChild(backbutton);
     backbutton.addEventListener('click', function () {
+        goToLoginPage();
         form.style.display = 'none';
         for (var i = 0; i < profiles.length; i++) {
             profiles[i].style.display = 'block';

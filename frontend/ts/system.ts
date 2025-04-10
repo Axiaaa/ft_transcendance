@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 	let timeoutId: NodeJS.Timeout;
-	const INACTIVE_TIMEOUT = 10000; // 10 seconds of inactivity
+	const INACTIVE_TIMEOUT = 20000; // 10 seconds of inactivity
 
 	function resetTimer() {
 		// Clear any existing timeout
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		timeoutId = setTimeout(async () => {
 			try {
 				console.log('User is inactive');
-				sendNotification('Inactivity Alert', 'You have been inactive for 10 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
+				sendNotification('Inactivity Alert', 'You have been inactive for 20 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
 				sleepScreen.style.display = 'block';
 				await new Promise(resolve => setTimeout(resolve, 200));
 				if (sleepScreen.style.display === 'none') return;
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	// Reset timer on mouse movement
 	document.addEventListener('mousemove', resetTimer);
 	// Reset timer on mouse clicks
-	document.addEventListener('mousedown', resetTimer);
+	document.addEventListener('click', resetTimer);
 	// Reset timer on key press
 	document.addEventListener('keypress', resetTimer);
 	// Reset timer on scroll
@@ -146,20 +146,121 @@ document.addEventListener('DOMContentLoaded', async () => {
 	}
 });
 
-function initHistoryAPI() {
+export function initHistoryAPI() {
 	// Initial state
-	const initialState = { page: 'desktop' };
-	history.replaceState(initialState, '', '/');
+	const loginState = { page: 1 };
+	history.pushState(loginState, '', '/login');
+	history.replaceState(loginState, '', '/login');
 	
 	// Handle back/forward navigation
 	window.addEventListener('popstate', (event) => {
 		if (event.state) {
-			//TEST;
+			switch (event.state.page) {
+				case 1:
+					goToLoginPage(false);
+					console.log('Navigated to login page');
+					break;
+				case 2:
+					goToFormsPage(false);
+					console.log('Navigated to forms page');
+					break;
+				case 3:
+					goToDesktopPage(false);
+					console.log('Navigated to desktop page');
+					break;
+				default:
+					console.log('Unknown page');
+			}
 		}
 	});
-	
+	goToPage();
 	console.log('History API initialized');
 }
 
+function goToPage() 
+{
+	{
+		let goToLogin = document.getElementsByClassName('go-to-login') as HTMLCollectionOf<HTMLElement>;
+		for (let i = 0; i < goToLogin.length; i++) {
+			
+			const gotologin = goToLogin[i];
+			gotologin.addEventListener('click', () => {
+				goToLoginPage(true);
+			});
+		}
+	}
+	{
+		let goToForms = document.getElementsByClassName('go-to-forms') as HTMLCollectionOf<HTMLElement>;
+		for (let i = 0; i < goToForms.length; i++) {
+			const gotologin = goToForms[i];
+			gotologin.addEventListener('click', () => {
+				goToFormsPage(true);
+			});
+		}
+	}
+	{
+		let goToDesktop = document.getElementsByClassName('go-to-desktop') as HTMLCollectionOf<HTMLElement>;
+		for (let i = 0; i < goToDesktop.length; i++) {
+			const gotologin = goToDesktop[i];
+			gotologin.addEventListener('click', () => {
+				goToDesktopPage(true);
+			});
+		}
+	}
+}
 
-initHistoryAPI();
+export function goToLoginPage(pushState: boolean = true)
+{
+	const loginState = { page: 1 };
+	const loginScreen = document.getElementsByClassName('login-screen')[0] as HTMLElement;
+	const forms = document.getElementsByClassName('login-screen-formulary')[0] as HTMLElement;
+	const loginScreenBackButton = document.getElementById('login-screen-back-button') as HTMLButtonElement;
+	if (pushState)
+	{
+		history.pushState(loginState, '', '/login');
+	}
+	history.replaceState(loginState, '', '/login');
+	if (loginScreen)
+		loginScreen.style.display = 'block';
+	if (loginScreenBackButton)
+		loginScreenBackButton.click();
+	if (forms)
+		forms.style.display = 'none';
+	console.log('Navigated to login page');
+}
+
+export function goToDesktopPage(pushState: boolean = true)
+{
+	const desktopState = { page: 3 };
+	const loginScreen = document.getElementsByClassName('login-screen')[0] as HTMLElement;
+	const forms = document.getElementsByClassName('login-screen-formulary')[0] as HTMLElement;
+	
+	if (pushState)
+	{
+		history.pushState(desktopState, '', '/desktop');
+	}
+	history.replaceState(desktopState, '', '/desktop');
+	if (loginScreen)
+		loginScreen.style.display = 'none';
+	if (forms)
+		forms.style.display = 'none';
+	console.log('Navigated to desktop page');
+}
+
+export function goToFormsPage(pushState: boolean = true) 
+{
+	const formsState = { page: 2 };
+	const loginScreen = document.getElementsByClassName('login-screen')[0] as HTMLElement;
+	const forms = document.getElementsByClassName('login-screen-formulary')[0] as HTMLElement;
+	
+	if (pushState)
+	{
+		history.pushState(formsState, '', '/forms');
+	}
+	history.replaceState(formsState, '', '/forms');
+	if (loginScreen)
+		loginScreen.style.display = 'block';
+	if (forms)
+		forms.style.display = 'block';
+	console.log('Navigated to forms page');
+}

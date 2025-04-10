@@ -1,6 +1,10 @@
 import { getCurrentUser, updateUser } from "./API.js";
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
+import { initHistoryAPI } from "./system.js";
+import { goToDesktopPage } from "./system.js";
+import { goToFormsPage } from "./system.js";
+import { goToLoginPage } from "./system.js";
 
 let	titleScreenBackground = document.createElement('div');
 titleScreenBackground.id = 'title-screen-background';
@@ -53,7 +57,7 @@ setTimeout(() => {
 }, 4000);
 
 
-
+initHistoryAPI();
 
 document.addEventListener('DOMContentLoaded', () => {
 	
@@ -96,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 	// DEFAULTS DISPLAY SETTINGS
-	loginScreen.style.display = 'none';
+	loginScreen.style.display = 'block';
 
 	let profiles = document.getElementsByClassName("login-screen-right-profile-box") as HTMLCollectionOf<HTMLElement>;
 	let NewProfile = document.getElementById("new-profile") as HTMLElement;
@@ -142,6 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	form.style.display = 'none';
 
 	let backbutton = document.createElement('img');
+	backbutton.id = 'login-screen-back-button';
+	backbutton.className = 'go-to-login';
 	backbutton.src = './img/Utils/back-icon.png';
 	backbutton.style.width = '35px';
 	backbutton.style.height = '35px';
@@ -154,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	form.appendChild(backbutton);
 
 	backbutton.addEventListener('click', () => {
+		goToLoginPage();
 		form.style.display = 'none';
 		for (let i = 0; i < profiles.length; i++) {
 			profiles[i].style.display = 'block';
