@@ -7,6 +7,8 @@ volumes:
     name: kibanadata
   sqlite_data:
     name: sqlite_data
+  img_storage:
+    name: img_storage
 
 networks:
   ft_transcendence:
@@ -33,6 +35,7 @@ services:
     volumes:
       - certs:/etc/nginx/certs
       - ./frontend/:/usr/share/nginx/html
+      - img_storage:/usr/share/nginx/html/img_storage
     networks:
       - ft_transcendence
     depends_on:

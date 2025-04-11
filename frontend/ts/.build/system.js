@@ -35,33 +35,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { sendNotification } from "./notification.js";
-document.addEventListener('DOMContentLoaded', function () {
-    // window.addEventListener('beforeunload', (event) => {
-    // 	event.preventDefault();
-    // 	return 'Your data will be lost if you reload or leave this page. Are you sure ?';
-    // });
-    var sleepScreen = document.createElement('div');
-    document.body.appendChild(sleepScreen);
-    sleepScreen.id = 'sleep-screen';
-    sleepScreen.style.position = 'absolute';
-    sleepScreen.style.left = '0';
-    sleepScreen.style.top = '0';
-    sleepScreen.style.width = '100%';
-    sleepScreen.style.height = '100%';
-    sleepScreen.style.backgroundColor = 'rgb(0, 0, 0)';
-    sleepScreen.style.zIndex = '1000';
-    sleepScreen.style.justifyContent = 'center';
-    sleepScreen.style.alignItems = 'center';
-    sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
-    // sleepScreen.style.opacity = '1';
-    // sleepScreen.style.display = 'block';
-    var sleepLogo = document.createElement('img');
-    sleepScreen.appendChild(sleepLogo);
-    sleepLogo.src = './img/Utils/windows-xp-logo.png';
-    sleepLogo.style.width = '100px';
-    sleepLogo.style.height = '100px';
-    sleepLogo.style.position = 'absolute';
-    sleepLogo.style.padding = '0 10px';
+import { getUser } from "./API.js";
+import { createUser } from "./API.js";
+document.addEventListener('DOMContentLoaded', function () { return __awaiter(void 0, void 0, void 0, function () {
     function animateLogo(Logo) {
         if (!Logo)
             return;
@@ -95,9 +71,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 dy *= -1;
         }, interval);
     }
-    animateLogo(sleepLogo);
-    var timeoutId;
-    var INACTIVE_TIMEOUT = 10000; // 10 seconds of inactivity
     function resetTimer() {
         var _this = this;
         // Clear any existing timeout
@@ -114,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
                         console.log('User is inactive');
-                        sendNotification('Inactivity Alert', 'You have been inactive for 10 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
+                        sendNotification('Inactivity Alert', 'You have been inactive for 20 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
                         sleepScreen.style.display = 'block';
                         return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 200); })];
                     case 1:
@@ -141,57 +114,186 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }); }, INACTIVE_TIMEOUT);
     }
-    // Reset timer on mouse movement
-    document.addEventListener('mousemove', resetTimer);
-    // Reset timer on mouse clicks
-    document.addEventListener('mousedown', resetTimer);
-    // Reset timer on key press
-    document.addEventListener('keypress', resetTimer);
-    // Reset timer on scroll
-    document.addEventListener('scroll', resetTimer);
-    // Start the initial timer
-    resetTimer();
-    // SANDBOX AREA
-    {
-        var trashBinApp = document.getElementById('trash-bin-app');
-        trashBinApp.addEventListener('click', function (e) { return __awaiter(void 0, void 0, void 0, function () {
-            var credentials, response, user, error_2, errorMessage;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 3, , 4]);
-                        credentials = btoa('admin:adminpassword');
-                        return [4 /*yield*/, fetch('https://localhost/api/users/1', {
-                                headers: {
-                                    'Authorization': "Basic ".concat(credentials),
-                                    'Content-Type': 'application/json'
+    var sleepScreen, sleepLogo, timeoutId, INACTIVE_TIMEOUT, CurrentUser, trashBinApp;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                sleepScreen = document.createElement('div');
+                document.body.appendChild(sleepScreen);
+                sleepScreen.id = 'sleep-screen';
+                sleepScreen.style.position = 'absolute';
+                sleepScreen.style.left = '0';
+                sleepScreen.style.top = '0';
+                sleepScreen.style.width = '100%';
+                sleepScreen.style.height = '100%';
+                sleepScreen.style.backgroundColor = 'rgb(0, 0, 0)';
+                sleepScreen.style.zIndex = '1000';
+                sleepScreen.style.justifyContent = 'center';
+                sleepScreen.style.alignItems = 'center';
+                sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
+                sleepLogo = document.createElement('img');
+                sleepScreen.appendChild(sleepLogo);
+                sleepLogo.src = './img/Utils/windows-xp-logo.png';
+                sleepLogo.style.width = '100px';
+                sleepLogo.style.height = '100px';
+                sleepLogo.style.position = 'absolute';
+                sleepLogo.style.padding = '0 10px';
+                animateLogo(sleepLogo);
+                INACTIVE_TIMEOUT = 20000;
+                // Reset timer on mouse movement
+                document.addEventListener('mousemove', resetTimer);
+                // Reset timer on mouse clicks
+                document.addEventListener('click', resetTimer);
+                // Reset timer on key press
+                document.addEventListener('keypress', resetTimer);
+                // Reset timer on scroll
+                document.addEventListener('scroll', resetTimer);
+                // Start the initial timer
+                resetTimer();
+                return [4 /*yield*/, getUser(1)];
+            case 1:
+                CurrentUser = _a.sent();
+                if (!!CurrentUser) return [3 /*break*/, 3];
+                return [4 /*yield*/, createUser({ username: 'Guest', password: 'guest', email: 'guest@guest.com' })];
+            case 2:
+                CurrentUser = _a.sent();
+                _a.label = 3;
+            case 3:
+                trashBinApp = document.getElementById('trash-bin-app');
+                trashBinApp.addEventListener('dblclick', function (e) { return __awaiter(void 0, void 0, void 0, function () {
+                    var user1, error_2, errorMessage;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                _a.trys.push([0, 2, , 3]);
+                                return [4 /*yield*/, getUser(1)];
+                            case 1:
+                                user1 = _a.sent();
+                                if (user1) {
+                                    sendNotification('User Data', "User ID: ".concat(user1.id, ", Username: ").concat(user1.username, ", Email: ").concat(user1.email), './img/Utils/API-icon.png');
+                                    console.log("User ID: " + user1.id + " Username: " + user1.username);
+                                    console.log("User Data:", user1);
                                 }
-                            })];
-                    case 1:
-                        response = _a.sent();
-                        if (!response.ok) {
-                            throw new Error("HTTP error! status: ".concat(response.status));
+                                return [3 /*break*/, 3];
+                            case 2:
+                                error_2 = _a.sent();
+                                console.error('Error fetching user:', error_2);
+                                errorMessage = error_2 instanceof Error ? error_2.message : String(error_2);
+                                if (typeof sendNotification === 'function') {
+                                    sendNotification('Session Error', "Failed to get user: ".concat(errorMessage), './img/Utils/API-icon.png');
+                                }
+                                return [3 /*break*/, 3];
+                            case 3: return [2 /*return*/];
                         }
-                        return [4 /*yield*/, response.json()];
-                    case 2:
-                        user = _a.sent();
-                        console.log("Parsed User Object:", user);
-                        if (user) {
-                            sendNotification('User Data', "User: ".concat(user.username), './img/Utils/API-icon.png');
-                        }
-                        else {
-                            sendNotification('No User', 'No user found with ID 1', './img/Utils/API-icon.png');
-                        }
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_2 = _a.sent();
-                        console.error('Error fetching user:', error_2);
-                        errorMessage = error_2 instanceof Error ? error_2.message : String(error_2);
-                        sendNotification('API Error', "Failed to fetch user data: ".concat(errorMessage), './img/Utils/API-icon.png');
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
+                    });
+                }); });
+                return [2 /*return*/];
+        }
+    });
+}); });
+export function initHistoryAPI() {
+    // Initial state
+    var loginState = { page: 1 };
+    history.pushState(loginState, '', '/login');
+    history.replaceState(loginState, '', '/login');
+    // Handle back/forward navigation
+    window.addEventListener('popstate', function (event) {
+        if (event.state) {
+            switch (event.state.page) {
+                case 1:
+                    goToLoginPage(false);
+                    console.log('Navigated to login page');
+                    break;
+                case 2:
+                    goToFormsPage(false);
+                    console.log('Navigated to forms page');
+                    break;
+                case 3:
+                    goToDesktopPage(false);
+                    console.log('Navigated to desktop page');
+                    break;
+                default:
+                    console.log('Unknown page');
+            }
+        }
+    });
+    goToPage();
+    console.log('History API initialized');
+}
+function goToPage() {
+    {
+        var goToLogin = document.getElementsByClassName('go-to-login');
+        for (var i = 0; i < goToLogin.length; i++) {
+            var gotologin = goToLogin[i];
+            gotologin.addEventListener('click', function () {
+                goToLoginPage(true);
             });
-        }); });
+        }
     }
-});
+    {
+        var goToForms = document.getElementsByClassName('go-to-forms');
+        for (var i = 0; i < goToForms.length; i++) {
+            var gotologin = goToForms[i];
+            gotologin.addEventListener('click', function () {
+                goToFormsPage(true);
+            });
+        }
+    }
+    {
+        var goToDesktop = document.getElementsByClassName('go-to-desktop');
+        for (var i = 0; i < goToDesktop.length; i++) {
+            var gotologin = goToDesktop[i];
+            gotologin.addEventListener('click', function () {
+                goToDesktopPage(true);
+            });
+        }
+    }
+}
+export function goToLoginPage(pushState) {
+    if (pushState === void 0) { pushState = true; }
+    var loginState = { page: 1 };
+    var loginScreen = document.getElementsByClassName('login-screen')[0];
+    var forms = document.getElementsByClassName('login-screen-formulary')[0];
+    var loginScreenBackButton = document.getElementById('login-screen-back-button');
+    if (pushState) {
+        history.pushState(loginState, '', '/login');
+    }
+    history.replaceState(loginState, '', '/login');
+    if (loginScreen)
+        loginScreen.style.display = 'block';
+    if (loginScreenBackButton)
+        loginScreenBackButton.click();
+    if (forms)
+        forms.style.display = 'none';
+    console.log('Navigated to login page');
+}
+export function goToDesktopPage(pushState) {
+    if (pushState === void 0) { pushState = true; }
+    var desktopState = { page: 3 };
+    var loginScreen = document.getElementsByClassName('login-screen')[0];
+    var forms = document.getElementsByClassName('login-screen-formulary')[0];
+    if (pushState) {
+        history.pushState(desktopState, '', '/desktop');
+    }
+    history.replaceState(desktopState, '', '/desktop');
+    if (loginScreen)
+        loginScreen.style.display = 'none';
+    if (forms)
+        forms.style.display = 'none';
+    console.log('Navigated to desktop page');
+}
+export function goToFormsPage(pushState) {
+    if (pushState === void 0) { pushState = true; }
+    var formsState = { page: 2 };
+    var loginScreen = document.getElementsByClassName('login-screen')[0];
+    var forms = document.getElementsByClassName('login-screen-formulary')[0];
+    if (pushState) {
+        history.pushState(formsState, '', '/forms');
+    }
+    history.replaceState(formsState, '', '/forms');
+    if (loginScreen)
+        loginScreen.style.display = 'block';
+    if (forms)
+        forms.style.display = 'block';
+    console.log('Navigated to forms page');
+}

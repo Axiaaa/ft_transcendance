@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var ExplorerApp = createApp('internet explorer');
     var ExplorerContent = ExplorerApp.children[1];
     var ExplorerContentTemp = document.createElement('img');
-    ExplorerContentTemp.src = 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXh2ZTljZWw2ZHd4dWMwc254dzN6M2Y1dHk1Z2JjY2hiMm11azZzaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jNztZhObQPjbsSNNkm/giphy.gif';
+    ExplorerContentTemp.src = './img/Desktop/internetExplorer.gif';
     ExplorerContent.appendChild(ExplorerContentTemp);
     ExplorerContentTemp.style.position = 'absolute';
     renderWindowContent(ExplorerApp.children[1].children[0]);
@@ -131,8 +131,8 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log("App created: Id: " + socialApp.id + " Class: " + socialApp.className);
     var desktop = document.getElementById('desktop');
     var windowsContainer = document.getElementById('windows-container');
-    var gridSize = 90; // Taille de la grille
-    // Obtient la position en grille d'un élément
+    // App icon grid size
+    var gridSize = 90;
     function getGridPos(element) {
         return {
             x: Math.round(element.offsetLeft / gridSize),
@@ -203,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
         appicon.addEventListener('mouseenter', function () {
-            console.log('hover');
             appicon.style.backgroundColor = 'rgba(70, 119, 197, 0.54)';
         });
         appicon.addEventListener('mouseleave', function () {

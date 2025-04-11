@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () =>
 	let ExplorerApp = createApp('internet explorer');
 	let ExplorerContent = ExplorerApp.children[1] as HTMLElement;
 	let ExplorerContentTemp = document.createElement('img');
-	ExplorerContentTemp.src = 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXh2ZTljZWw2ZHd4dWMwc254dzN6M2Y1dHk1Z2JjY2hiMm11azZzaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jNztZhObQPjbsSNNkm/giphy.gif';
+	ExplorerContentTemp.src = './img/Desktop/internetExplorer.gif';
 	ExplorerContent.appendChild(ExplorerContentTemp);
 	ExplorerContentTemp.style.position = 'absolute';
 	renderWindowContent(ExplorerApp.children[1].children[0] as HTMLElement);
@@ -156,9 +156,9 @@ document.addEventListener('DOMContentLoaded', () =>
 	const desktop = document.getElementById('desktop') as HTMLElement;
 	const windowsContainer = document.getElementById('windows-container') as HTMLElement;
 
-	const gridSize: number = 90; // Taille de la grille
+	// App icon grid size
+	const gridSize: number = 90;
 
-	// Obtient la position en grille d'un élément
 	function getGridPos(element: HTMLElement): { x: number, y: number } {
 		return {
 		x: Math.round(element.offsetLeft / gridSize),
@@ -237,7 +237,6 @@ document.addEventListener('DOMContentLoaded', () =>
 		});
 
 		appicon.addEventListener('mouseenter', () => {
-			console.log('hover');
 			appicon.style.backgroundColor = 'rgba(70, 119, 197, 0.54)';
 		});
 		appicon.addEventListener('mouseleave', () => {
