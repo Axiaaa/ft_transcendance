@@ -272,6 +272,45 @@
                     transform: scale(var(--scale-factor));
                     transform-origin: center;
                 }
+
+                #pause-menu {
+                    position: absolute;
+                    top: 50%; left: 50%;
+                    transform: translate(-50%, -50%) scale(var(--scale-factor));
+                    transform-origin: center;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: none;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                .pause-content {
+                    background: #222;
+                    padding: 40px;
+                    border-radius: 12px;
+                    text-align: center;
+                    color: white;
+                    text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+                    font-family: Orbitron, sans-serif;
+                    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+                }
+
+                #home-button {
+                    margin-top: 20px;
+                    padding: 10px 20px;
+                    font-size: 18px;
+                    border: none;
+                    border-radius: 6px;
+                    background: white;
+                    color: #00ffff;
+                    cursor: pointer;
+                    font-family: Orbitron, sans-serif;
+                    transition: 0.2s ease-out;
+                }
+
+                #home-button:hover {
+                    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+                }
             `;
             document.head.appendChild(style);
         </script>

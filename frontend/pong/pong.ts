@@ -78,60 +78,28 @@ let ballSpeedReachedMax: boolean = false; // Check if maxSpeed has been reached
 let isPaused: boolean = false; // Pause the game after scoring
 
 ////////////////////////////// ECHAP //////////////////////////////
-// let isMenuActive = false;
-// let menuOverlay;
-// let rect;
-// let button;
+// Creation of the Pause Menu
+const pauseMenu = document.createElement("div");
+pauseMenu.id = "pause-menu";
+pauseMenu.innerHTML = `
+    <div class="pause-content">
+        <h2>PAUSE</h2>
+        <button id="home-button">Accueil</button>
+    </div> `;
+document.body.appendChild(pauseMenu);
 
-// function createMenu() {
-//     menuOverlay = new BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+// Handling the home button
+document.getElementById("home-button")!.addEventListener("click" , () => {
+    location.reload(); // restart the page; bring back to home
+});
 
-//     rect = new BABYLON.GUI.Rectangle();
-//     rect.width = "300px";
-//     rect.height = "200px";
-//     rect.color = "white";
-//     rect.thickness = 4;
-//     rect.background = "rgba(0, 0, 0, 0.5)";
-//     rect.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-//     rect.vericalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-//     menuOverlay.addControl(rect);
-
-//     button = BABYLON.GUI.Button.CreateSimpleButton("homeButton", "Accueil");
-//     button.width = "200px";
-//     button.height = "50px";
-//     button.color = "white";
-//     button.background = "green";
-//     button.top = "30px";
-//     button.onPointerUpObservable.add(function() {
-//         console.log("Retour à l'accueil");
-//         // Ajoute ici la logique pour revenir au menu d'accueil ou à l'écran principal
-//     });
-//     rect.addControl(button);
-// }
-
-// // Fonction pour cacher le menu
-// function hideMenu() {
-//     if (menuOverlay) {
-//         menuOverlay.dispose();  // Retirer tous les contrôles de l'overlay
-//     }
-// }
-
-// // Fonction pour alterner l'affichage du menu
-// function toggleMenu() {
-//     if (isMenuActive) {
-//         hideMenu();  // Cacher le menu
-//     } else {
-//         createMenu();  // Créer et afficher le menu
-//     }
-//     isMenuActive = !isMenuActive;  // Alterner l'état du menu
-// }
-
-// // Fonction pour écouter l'appui sur la touche "Échap"
-// window.addEventListener('keydown', function(event) {
-//     if (event.key === "Escape") {
-//         toggleMenu();  // Afficher ou cacher le menu
-//     }
-// });
+// Toggle pause with echap key
+window.addEventListener("keydown", (e) => {
+    if (e.code === "Escape") {
+        isPaused = !isPaused; // Toggle pause state
+        pauseMenu.style.display = isPaused ? "block" : "none";
+    }
+});
 
 ////////////////////////////// START PLAY //////////////////////////////
 
