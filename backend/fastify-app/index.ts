@@ -9,6 +9,7 @@ import { keepAliveRoute } from "./routes/keep_alive";
 const Port = process.env.PORT || 4321
 const envUser = process.env.API_USERNAME || 'admin'
 const envPassword = process.env.API_PASSWORD || 'admin'
+export const salt = process.env.SALT || 'salt'
 export const db = new database(`/usr/src/app/db/database.db`)
 
 export const server = fastify({

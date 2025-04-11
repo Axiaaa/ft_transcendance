@@ -72,6 +72,7 @@ services:
       - PORT=${FASTIFY_PORT}
       - API_USERNAME=${API_USERNAME}
       - API_PASSWORD=${API_PASSWORD}
+      - SALT=${SALT}
     depends_on:
       - sqlite
       - nginx

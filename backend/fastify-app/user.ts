@@ -1,8 +1,8 @@
 import { Match } from "./matchs";
-import { db } from ".";
-import { server } from ".";
+import { server, db, salt } from ".";
 import { getMatchFromDb } from "./matchs";
 import path from "path";
+import { sha256 } from "js-sha256";
 
 export const DEFAULT_AVATAR_URL : string = "https://zizi.fr";
 export const DEFAULT_BACKGROUND_URL : string = "https://zizi.fr";
@@ -34,7 +34,7 @@ export class User implements User {
         this.id = 0; //Id value is only a placeholder, It'll be set in the DB
         this.username = username;
         this.email = email;
-        this.password = password;
+        this.password = sha256.hmac(salt, password);
         this.is_online = false;
         this.created_at = new Date();
         this.last_login = new Date();
