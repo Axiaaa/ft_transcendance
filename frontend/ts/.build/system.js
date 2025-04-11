@@ -55,10 +55,15 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
         console.log("Logo dimensions - Height:", Logo.clientHeight, "Width:", Logo.clientWidth);
         var x = screenBorderLeft;
         var y = screenBorderTop;
-        var dx = Math.round((Math.random() * 2 - 1) * 10) / 10;
-        var dy = Math.round((Math.random() * 2 - 1) * 10) / 10;
+        var dx = (Math.floor(Math.random() * 9) + 1) / 10;
+        if (Math.random() < 0.5)
+            dx = -dx;
+        var dy = (Math.floor(Math.random() * 9) + 1) / 10;
+        if (Math.random() < 0.5)
+            dy = -dy;
         console.log("SleepScreen X/Y direction" + dx + "/" + dy);
-        var speed = 5;
+        var speed = Math.max(5, Math.sqrt(Math.pow(sleepScreen.clientWidth, 2) + Math.pow(sleepScreen.clientHeight, 2)) * 0.007);
+        console.log("Animation speed:", speed);
         var interval = 50;
         var animation = setInterval(function () {
             Logo.style.left = x + 'px';

@@ -53,10 +53,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 		console.log("Logo dimensions - Height:", Logo.clientHeight, "Width:", Logo.clientWidth);
 		let x = screenBorderLeft;
 		let y = screenBorderTop;
-		let dx = Math.round((Math.random() * 2 - 1) * 10) / 10;
-		let dy = Math.round((Math.random() * 2 - 1) * 10) / 10;
+		let dx = (Math.floor(Math.random() * 9) + 1) / 10;
+		if (Math.random() < 0.5) dx = -dx;
+		
+		let dy = (Math.floor(Math.random() * 9) + 1) / 10;
+		if (Math.random() < 0.5) dy = -dy;
 		console.log("SleepScreen X/Y direction" + dx + "/" + dy);
-		let speed = 5;
+		let speed = Math.max(5, Math.sqrt(sleepScreen.clientWidth**2 + sleepScreen.clientHeight**2) * 0.007);
+		console.log("Animation speed:", speed);
 		let interval = 50;
 		let animation = setInterval(() => {
 			Logo.style.left = x + 'px';

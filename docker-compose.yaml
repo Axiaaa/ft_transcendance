@@ -35,7 +35,7 @@ services:
     volumes:
       - certs:/etc/nginx/certs
       - ./frontend/:/usr/share/nginx/html
-      - img_storage:/usr/share/nginx/html/img_storage
+      - img_storage:/server/img_storage
     networks:
       - ft_transcendence
     depends_on:
