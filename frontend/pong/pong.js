@@ -67,55 +67,54 @@ let speedIncrement = 0.025; // Speed increase every 5 hits
 let ballSpeedReachedMax = false; // Check if maxSpeed has been reached
 let isPaused = false; // Pause the game after scoring
 ////////////////////////////// ECHAP //////////////////////////////
-let isMenuActive = false;
-let menuOverlay;
-let rect;
-let button;
-function createMenu() {
-    menuOverlay = new BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-    rect = new BABYLON.GUI.Rectangle();
-    rect.width = "300px";
-    rect.height = "200px";
-    rect.color = "white";
-    rect.thickness = 4;
-    rect.background = "rgba(0, 0, 0, 0.5)";
-    rect.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    rect.vericalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    menuOverlay.addControl(rect);
-    button = BABYLON.GUI.Button.CreateSimpleButton("homeButton", "Accueil");
-    button.width = "200px";
-    button.height = "50px";
-    button.color = "white";
-    button.background = "green";
-    button.top = "30px";
-    button.onPointerUpObservable.add(function () {
-        console.log("Retour à l'accueil");
-        // Ajoute ici la logique pour revenir au menu d'accueil ou à l'écran principal
-    });
-    rect.addControl(button);
-}
-// Fonction pour cacher le menu
-function hideMenu() {
-    if (menuOverlay) {
-        menuOverlay.dispose(); // Retirer tous les contrôles de l'overlay
-    }
-}
-// Fonction pour alterner l'affichage du menu
-function toggleMenu() {
-    if (isMenuActive) {
-        hideMenu(); // Cacher le menu
-    }
-    else {
-        createMenu(); // Créer et afficher le menu
-    }
-    isMenuActive = !isMenuActive; // Alterner l'état du menu
-}
-// Fonction pour écouter l'appui sur la touche "Échap"
-window.addEventListener('keydown', function (event) {
-    if (event.key === "Escape") {
-        toggleMenu(); // Afficher ou cacher le menu
-    }
-});
+// let isMenuActive = false;
+// let menuOverlay;
+// let rect;
+// let button;
+// function createMenu() {
+//     menuOverlay = new BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+//     rect = new BABYLON.GUI.Rectangle();
+//     rect.width = "300px";
+//     rect.height = "200px";
+//     rect.color = "white";
+//     rect.thickness = 4;
+//     rect.background = "rgba(0, 0, 0, 0.5)";
+//     rect.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+//     rect.vericalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+//     menuOverlay.addControl(rect);
+//     button = BABYLON.GUI.Button.CreateSimpleButton("homeButton", "Accueil");
+//     button.width = "200px";
+//     button.height = "50px";
+//     button.color = "white";
+//     button.background = "green";
+//     button.top = "30px";
+//     button.onPointerUpObservable.add(function() {
+//         console.log("Retour à l'accueil");
+//         // Ajoute ici la logique pour revenir au menu d'accueil ou à l'écran principal
+//     });
+//     rect.addControl(button);
+// }
+// // Fonction pour cacher le menu
+// function hideMenu() {
+//     if (menuOverlay) {
+//         menuOverlay.dispose();  // Retirer tous les contrôles de l'overlay
+//     }
+// }
+// // Fonction pour alterner l'affichage du menu
+// function toggleMenu() {
+//     if (isMenuActive) {
+//         hideMenu();  // Cacher le menu
+//     } else {
+//         createMenu();  // Créer et afficher le menu
+//     }
+//     isMenuActive = !isMenuActive;  // Alterner l'état du menu
+// }
+// // Fonction pour écouter l'appui sur la touche "Échap"
+// window.addEventListener('keydown', function(event) {
+//     if (event.key === "Escape") {
+//         toggleMenu();  // Afficher ou cacher le menu
+//     }
+// });
 ////////////////////////////// START PLAY //////////////////////////////
 let countdownComplete = false;
 let countdownElement = document.getElementById("countdown");
@@ -425,6 +424,28 @@ const keysPrint = [
     { key: "←", side: "right", top: "25%" }, // Position for ←
     { key: "→", side: "right", top: "40%" } // Position for →
 ];
+// We will replace automatically "A" and "D" by what the keyboard gives (ex: Q if AZERTY)
+const codeToDetectedKey = {};
+const layoutDetectionHandler = (e) => {
+    if (e.code === "KeyA") {
+        codeToDetectedKey[e.code] = e.key.toUpperCase(); // ex: A or Q, we stock it
+        // Update dynamic labels in keysPrint
+        keysPrint.forEach((keyConf) => {
+            if (keyConf.key === "A")
+                keyConf.key = codeToDetectedKey["KeyA"]; // Replace A by Q if necessary
+        });
+        // Update already created elements
+        const elements = document.querySelectorAll(".key-display");
+        elements.forEach((el) => {
+            const htmlEl = el;
+            if (htmlEl.textContent === "A")
+                htmlEl.textContent = codeToDetectedKey["KeyA"];
+        });
+        // No need to listen anymore
+        window.removeEventListener("keydown", layoutDetectionHandler);
+    }
+};
+window.addEventListener("keydown", layoutDetectionHandler);
 keysPrint.forEach(({ key, side, top }) => {
     const keyElement = document.createElement("div");
     keyElement.textContent = key;
@@ -648,13 +669,13 @@ function restartGame() {
 //////////////////////////////// MOUSE LEAVE ////////////////////////////////
 window.addEventListener("blur", () => {
     isPaused = true;
-    overlay.style.display = "block"; // Show overlay
+    // overlay.style.display = "block"; // Show overlay
 });
 window.addEventListener("focus", () => {
     if (gameIsFinished)
         return;
     isPaused = false;
-    overlay.style.display = "none"; // Hide overlay
+    // overlay.style.display = "none"; // Hide overlay
 });
 //////////////////////////////// COLLISION ////////////////////////////////
 function checkCollision() {
