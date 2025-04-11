@@ -5,4 +5,9 @@ import { userRoutes } from "./routes/user";
 import { tournamentRoutes } from "./routes/tournaments";
 import { matchsRoutes } from "./routes/matchs";
 import { keepAliveRoute } from "./routes/keep_alive";
+import { get } from 'http';
+import { FastifyInstance } from 'fastify';
 
+{
+    
+}

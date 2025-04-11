@@ -1,6 +1,24 @@
 import { sys } from "../node_modules/typescript/lib/typescript.js";
 import { sendNotification } from "./notification.js";
 
+function uploadFile(file: File, fileName: string): Promise<Response> {
+
+	const formData = new FormData();
+	formData.append(fileName, file);
+
+	return fetch('/user_images/', {
+		method: 'POST',
+		body: formData,
+	}).then(response => {
+		if (!response.ok) {
+			throw new Error('Network response was not ok');
+		}
+		return response;
+	}).catch(error => {
+		console.error('There was a problem with the fetch operation:', error);
+		throw error; // Re-throw the error to maintain Promise<Response> type
+	});
+};
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -85,8 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
 				currentWallpaperName.textContent = file.name;
+				uploadFile(file, 'wallpaper')
+				.then(response => {
+					sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
+				}).catch(error => {
+					console.error('Error uploading wallpaper:', error);
+					sendNotification('Error', 'Failed to upload wallpaper', "./img/Utils/error-icon.png");
+				});
 				document.body.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
-				sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
 			}
 			else
 				sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");

@@ -1,4 +1,21 @@
 import { sendNotification } from "./notification.js";
+function uploadFile(file, fileName) {
+    var formData = new FormData();
+    formData.append(fileName, file);
+    return fetch('/user_images/', {
+        method: 'POST',
+        body: formData,
+    }).then(function (response) {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response;
+    }).catch(function (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error; // Re-throw the error to maintain Promise<Response> type
+    });
+}
+;
 document.addEventListener('DOMContentLoaded', function () {
     var _a;
     var categoryContainer = document.getElementById('settings-app-category-container');
@@ -65,8 +82,14 @@ document.addEventListener('DOMContentLoaded', function () {
             var file = (_a = e.target.files) === null || _a === void 0 ? void 0 : _a[0];
             if (file) {
                 currentWallpaperName_1.textContent = file.name;
+                uploadFile(file, 'wallpaper')
+                    .then(function (response) {
+                    sendNotification('Wallpaper Changed', "Wallpaper changed to ".concat(file.name), "./img/Settings_app/picture-icon.png");
+                }).catch(function (error) {
+                    console.error('Error uploading wallpaper:', error);
+                    sendNotification('Error', 'Failed to upload wallpaper', "./img/Utils/error-icon.png");
+                });
                 document.body.style.backgroundImage = "url(".concat(URL.createObjectURL(file), ")");
-                sendNotification('Wallpaper Changed', "Wallpaper changed to ".concat(file.name), "./img/Settings_app/picture-icon.png");
             }
             else
                 sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");

@@ -68,6 +68,7 @@ services:
       - ${FASTIFY_PORT}:4321
     volumes:
       - sqlite_data:/usr/src/app/db/
+      - img_storage:/server/img_storage
     environment:
       - PORT=${FASTIFY_PORT}
       - API_USERNAME=${API_USERNAME}
