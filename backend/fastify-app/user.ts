@@ -5,6 +5,7 @@ import { getMatchFromDb } from "./matchs";
 import path from "path";
 
 export const DEFAULT_AVATAR_URL : string = "https://zizi.fr";
+export const DEFAULT_BACKGROUND_URL : string = "https://zizi.fr";
 
 export class User implements User {
 
@@ -14,11 +15,15 @@ export class User implements User {
     public password: string;
     public is_online: boolean;
     public created_at: Date;
+    public last_login: Date;
     public history: Array<number>;
     public win_nbr: number;
     public loss_nbr: number; 
     public avatar: string;
+    public background: string;
     public friend_list: Array<number>;
+    public pending_friend_list: Array<number>;
+    public font_size: number;
 
     constructor(
         username: string,
@@ -32,11 +37,15 @@ export class User implements User {
         this.password = password;
         this.is_online = false;
         this.created_at = new Date();
+        this.last_login = new Date();
         this.history = new Array<number>();
         this.win_nbr = 0;
         this.loss_nbr = 0;
         this.avatar = DEFAULT_AVATAR_URL;
+        this.background = DEFAULT_BACKGROUND_URL;
         this.friend_list = new Array<number>();
+        this.pending_friend_list = new Array<number>();
+        this.font_size = 15;
     }
 
     
@@ -49,23 +58,26 @@ export class User implements User {
         
         try {
             const insertUser = db.prepare(`
-                INSERT INTO users (username, email, password, is_online, created_at, win_nbr, loss_nbr, avatar)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO users (username, email, password, is_online, created_at, win_nbr, loss_nbr, avatar, background, last_login, font_size)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `);
                 
                     db.transaction(() => {
                         
                         const result = insertUser.run(
                             this.username,  
-                    this.email,
-                    this.password,
-                    this.is_online ? 1 : 0,
-                    Number(this.created_at),
-                    this.win_nbr,
-                    this.loss_nbr,
-                    this.avatar
+                            this.email,
+                            this.password,
+                            this.is_online ? 1 : 0,
+                            Number(this.created_at),
+                            this.win_nbr,
+                            this.loss_nbr,
+                            this.avatar,
+                            this.background,
+                            Number(this.last_login),
+                            this.font_size
+                            
                 );
-                
                 const lastId = result.lastInsertRowid as number;
                 this.id = lastId;
                 
@@ -92,12 +104,15 @@ export class User implements User {
         try {
             const updateUser = db.prepare(`
                 UPDATE users 
-                SET username = ?, email = ?, password = ?, is_online = ?, win_nbr = ?, loss_nbr = ?, avatar = ?
+                SET username = ?, email = ?, password = ?, is_online = ?, win_nbr = ?, loss_nbr = ?, avatar = ?, background = ?, last_login = ?, font_size = ?
                 WHERE id = ?
             `);
 
             const deleteFriends = db.prepare(`DELETE FROM friends WHERE user_id = ?`);
             const insertFriend = db.prepare(`INSERT INTO friends (user_id, friend_id) VALUES (?, ?)`);
+
+            const deletePendingFriends = db.prepare(`DELETE FROM pending_friends WHERE user_id = ?`);
+            const insertPendingFriend = db.prepare(`INSERT INTO pending_friends (user_id, friend_id) VALUES (?, ?)`);
 
             db.transaction(() => {
                 updateUser.run(
@@ -108,11 +123,18 @@ export class User implements User {
                     this.win_nbr,
                     this.loss_nbr,
                     this.avatar,
-                    this.id
+                    this.background,
+                    Number(this.last_login),
+                    this.font_size,
+                    this.id,
                 );
                 deleteFriends.run(this.id);
                 this.friend_list.forEach(friend_id => {
                     insertFriend.run(this.id, friend_id); 
+                });
+                deletePendingFriends.run(this.id);
+                this.pending_friend_list.forEach(friend_id => {
+                    insertPendingFriend.run(this.id, friend_id); 
                 });
             })();
             server.log.info(`User ${this.username}, ${this.id} updated in the DB`);
@@ -149,6 +171,7 @@ export class User implements User {
     }
 
     async addFriend(friend_id: number) : Promise<string | null> {
+        this.pending_friend_list = this.pending_friend_list.filter(f => f !== friend_id);
         this.friend_list.push(friend_id);
         const req_message = this.updateUserInDb();
         return req_message;
@@ -172,6 +195,17 @@ export class User implements User {
         return req_message;
     }
 
+    async addPendingFriend(friend_id: number) : Promise<string | null> {
+        this.pending_friend_list.push(friend_id);
+        const req_message = this.updateUserInDb();
+        return req_message;
+    }
+
+    async removePendingFriend(friend_id: number) : Promise<string | null> {
+        this.pending_friend_list = this.pending_friend_list.filter(f => f !== friend_id);
+        const req_message = this.updateUserInDb();
+        return req_message;
+    }
 }
 
 export async function getUserFromDb(query: number): Promise<User | null> {
@@ -188,6 +222,9 @@ export async function getUserFromDb(query: number): Promise<User | null> {
             win_nbr: number;
             loss_nbr: number;
             avatar: string;
+            background: string;
+            last_login: string;
+            font_size: number;
         } | undefined; 
 
         if (!userRow) return null;
@@ -199,8 +236,13 @@ export async function getUserFromDb(query: number): Promise<User | null> {
         user.win_nbr = userRow.win_nbr;
         user.loss_nbr = userRow.loss_nbr;
         user.avatar = userRow.avatar;
+        user.background = userRow.background;
+        user.last_login = new Date(userRow.last_login);
+        user.font_size = userRow.font_size;
         const friends = await getFriendsFromDb(user.id);
         if (friends) user.friend_list = friends.map(f => f.id);
+        const pending_friends = await getPendingFriendsListFromDb(user.id)
+        if (pending_friends) user.pending_friend_list = pending_friends.map(f => f.id); 
         
         const userId = Number(user.id);
         const matches = db.prepare("SELECT * FROM matchs").all() as Array<Match>;
@@ -227,6 +269,23 @@ export async function getFriendsFromDb(userId: number): Promise<Array<User> | nu
         return users;
     } catch (error) {
         server.log.error(`Could not fetch friends from DB ${error}`)
+        return null;
+    }
+}
+
+export async function getPendingFriendsListFromDb(userId: number): Promise<Array<User> | null> {
+
+    try {
+        const sqlRequest = "SELECT friend_id FROM pending_friends WHERE user_id = ?";
+        const friendsRow = db.prepare(sqlRequest).all(userId) as Array<{ friend_id: number }>;
+        const users = new Array<User>();
+        for (const friend of friendsRow) {
+            const user = await getUserFromDb(friend.friend_id);
+            if (user) users.push(user);
+        }
+        return users;
+    } catch (error) {
+        server.log.error(`Could not fetch pending friends from DB ${error}`)
         return null;
     }
 }

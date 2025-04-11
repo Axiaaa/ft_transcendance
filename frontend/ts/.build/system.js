@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                                 return [3 /*break*/, 3];
                             case 3: return [2 /*return*/];
                         }
+<<<<<<< HEAD
                     });
                 }); });
                 return [2 /*return*/];
@@ -227,6 +228,27 @@ function goToPage() {
             var gotologin = goToLogin[i];
             gotologin.addEventListener('click', function () {
                 goToLoginPage(true);
+=======
+                        return [4 /*yield*/, response.json()];
+                    case 2:
+                        user = _a.sent();
+                        console.log("Parsed User Object:", user);
+                        if (user) {
+                            sendNotification('User Data', "User: ".concat(user.username), './img/Utils/API-icon.png');
+                        }
+                        else {
+                            sendNotification('No User', 'No user found with ID 1', './img/Utils/API-icon.png');
+                        }
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_2 = _a.sent();
+                        console.error('Error fetching user:', error_2);
+                        errorMessage = error_2 instanceof Error ? error_2.message : String(error_2);
+                        sendNotification('API Error', "Failed to fetch user data: ".concat(errorMessage), './img/Utils/API-icon.png');
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+>>>>>>> main
             });
         }
     }

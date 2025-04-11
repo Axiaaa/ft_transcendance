@@ -7,10 +7,21 @@ CREATE TABLE IF NOT EXISTS `users` (
     `created_at` REAL NOT NULL,
     `win_nbr` INTEGER NOT NULL DEFAULT 0,
     `loss_nbr` INTEGER NOT NULL DEFAULT 0,
-    `avatar` TEXT NOT NULL
+    `avatar` TEXT NOT NULL,
+    `background` TEXT NOT NULL,
+    `last_login` REAL NOT NULL,
+    `font_size` INTEGER NOT NULL DEFAULT 12
 );
 
 CREATE TABLE IF NOT EXISTS `friends` (
+    `user_id` INTEGER NOT NULL,
+    `friend_id` INTEGER NOT NULL,
+    PRIMARY KEY (user_id, friend_id),
+    FOREIGN KEY (user_id) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (friend_id) REFERENCES `users`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `pending_friends` (
     `user_id` INTEGER NOT NULL,
     `friend_id` INTEGER NOT NULL,
     PRIMARY KEY (user_id, friend_id),

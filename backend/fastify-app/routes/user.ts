@@ -47,11 +47,14 @@ export async function userRoutes(server : FastifyInstance) {
             avatar?: string,
             win_nbr?: number,
             loss_nbr?: number,
+            background?: string,
+            last_login?: number,
+            font_size?: number
         }
         }>('/users/:id', async (request, reply) => {
 
         const { id } = request.params;
-        const { username, email, password, is_online, avatar, win_nbr, loss_nbr } = request.body;
+        const { username, email, password, is_online, avatar, win_nbr, loss_nbr, background, last_login, font_size } = request.body;
         let user = await getUserFromDb(Number(id));
         if (user == null) {
             reply.code(404).send({error: "User not found"});
@@ -64,6 +67,11 @@ export async function userRoutes(server : FastifyInstance) {
         if (avatar)     { user.avatar = avatar; }
         if (win_nbr)    { user.win_nbr = win_nbr; }
         if (loss_nbr)   { user.loss_nbr = loss_nbr; }
+        if (background) { user.background = background; }
+        if (last_login) { user.last_login = new Date(last_login); }
+        if (font_size)  { 
+            user.font_size = Math.max(10, Math.min(font_size, 20));
+        }
         
         const req_message = await user.updateUserInDb();
         req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });
@@ -143,4 +151,70 @@ export async function userRoutes(server : FastifyInstance) {
             reply.code(404).send({error: "Friend not found in friend list"});
         }
     );
+
+    server.get<{ Params: { id: string } }>('/users/:id/pending_friends', async (request, reply) => {
+        const { id } = request.params;
+        const user = await getUserFromDb(Number(id));
+        if (user == null) {
+            reply.code(404).send({error: "User not found"});
+            return;
+        }
+        if (user.pending_friend_list.length === 0) {
+            reply.code(404).send({error: "Empty pending friend list"});
+            return;
+        }
+        return user.pending_friend_list;
+        }
+    );
+
+    server.post<{ Params: { id: string } , Body: { friend_id: number } }>('/users/:id/pending_friends', async (request, reply) => {
+        const { id } = request.params;
+        const { friend_id } = request.body;
+        const user = await getUserFromDb(Number(id));
+        if (user == null) {
+            reply.code(404).send({error: "User not found"});
+            return;
+        }
+        const friend = await getUserFromDb(friend_id);
+        if (friend == null) {
+            reply.code(404).send({error: "Friend not found"});
+            return;
+        }
+        if (friend.id === user.id) {
+            reply.code(409).send({error: "Can't add yourself as a pending friend"});
+            return;
+        }
+        if (user.friend_list.includes(friend.id)) {
+            reply.code(409).send({error: "Friend already in friend list"});
+            return;
+        }
+        if (user.pending_friend_list.find(f => f === friend.id) == undefined) {
+            const req_message = await user.addPendingFriend(friend.id);
+            req_message === null ? reply.code(201).send({ id : user.id}) : reply.code(409).send({ error : req_message });
+            return;
+        } else  
+            reply.code(409).send({error: "Friend already in pending friend list"});
+        }
+    );
+
+    server.delete<{ Params: { user_id: string, friend_id: string } }>('/users/:user_id/pending_friends/:friend_id', async (request, reply) => {
+        const { user_id, friend_id } = request.params;
+        const user = await getUserFromDb(Number(user_id));
+        if (user == null) {
+            reply.code(404).send({error: "User not found"});
+            return;
+        }
+        const friend = await getUserFromDb(Number(friend_id));
+        if (friend == null) {
+            reply.code(404).send({error: "Friend not found"});
+            return;
+        }
+        if (user.pending_friend_list.find(f => f === friend.id)) {
+            const req_message = await user.removePendingFriend(friend.id);
+            req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });            
+        } else
+            reply.code(404).send({error: "Friend not found in pending friend list"});
+        }
+    );
+
 }

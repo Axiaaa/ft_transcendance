@@ -320,7 +320,7 @@ let lastScorer: 1 | 2 | null = null;
 const MAX_BALL_SPEED: number = 0.2;
 
 //////////////////////////////// SCORE ////////////////////////////////
-let score1: number = 0, score2: number = 9;
+let score1: number = 0, score2: number = 0;
 const scoreElement: HTMLDivElement = document.createElement('div');
 scoreElement.style.position = 'absolute';
 scoreElement.style.top = '20px';
