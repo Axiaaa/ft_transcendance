@@ -77,18 +77,21 @@ let speedIncrement: number = 0.025; // Speed increase every 5 hits
 let ballSpeedReachedMax: boolean = false; // Check if maxSpeed has been reached
 let isPaused: boolean = false; // Pause the game after scoring
 
-////////////////////////////// START //////////////////////////////
+////////////////////////////// START PLAY //////////////////////////////
 
 let countdownComplete = false;
 let countdownElement = document.getElementById("countdown") as HTMLSpanElement;
 let goElement = document.getElementById("countdown-go") as HTMLSpanElement;
 let menu = document.getElementById("menu") as HTMLDivElement;
 let countdownContainer = document.getElementById("countdown-container")as HTMLDivElement;
+let overlay = document.getElementById("overlay") as HTMLDivElement;
 
 // Start the game after the countdown
 function startGame(): void {
     countdownContainer.style.display = "none";
     isPaused = false; // Start the game
+    scoreElement.style.display = "block";
+    overlay.style.display = "none";
 }
 
 function startCountdown(callback: () => void): void {
@@ -119,6 +122,53 @@ document.getElementById("playButton")?.addEventListener("click", function() { //
     isPaused = true;
     startCountdown(startGame);
 })
+
+////////////////////////////// TOURNAMENT //////////////////////////////
+
+document.addEventListener('DOMContentLoaded', function() {
+    const tournamentButton = document.getElementById('tournamentButton');
+    const menu = document.getElementById('menu');
+    const tournamentButtonContainer = document.getElementById('tournament-button-container');
+    const playerList = document.getElementById('player-list');
+    const addPlayerButton = document.getElementById('addPlayerButton');
+    const removePlayerButton = document.getElementById('removePlayerButton');
+
+    let playerCount = 0;
+
+    if (tournamentButton && menu && tournamentButtonContainer && playerList && addPlayerButton && removePlayerButton) {
+
+        // Button TOURNAMENT is clicked
+        tournamentButton.addEventListener('click', function() {
+            menu.style.display = 'none';
+            tournamentButtonContainer.style.display = 'flex';
+        });
+
+        // Add a input field for pseudo
+        addPlayerButton.addEventListener('click', function() {
+            if (playerCount < 8) { // Limit of 8 players
+                playerCount++;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Challenger ' + playerCount;
+                playerList.appendChild(input);
+            }
+        });
+
+        // Remove the last input field
+        removePlayerButton.addEventListener('click', function() {
+            if (playerCount > 0) {
+                const lastInput = playerList.lastElementChild;
+                if (lastInput) { // Check if last child is not null
+                    playerList.removeChild(lastInput);
+                    playerCount--;
+                }
+            }
+        });
+
+    } else {
+        console.error("One or more elements not found in the DOM");
+    }
+});
 
 ////////////////////////////// FIELD //////////////////////////////
 // Field Properties
@@ -323,6 +373,7 @@ scoreElement.style.fontFamily = '"Orbitron", sans-serif';
 scoreElement.style.letterSpacing = '4px';
 scoreElement.style.color = '#0ff';
 scoreElement.style.textShadow = '0 0 3px #0ff, 0 0 5px #0ff, 0 0 8px #00f, 0 0 12px #00f';
+scoreElement.style.display = 'none';
 scoreElement.style.transition = 'transform 0.1s ease-out'; // Animation for changing score
 document.body.appendChild(scoreElement);
 
@@ -363,7 +414,7 @@ interface KeyConfig {
 }
 
 const keysPrint: KeyConfig[] = [
-    { key: "Q", side: "left", top: "25%" },  // Position for Q
+    { key: "A", side: "left", top: "25%" },  // Position for A
     { key: "D", side: "left", top: "40%" },  // Position for D
     { key: "←", side: "right", top: "25%" }, // Position for ←
     { key: "→", side: "right", top: "40%" }  // Position for →
@@ -612,10 +663,12 @@ function restartGame() {
 
 window.addEventListener("blur", () => { // Here we need to loose the focus on the window to stop the game, like clicking outisde the game, more natural
     isPaused = true;
+    overlay.style.display = "block"; // Show overlay
 });
 window.addEventListener("focus", () => { // Click again to play
     if (gameIsFinished) return;
     isPaused = false;
+    overlay.style.display = "none"; // Hide overlay
 });
 
 //////////////////////////////// COLLISION ////////////////////////////////
