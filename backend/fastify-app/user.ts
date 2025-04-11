@@ -19,6 +19,7 @@ export class User implements User {
     public loss_nbr: number; 
     public avatar: string;
     public friend_list: Array<number>;
+    public pending_friend_list: Array<number>;
 
     constructor(
         username: string,
@@ -37,6 +38,7 @@ export class User implements User {
         this.loss_nbr = 0;
         this.avatar = DEFAULT_AVATAR_URL;
         this.friend_list = new Array<number>();
+        this.pending_friend_list = new Array<number>();
     }
 
     
@@ -99,6 +101,9 @@ export class User implements User {
             const deleteFriends = db.prepare(`DELETE FROM friends WHERE user_id = ?`);
             const insertFriend = db.prepare(`INSERT INTO friends (user_id, friend_id) VALUES (?, ?)`);
 
+            const deletePendingFriends = db.prepare(`DELETE FROM pending_friends WHERE user_id = ?`);
+            const insertPendingFriend = db.prepare(`INSERT INTO pending_friends (user_id, friend_id) VALUES (?, ?)`);
+
             db.transaction(() => {
                 updateUser.run(
                     this.username,
@@ -113,6 +118,10 @@ export class User implements User {
                 deleteFriends.run(this.id);
                 this.friend_list.forEach(friend_id => {
                     insertFriend.run(this.id, friend_id); 
+                });
+                deletePendingFriends.run(this.id);
+                this.pending_friend_list.forEach(friend_id => {
+                    insertPendingFriend.run(this.id, friend_id); 
                 });
             })();
             server.log.info(`User ${this.username}, ${this.id} updated in the DB`);
@@ -149,6 +158,7 @@ export class User implements User {
     }
 
     async addFriend(friend_id: number) : Promise<string | null> {
+        this.pending_friend_list = this.pending_friend_list.filter(f => f !== friend_id);
         this.friend_list.push(friend_id);
         const req_message = this.updateUserInDb();
         return req_message;
@@ -172,6 +182,17 @@ export class User implements User {
         return req_message;
     }
 
+    async addPendingFriend(friend_id: number) : Promise<string | null> {
+        this.pending_friend_list.push(friend_id);
+        const req_message = this.updateUserInDb();
+        return req_message;
+    }
+
+    async removePendingFriend(friend_id: number) : Promise<string | null> {
+        this.pending_friend_list = this.pending_friend_list.filter(f => f !== friend_id);
+        const req_message = this.updateUserInDb();
+        return req_message;
+    }
 }
 
 export async function getUserFromDb(query: number): Promise<User | null> {
@@ -201,6 +222,8 @@ export async function getUserFromDb(query: number): Promise<User | null> {
         user.avatar = userRow.avatar;
         const friends = await getFriendsFromDb(user.id);
         if (friends) user.friend_list = friends.map(f => f.id);
+        const pending_friends = await getPendingFriendsListFromDb(user.id)
+        if (pending_friends) user.pending_friend_list = pending_friends.map(f => f.id); 
         
         const userId = Number(user.id);
         const matches = db.prepare("SELECT * FROM matchs").all() as Array<Match>;
@@ -227,6 +250,23 @@ export async function getFriendsFromDb(userId: number): Promise<Array<User> | nu
         return users;
     } catch (error) {
         server.log.error(`Could not fetch friends from DB ${error}`)
+        return null;
+    }
+}
+
+export async function getPendingFriendsListFromDb(userId: number): Promise<Array<User> | null> {
+
+    try {
+        const sqlRequest = "SELECT friend_id FROM pending_friends WHERE user_id = ?";
+        const friendsRow = db.prepare(sqlRequest).all(userId) as Array<{ friend_id: number }>;
+        const users = new Array<User>();
+        for (const friend of friendsRow) {
+            const user = await getUserFromDb(friend.friend_id);
+            if (user) users.push(user);
+        }
+        return users;
+    } catch (error) {
+        server.log.error(`Could not fetch pending friends from DB ${error}`)
         return null;
     }
 }

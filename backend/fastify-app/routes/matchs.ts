@@ -4,22 +4,41 @@ import { Match, getMatchFromDb } from '../matchs';
 import { FastifyInstance } from 'fastify';
 import { getUserFromDb } from '../user';
 import { getTournamentFromDb } from '../tournaments';
+declare module "fastify" {
+    interface FastifyContextConfig {
+      rateLimit?: unknown;
+    }
+  }
+  import { RateLimits } from '../limit_rate';
 
 export async function matchsRoutes(server : FastifyInstance) {
     
-    server.get<{ Params : {id : string}}>('/matchs/:id', async (request, reply) => {
-
-        const matchId = request.params.id;
-        const match = await getMatchFromDb(Number(matchId));
-        if (match === null) {
+    server.route<{
+        Params: { id: string }
+      }>({
+        method: 'GET',
+        url: '/matchs/:id',
+        config: {
+          rateLimit: RateLimits.matchs,
+        },
+        handler: async (request, reply) => {
+          const matchId = request.params.id;
+          const match = await getMatchFromDb(Number(matchId));
+          if (match === null) {
             reply.code(404).send({ error: "Match not found" });
-        }
-        else {
+          } else {
             reply.send(match);
+          }
         }
-    });
+      });
     
-    server.get('/matchs', async (request, reply) => {
+      server.route ({
+        method: 'GET',
+        url: '/matchs',
+        config: {
+            rateLimit: RateLimits.matchs,
+        },
+        handler: async (request, reply) => {
         const matchs = db.prepare('SELECT * FROM matchs').all();
         const result = await Promise.all(matchs.map(async (tmp: any) => {
             const match = await getMatchFromDb(tmp.id);
@@ -30,17 +49,22 @@ export async function matchsRoutes(server : FastifyInstance) {
             return;
         }
         reply.code(200).send(result);
-    });
+}});
 
-    server.post<{
-        Body : {
+    server.route<{
+        Body: {
             player1: number,
             player2: number,
             is_tournament: boolean,
-            tournament_id? : number
-            } 
-        }>('/matchs', async (request, reply) => {
-
+            tournament_id?: number
+        }
+        }>({
+        method: 'POST',
+        url: '/matchs',
+        config: {
+            rateLimit: RateLimits.matchs,
+        },
+        handler: async (request, reply) => {
         const { player1, player2, is_tournament, tournament_id } = request.body;
         const u1 = await getUserFromDb(player1);
         const u2 = await getUserFromDb(player2);
@@ -67,20 +91,25 @@ export async function matchsRoutes(server : FastifyInstance) {
         const match = new Match(player1.toString(), player2.toString(), is_tournament, is_tournament ? tournament_id : undefined);
         const req_message = await match.pushMatchToDb();        
         req_message === null ? reply.code(201).send({ id: match.id }) : reply.code(409).send({ error: req_message });
-    });
+    }});
 
-    server.patch<{
-        Params : { id: string }, 
-        Body : {
+    server.route<{
+        Params: { id: string },
+        Body: {
             player1?: number;
             player2?: number;
             winner?: number | null;
             created_at?: string;
             score?: string;
             is_tournament?: boolean;
-            }
-        }>('/matchs/:id', async (request, reply) => {
-
+        }
+        }>({
+        method: 'PATCH',
+        url: '/matchs/:id',
+        config: {
+            rateLimit: RateLimits.matchs,
+        },
+        handler: async (request, reply) => {
         const { player1, player2, winner, created_at, score, is_tournament } = request.body;
         const matchId = request.params.id;
         let match = await getMatchFromDb(Number(matchId));
@@ -112,11 +141,19 @@ export async function matchsRoutes(server : FastifyInstance) {
 
         const req_message = await match.updateMatchInDb();
         req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });
-    });
+}});
 
 
-    server.delete<{ Params: { id: string } }>('/matchs/:id', async (request, reply) => {
-        const matchId = request.params.id;
+    server.route<{
+        Params: { id: string }
+        }>({
+        method: 'DELETE',
+        url: '/matchs/:id',
+        config: {
+            rateLimit: RateLimits.matchs,
+        },
+        handler: async (request, reply) => {
+         const matchId = request.params.id;
         const match = await getMatchFromDb(Number(matchId));
         if (match == null) {
             reply.code(404).send({ error: "Match not found" });
@@ -125,5 +162,5 @@ export async function matchsRoutes(server : FastifyInstance) {
         const req_message = await match.deleteMatchInDb();
         req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });
     }
-    );
+});
 }

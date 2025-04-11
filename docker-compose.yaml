@@ -82,7 +82,7 @@ services:
 ###########################################################################
 
   setup:
-    container_name: elk_setup
+    container_name: setup
     build:
       context: ./services/certs
       dockerfile: Dockerfile
@@ -122,11 +122,45 @@ services:
     - KIBANA_PASSWORD=${KIBANA_PASSWORD}
    mem_limit: ${ES_MEM_LIMIT}
    restart: always
+   ulimits:
+     memlock:
+       soft: -1
+       hard: -1
    healthcheck:
+<<<<<<< HEAD
      test: ["CMD-SHELL", "curl -k https://elastic:$${ELASTIC_PASSWORD}@localhost:9200"]
      interval: 20s
      timeout: 100s
      retries: 10
+=======
+     test: ["CMD-SHELL", "curl -k https://elastic:${ELASTIC_PASSWORD}@localhost:9200"]
+     interval: 5s
+     timeout: 10s
+     retries: 120
+  
+  elasticsearch_data :
+    container_name: elasticsearch_data
+    build :
+      context: ./services/elasticsearch/ilm
+      dockerfile: Dockerfile
+    depends_on :
+      elasticsearch:
+        condition: service_healthy
+      setup :
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+    networks:
+      - ft_transcendence
+    healthcheck:
+      test: ["CMD-SHELL", "docker logs elasticsearch_data | grep -q 'ILM policy created successfully'"]
+      interval: 5s
+      timeout: 10s
+      retries: 120
+>>>>>>> main
 
   kibana:
    container_name: kibana
@@ -148,7 +182,37 @@ services:
    mem_limit: ${KB_MEM_LIMIT}
    networks:
     - ft_transcendence
+   healthcheck:
+     test: ["CMD-SHELL", "curl -k https://elastic:${ELASTIC_PASSWORD}@localhost:5601/api/alerting/_health"]
+     interval: 5s
+     timeout: 10s
+     retries: 120
    restart: always
+
+  kibana_data :
+    container_name: kibana_data
+    build :
+      context: ./services/kibana/additionals_data
+      dockerfile: Dockerfile
+    depends_on :
+      elasticsearch:
+        condition: service_healthy
+      kibana :
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+      - STACK_VERSION=${STACK_VERSION}
+    volumes:
+      - certs:/usr/share/kibana/config/certs
+    networks:
+      - ft_transcendence
+    healthcheck:
+      test: ["CMD-SHELL", "docker logs kibana_data | grep -q 'Data views created successfully'"]
+      interval: 5s
+      timeout: 10s
+      retries: 120
+
 
   logstash:
    container_name: logstash
@@ -233,7 +297,6 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
-
   nginx_exporter:
     image: nginx/nginx-prometheus-exporter
     container_name: nginx_exporter

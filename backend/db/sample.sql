@@ -18,6 +18,14 @@ CREATE TABLE IF NOT EXISTS `friends` (
     FOREIGN KEY (friend_id) REFERENCES `users`(`id`) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS `pending_friends` (
+    `user_id` INTEGER NOT NULL,
+    `friend_id` INTEGER NOT NULL,
+    PRIMARY KEY (user_id, friend_id),
+    FOREIGN KEY (user_id) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (friend_id) REFERENCES `users`(`id`) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS `matchs` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
     `player1` TEXT NOT NULL,

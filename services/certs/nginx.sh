@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CERT_DIR="/usr/share/elasticsearch/config/certs/nginx"
-CA_DIR="/usr/share/elasticsearch/config/certs/ca"
+CA_DIR="/usr/share/elasticsearch/config/certs/ca_nginx"
 
 # Create directories
 mkdir -p $CERT_DIR
