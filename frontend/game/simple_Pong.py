@@ -1,183 +1,379 @@
 import tkinter as tk
 import math
 import random
+import time
 
-class PongGame:
-	def __init__(self, master):
-		self.master = master
-		self.master.title("Pong 2D")
-		self.master.geometry("800x600")
-		self.master.resizable(False, False)
-		self.master.configure(bg="black")
+class Ball:
+	def __init__(self, visual, canvas, canvas_width, canvas_height, x, y, vx=0, vy=0.05, radius=0.2, color="yellow"):
+		self.start = [x, y]
+		self.x = x
+		self.y = y
+		self.vx = vx
+		self.vy = vy
+		self.radius = radius
+		self.visual = visual
+		self.MAX_SPEED = 0.2
+		self.canvas_width = canvas_width
+		self.canvas_height = canvas_height
 
-		self.num_hit = 0
-		self.speed_increment = 0.2
-		self.ball_speed_reached_max = False
-		self.game_is_finished = False
+		if visual:
+			self.canvas = canvas
+			scaled_x, scaled_y = self.game_to_canvas(x, y)
+			scaled_radius = self.scale_factor() * radius
+			self.ball_id = self.canvas.create_oval(scaled_x - scaled_radius, scaled_y - scaled_radius, scaled_x + scaled_radius, scaled_y + scaled_radius, fill=color)
+
+	def tp(self, x, y):
+		x = x - 6.00
+		x, y = self.game_to_canvas(x, y)
+		self.canvas.moveto(self.ball_id, x, y)
+
+	def scale_factor(self):
+		if self.visual:
+			game_width = 12
+			return self.canvas_width / game_width
+		return 1
+
+	def game_to_canvas(self, game_x, game_y):
+		if self.visual:
+			scale = self.scale_factor()
+			canvas_x = (game_x + 6) * scale
+			canvas_y = (6 - game_y) * scale
+			return canvas_x, canvas_y
+		return game_x, game_y
+
+	def canvas_to_game(self, canvas_x, canvas_y):
+		if self.visual:
+			scale = self.scale_factor()
+			game_x = (canvas_x / scale) - 6
+			game_y = 6 - (canvas_y / scale)
+			return game_x, game_y
+		return canvas_x, canvas_y
+
+	def move(self):
+		self.x += self.vx
+		self.y += self.vy
+
+		if self.visual:
+			dx = self.vx * self.scale_factor()
+			dy = -self.vy * self.scale_factor()
+			self.canvas.move(self.ball_id, dx, dy)
+
+	def get_center(self):
+		return self.x, self.y
+
+	def get_coords(self):
+		if self.visual:
+			return self.canvas.coords(self.ball_id)
+		else:
+			return self.x - self.radius, self.y - self.radius, self.x + self.radius, self.y + self.radius
+
+	def reset(self, last_scorer=None):
+		self.x = self.start[0]
+		self.y = self.start[1]
+
+		angle = random.uniform(-math.pi/4, math.pi/4)
+		speed = 0.05
+
+		if last_scorer == 1:
+			self.vx = speed * math.sin(angle)
+			self.vy = -speed * math.cos(angle)
+		else:
+			self.vx = speed * math.sin(angle)
+			self.vy = speed * math.cos(angle)
+
+		if self.visual:
+			scaled_x, scaled_y = self.game_to_canvas(self.x, self.y)
+			scaled_radius = self.scale_factor() * self.radius
+			self.canvas.coords(
+				self.ball_id,
+				scaled_x - scaled_radius,
+				scaled_y - scaled_radius,
+				scaled_x + scaled_radius,
+				scaled_y + scaled_radius
+			)
+
+class Paddle:
+	def __init__(self, visual, canvas, canvas_width, canvas_height, x, y, color, width=1.5, height=0.5):
+		self.x = x
+		self.y = y
+		self.hit = 0
+		self.start = [x, y]
+		self.width = width
+		self.height = height
+		self.visual = visual
+		self.speed = 0.1
+		self.MAX_SPEED = 0.15
+		self.canvas_width = canvas_width
+		self.canvas_height = canvas_height
+
+		if visual:
+			self.canvas = canvas
+			scaled_x, scaled_y = self.game_to_canvas(x, y)
+			scaled_width = self.scale_factor() * width
+			scaled_height = self.scale_factor() * height
+
+			self.paddle = self.canvas.create_rectangle(
+				scaled_x - scaled_width/2,
+				scaled_y - scaled_height/2,
+				scaled_x + scaled_width/2,
+				scaled_y + scaled_height/2,
+				fill=color
+			)
+
+	def scale_factor(self):
+		if self.visual:
+			game_width = 12
+			return self.canvas_width / game_width
+		return 1
+
+	def game_to_canvas(self, game_x, game_y):
+		if self.visual:
+			scale = self.scale_factor()
+			canvas_x = (game_x + 6) * scale
+			canvas_y = (6 - game_y) * scale
+			return canvas_x, canvas_y
+		return game_x, game_y
+
+	def canvas_to_game(self, canvas_x, canvas_y):
+		if self.visual:
+			scale = self.scale_factor()
+			game_x = (canvas_x / scale) - 6
+			game_y = 6 - (canvas_y / scale)
+			return game_x, game_y
+		return canvas_x, canvas_y
+
+	def move_left(self):
+		if self.x > -5:
+			self.x -= self.speed
+			if self.visual:
+				dx = -self.speed * self.scale_factor()
+				self.canvas.move(self.paddle, dx, 0)
+
+	def move_right(self):
+		if self.x < 5:
+			self.x += self.speed
+			if self.visual:
+				dx = self.speed * self.scale_factor()
+				self.canvas.move(self.paddle, dx, 0)
+
+	def reset(self):
+		self.hit = 0
+		self.x = self.start[0]
+		self.y = self.start[1]
+		self.speed = 0.1
+
+		if self.visual:
+			scaled_x, scaled_y = self.game_to_canvas(self.x, self.y)
+			scaled_width = self.scale_factor() * self.width
+			scaled_height = self.scale_factor() * self.height
+
+			self.canvas.coords(
+				self.paddle,
+				scaled_x - scaled_width/2,
+				scaled_y - scaled_height/2,
+				scaled_x + scaled_width/2,
+				scaled_y + scaled_height/2
+			)
+
+	def get_coords(self):
+		if self.visual:
+			return self.canvas.coords(self.paddle)
+		else:
+			return self.x - self.width/2, self.y - self.height/2, self.x + self.width/2, self.y + self.height/2
+
+	def get_center(self):
+		return self.x, self.y
+
+class Game:
+	def __init__(self, height, width, visual=False):
+		self.winner = 0
+		self.score1 = 0
+		self.score2 = 0
 		self.last_scorer = None
+		self.num_hit = 0
+		self.speed_increment = 0.025
 
-		self.field_width = 800
-		self.field_height = 600
-		self.paddle_width = 100
-		self.paddle_height = 20
-		self.ball_size = 20
+		self.width = 12
+		self.height = 12
 
-		self.paddle_speed = 8
-		self.max_paddle_speed = 12
-		self.max_ball_speed = 12
-		self.ball_speed = {"x": 10, "y": 0}
+		self.canvas = None
+		self.canvas_width = width
+		self.canvas_height = height
+		self.keys_pressed = {}
+		self.visual = visual
 
-		self.player1_color = "#00FF00"
-		self.player2_color = "#800080"
-		self.ball_color = "#FFFF00"
+		if visual:
+			self.root = tk.Tk()
+			self.root.title("Jeu Pong avec IA")
+			self.canvas = tk.Canvas(self.root, width=width, height=height, bg="black")
+			self.canvas.pack()
+			self.root.bind("<KeyPress>", self.key_press)
+			self.root.bind("<KeyRelease>", self.key_release)
 
-		self.canvas = tk.Canvas(self.master,width=self.field_width,height=self.field_height,bg="black",highlightthickness=0)
-		self.canvas.pack()
+		self.ball = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0.05, radius=0.2, color="yellow")
+		self.prediction = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0, radius=0.1, color="green")
 
-		self.create_paddles()
-		self.create_ball()
-
-		self.keys = {"Up": False, "Down": False, "w": False, "s": False}
-		self.master.bind("<KeyPress>", self.key_press)
-		self.master.bind("<KeyRelease>", self.key_release)
-
-	def create_paddles(self):
-		self.paddle1 = self.canvas.create_rectangle(30, self.field_height/2-self.paddle_height/2 - self.paddle_width/2,30+self.paddle_height, self.field_height/2+self.paddle_height/2 + self.paddle_width/2,fill=self.player1_color, outline=self.player1_color)
-		self.paddle2 = self.canvas.create_rectangle(self.field_width-30-self.paddle_height, self.field_height/2-self.paddle_height/2 - self.paddle_width/2,self.field_width-30, self.field_height/2+self.paddle_height/2 + self.paddle_width/2,fill=self.player2_color, outline=self.player2_color)
-
-	def create_ball(self):
-		self.ball = self.canvas.create_oval(self.field_width/2-self.ball_size/2, self.field_height/2-self.ball_size/2,self.field_width/2+self.ball_size/2, self.field_height/2+self.ball_size/2,fill=self.ball_color, outline=self.ball_color)
+		self.paddle_bottom = Paddle(visual, self.canvas, width, height, 0, -5.5, color="green", width=1.5, height=0.5)
+		self.paddle_top = Paddle(visual, self.canvas, width, height, 0, 5.5, color="purple", width=1.5, height=0.5)
 
 	def key_press(self, event):
-		key = event.keysym
-		if key in self.keys:
-			self.keys[key] = True
+		self.keys_pressed[event.keysym] = True
 
 	def key_release(self, event):
-		key = event.keysym
-		if key in self.keys:
-			self.keys[key] = False
+		self.keys_pressed[event.keysym] = False
 
-	def move_paddles(self):
-		if self.keys["w"] and self.canvas.coords(self.paddle1)[1] > 10:
-			self.canvas.move(self.paddle1, 0, -self.paddle_speed)
-		if self.keys["s"] and self.canvas.coords(self.paddle1)[3] < self.field_height-10:
-			self.canvas.move(self.paddle1, 0, self.paddle_speed)
+	def get_actions(self, paddle):
+		coming_towards_paddle = (self.ball.vy < 0 and paddle == self.paddle_bottom) or \
+							   (self.ball.vy > 0 and paddle == self.paddle_top)
 
-		if self.keys["Up"] and self.canvas.coords(self.paddle2)[1] > 10:
-			self.canvas.move(self.paddle2, 0, -self.paddle_speed)
-		if self.keys["Down"] and self.canvas.coords(self.paddle2)[3] < self.field_height-10:
-			self.canvas.move(self.paddle2, 0, self.paddle_speed)
+		if coming_towards_paddle:
+			if paddle == self.paddle_bottom:
+				distance_y = paddle.y - self.ball.y
+			else:
+				distance_y = self.ball.y - paddle.y
 
-	def check_collision(self):
-		ball_coords = self.canvas.coords(self.ball)
-		paddle1_coords = self.canvas.coords(self.paddle1)
-		paddle2_coords = self.canvas.coords(self.paddle2)
+			if self.ball.vy == 0:
+				projected_x = self.ball.x
+			else:
+				time_to_reach = abs(distance_y / self.ball.vy)
+				projected_x = self.ball.x + self.ball.vx * time_to_reach
 
-		ball_center_x = (ball_coords[0] + ball_coords[2]) / 2
-		ball_center_y = (ball_coords[1] + ball_coords[3]) / 2
+				while projected_x < -6 or projected_x > 6:
+					if projected_x < -6:
+						projected_x = -12 - projected_x
+					if projected_x > 6:
+						projected_x = 12 - projected_x
 
-		if ball_coords[1] <= 10 or ball_coords[3] >= self.field_height-10:
-			self.ball_speed["y"] *= -1
+				strategic_offset = 0
+				if self.ball.x > 0:
+					strategic_offset = -0.3
+				else:
+					strategic_offset = 0.3
 
-		if (ball_coords[0] <= paddle1_coords[2] and
-			ball_coords[2] >= paddle1_coords[0] and
-			ball_coords[3] >= paddle1_coords[1] and
-			ball_coords[1] <= paddle1_coords[3] and
-			self.ball_speed["x"] < 0):
+				projected_x += strategic_offset
 
-			paddle1_center = (paddle1_coords[1] + paddle1_coords[3]) / 2
-			offset = (ball_center_y - paddle1_center) / (self.paddle_width/2)
+			if paddle.x < projected_x - 0.05:
+				return 1
+			elif paddle.x > projected_x + 0.05:
+				return 0
+			else:
+				return 2
+		else:
+			if paddle.x < -0.1:
+				return 1
+			elif paddle.x > 0.1:
+				return 0
+			else:
+				return 2
+
+	def check_collision_wall(self):
+		if self.ball.x < -6 or self.ball.x > 6:
+			self.ball.vx *= -1
+
+		if self.ball.y < -6.5:
+			self.score2 += 1
+			self.last_scorer = 2
+			self.winner = 2
+		elif self.ball.y > 6.5:
+			self.score1 += 1
+			self.last_scorer = 1
+			self.winner = 1
+
+	def get_state(self):
+		state = [
+			self.paddle_bottom.x,
+			self.paddle_bottom.y,
+			self.paddle_top.x,
+			self.paddle_top.y,
+			self.ball.x,
+			self.ball.y,
+			self.ball.vx,
+			self.ball.vy,
+		]
+		return [round(value, 2) for value in state]
+
+	def reset(self):
+		self.winner = 0
+		self.ball.reset(self.last_scorer)
+		self.paddle_bottom.reset()
+		self.paddle_top.reset()
+		self.num_hit = 0
+		return self.get_state()
+
+	def check_collision_paddle(self):
+		if (self.ball.y < -5 and self.ball.y > -6 and
+			abs(self.ball.x - self.paddle_bottom.x) < self.paddle_bottom.width/2 + self.ball.radius):
+
+			offset = self.ball.x - self.paddle_bottom.x
 			max_bounce_angle = math.pi / 3
-			bounce_angle = offset * max_bounce_angle
+			bounce_angle = (offset / (self.paddle_bottom.width/2)) * max_bounce_angle
 
-			speed = math.sqrt(self.ball_speed["x"]**2 + self.ball_speed["y"]**2)
-			self.ball_speed["x"] = abs(speed * math.cos(bounce_angle))
-			self.ball_speed["y"] = speed * math.sin(bounce_angle)
+			speed = math.sqrt(self.ball.vx**2 + self.ball.vy**2)
+			self.ball.vx = speed * math.sin(bounce_angle)
+			self.ball.vy = abs(speed * math.cos(bounce_angle))
 
 			self.num_hit += 1
+			self.paddle_bottom.hit += 1
 
-			self.canvas.itemconfig(self.paddle1, fill="#FFFFFF")
-			self.master.after(100, lambda: self.canvas.itemconfig(self.paddle1, fill=self.player1_color))
+		if (self.ball.y > 5 and self.ball.y < 6 and
+			abs(self.ball.x - self.paddle_top.x) < self.paddle_top.width/2 + self.ball.radius):
 
-		if (ball_coords[2] >= paddle2_coords[0] and
-			ball_coords[0] <= paddle2_coords[2] and
-			ball_coords[3] >= paddle2_coords[1] and
-			ball_coords[1] <= paddle2_coords[3] and
-			self.ball_speed["x"] > 0):
-
-			paddle2_center = (paddle2_coords[1] + paddle2_coords[3]) / 2
-			offset = (ball_center_y - paddle2_center) / (self.paddle_width/2)
+			offset = self.ball.x - self.paddle_top.x
 			max_bounce_angle = math.pi / 3
-			bounce_angle = offset * max_bounce_angle
+			bounce_angle = (offset / (self.paddle_top.width/2)) * max_bounce_angle
 
-			speed = math.sqrt(self.ball_speed["x"]**2 + self.ball_speed["y"]**2)
-			self.ball_speed["x"] = -abs(speed * math.cos(bounce_angle))
-			self.ball_speed["y"] = speed * math.sin(bounce_angle)
+			speed = math.sqrt(self.ball.vx**2 + self.ball.vy**2)
+			self.ball.vx = speed * math.sin(bounce_angle)
+			self.ball.vy = -abs(speed * math.cos(bounce_angle))
 
 			self.num_hit += 1
-
-			self.canvas.itemconfig(self.paddle2, fill="#FFFFFF")
-			self.master.after(100, lambda: self.canvas.itemconfig(self.paddle2, fill=self.player2_color))
+			self.paddle_top.hit += 1
 
 		if self.num_hit >= 5:
-			self.ball_speed["x"] += math.copysign(self.speed_increment, self.ball_speed["x"])
-			self.ball_speed["y"] += math.copysign(self.speed_increment, self.ball_speed["y"])
+			self.ball.vx += math.copysign(self.speed_increment, self.ball.vx)
+			self.ball.vy += math.copysign(self.speed_increment, self.ball.vy)
 
-			self.ball_speed["x"] = min(abs(self.ball_speed["x"]), self.max_ball_speed) * math.copysign(1, self.ball_speed["x"])
-			self.ball_speed["y"] = min(abs(self.ball_speed["y"]), self.max_ball_speed) * math.copysign(1, self.ball_speed["y"])
+			self.ball.vx = math.copysign(min(abs(self.ball.vx), self.ball.MAX_SPEED), self.ball.vx)
+			self.ball.vy = math.copysign(min(abs(self.ball.vy), self.ball.MAX_SPEED), self.ball.vy)
 
-			if abs(self.ball_speed["x"]) == self.max_ball_speed and not self.ball_speed_reached_max:
-				self.ball_speed_reached_max = True
-
-			self.paddle_speed = min(self.paddle_speed + self.speed_increment, self.max_paddle_speed)
+			self.paddle_bottom.speed = min(self.paddle_bottom.speed + self.speed_increment, self.paddle_bottom.MAX_SPEED)
+			self.paddle_top.speed = min(self.paddle_top.speed + self.speed_increment, self.paddle_top.MAX_SPEED)
 
 			self.num_hit = 0
 
-		if ball_coords[0] <= 10:
-			self.last_scorer = 2
+	def move_paddle(self, paddle, action):
+		if action == 0:
+			paddle.move_left()
+		elif action == 1:
+			paddle.move_right()
+
+	def step(self, bottom_action=None, top_action=None):
+		if bottom_action is None:
+			bottom_action = self.get_actions(self.paddle_bottom)
+		if top_action is None:
+			top_action = self.get_actions(self.paddle_top)
+
+		self.ball.move()
+		self.move_paddle(self.paddle_bottom, bottom_action)
+		self.move_paddle(self.paddle_top, top_action)
+
+		self.check_collision_wall()
+		self.check_collision_paddle()
+
+		game_over = False
+		if self.winner != 0:
+			game_over = True
 			self.reset()
 
-		if ball_coords[2] >= self.field_width-10:
-			self.last_scorer = 1
-			self.reset()
+		return self.get_state(), game_over
 
-	def reset(self):
-		self.canvas.coords(self.ball,self.field_width/2-self.ball_size/2, self.field_height/2-self.ball_size/2,self.field_width/2+self.ball_size/2, self.field_height/2+self.ball_size/2)
-		self.canvas.coords(self.paddle1,30, self.field_height/2-self.paddle_height/2 - self.paddle_width/2,30+self.paddle_height, self.field_height/2+self.paddle_height/2 + self.paddle_width/2)
-		self.canvas.coords(self.paddle2,self.field_width-30-self.paddle_height, self.field_height/2-self.paddle_height/2 - self.paddle_width/2,self.field_width-30, self.field_height/2+self.paddle_height/2 + self.paddle_width/2)
-
-		self.paddle_speed = 8
-		self.num_hit = 0
-
-		if self.last_scorer == 1:
-			self.ball_speed = {"x": 10, "y": 0}
-		else:
-			self.ball_speed = {"x": -10, "y": 0}
-
-	def restart_game(self):
-		self.game_is_finished = False
-
-		self.reset()
-
-		self.game_loop()
-
-	def game_loop(self):
-		if not self.game_is_finished:
-			self.move_paddles()
-			self.canvas.move(self.ball, self.ball_speed["x"], self.ball_speed["y"])
-			self.check_collision()
-			self.master.after(16, self.game_loop)
-
-	def get_state(self):
-		ball_coords = self.canvas.coords(self.ball)
-		paddle1_coords = self.canvas.coords(self.paddle1)
-		paddle2_coords = self.canvas.coords(self.paddle2)
-
-		ball_pos = []
+	def run(self):
+		while(1):
+			self.step()
+			self.root.update()
+			time.sleep(0.017)
 
 if __name__ == "__main__":
-	root = tk.Tk()
-	game = PongGame(root)
-	game.game_loop()
-	root.mainloop()
+	game = Game(600, 600, visual=True)
+	game.run()
+	game.root.mainloop()
