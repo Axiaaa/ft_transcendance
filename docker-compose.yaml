@@ -64,8 +64,8 @@ services:
     build:
       context: ./backend/fastify-app
       dockerfile: Dockerfile
-    ports:
-      - ${FASTIFY_PORT}:4321
+    # ports:
+    #   - ${FASTIFY_PORT}:4321
     volumes:
       - sqlite_data:/usr/src/app/db/
       - img_storage:/server/img_storage
