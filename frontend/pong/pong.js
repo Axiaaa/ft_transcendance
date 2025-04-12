@@ -135,39 +135,34 @@ document.addEventListener('DOMContentLoaded', function () {
     const tournamentButton = document.getElementById('tournamentButton');
     const menu = document.getElementById('menu');
     const tournamentButtonContainer = document.getElementById('tournament-button-container');
-    const playerList = document.getElementById('player-list');
-    const addPlayerButton = document.getElementById('addPlayerButton');
-    const removePlayerButton = document.getElementById('removePlayerButton');
-    let playerCount = 0;
-    if (tournamentButton && menu && tournamentButtonContainer && playerList && addPlayerButton && removePlayerButton) {
-        // Button TOURNAMENT is clicked
+    const playerCountSelector = document.getElementById('player-count-selector');
+    const playerInputs = document.getElementById('player-inputs');
+    if (tournamentButton && menu && tournamentButtonContainer && playerCountSelector && playerInputs) {
         tournamentButton.addEventListener('click', function () {
             menu.style.display = 'none';
             tournamentButtonContainer.style.display = 'flex';
         });
-        // Add a input field for pseudo
-        addPlayerButton.addEventListener('click', function () {
-            if (playerCount < 8) { // Limit of 8 players
-                playerCount++;
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.placeholder = 'Challenger ' + playerCount;
-                playerList.appendChild(input);
-            }
-        });
-        // Remove the last input field
-        removePlayerButton.addEventListener('click', function () {
-            if (playerCount > 0) {
-                const lastInput = playerList.lastElementChild;
-                if (lastInput) { // Check if last child is not null
-                    playerList.removeChild(lastInput);
-                    playerCount--;
+        playerCountSelector.addEventListener('click', function (e) {
+            const target = e.target;
+            const count = parseInt(target.dataset.count || "");
+            if (count === 4 || count === 8) {
+                playerInputs.innerHTML = "";
+                const columns = count === 4 ? 1 : 2;
+                const inputsPerColumn = 4;
+                for (let c = 0; c < columns; c++) {
+                    const columnDiv = document.createElement("div");
+                    columnDiv.classList.add("input-column");
+                    for (let i = 0; i < inputsPerColumn; i++) {
+                        const index = c * inputsPerColumn + i + 1;
+                        const input = document.createElement("input");
+                        input.type = "text";
+                        input.placeholder = `Challenger ${index}`;
+                        columnDiv.appendChild(input);
+                    }
+                    playerInputs.appendChild(columnDiv);
                 }
             }
         });
-    }
-    else {
-        console.error("One or more elements not found in the DOM");
     }
 });
 ////////////////////////////// FIELD //////////////////////////////
