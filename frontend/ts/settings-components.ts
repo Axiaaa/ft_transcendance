@@ -1,32 +1,7 @@
 import { sys } from "../node_modules/typescript/lib/typescript.js";
 import { sendNotification } from "./notification.js";
 
-async function uploadFile(userId: number, file: File, fileType: string): Promise<Response | null> {
-
-	const formData = new FormData();
-	formData.append('file', file);
-	try {
-		
-		const reponse = await fetch(`/api/user_images/${fileType}/${userId}`, {
-			method: 'POST',
-			body: formData,
-		});
-		if (reponse.ok)
-		{
-			const result = await reponse.json();
-			console.log('File uploaded successfully:', result);
-			sendNotification('File Uploaded', `File uploaded successfully: ${result.message}`, "./img/Utils/API-icon.png");
-		}
-		else {
-			const error = await reponse.json();
-			console.error('Error uploading file:', error);
-		}
-	} catch (error) {
-		console.error('Error uploading file:', error);
-		sendNotification('Error', `Error uploading file: ${error}`, "./img/Utils/error-icon.png");
-	}
-	return null;
-};
+import { getUserAvatar, uploadFile } from "./API.js";
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -320,11 +295,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		importButton.onclick = () => fileInput.click();
 
-		fileInput.onchange = (e) => {
+		fileInput.onchange = async (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
-				currentAvatarName.textContent = file.name;
-				currentAvatarPreview.src = URL.createObjectURL(file);
+				uploadFile(1, file, 'avatar');
+				let newAvatar = await getUserAvatar(1);
+				if (newAvatar)
+				{
+					console.log("New avatar URL: ", newAvatar);
+					currentAvatarPreview.src = newAvatar;
+					currentAvatarName.textContent = file.name;
+				}
+				// currentAvatarName.textContent = file.name;
+				// currentAvatarPreview.src = URL.createObjectURL(file);
 				sendNotification('Avatar Changed', `Avatar changed to ${file.name}`, "./img/Utils/profile-icon.png");
 			}
 			else {

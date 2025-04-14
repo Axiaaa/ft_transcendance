@@ -377,3 +377,112 @@ export function loginUser(username, password) {
         });
     });
 }
+export function uploadFile(userId, file, fileType) {
+    return __awaiter(this, void 0, void 0, function () {
+        var formData, credentials, response, result, error, error_9, errorMessage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    formData = new FormData();
+                    formData.append('file', file);
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 7, , 8]);
+                    credentials = btoa("".concat(API_CONFIG.credentials.username, ":").concat(API_CONFIG.credentials.password));
+                    return [4 /*yield*/, fetch("".concat(API_CONFIG.baseUrl, "/user_images/").concat(fileType, "/").concat(userId), {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'Authorization': "Basic ".concat(credentials)
+                                // Note: Don't set Content-Type for FormData, browser will set it with boundary
+                            }
+                        })];
+                case 2:
+                    response = _a.sent();
+                    if (!response.ok) return [3 /*break*/, 4];
+                    return [4 /*yield*/, response.json()];
+                case 3:
+                    result = _a.sent();
+                    console.log('File uploaded successfully:', result);
+                    sendNotification('File Uploaded', "File uploaded successfully: ".concat(result.message), "./img/Utils/API-icon.png");
+                    return [2 /*return*/, response];
+                case 4: return [4 /*yield*/, response.json()];
+                case 5:
+                    error = _a.sent();
+                    console.error('Error uploading file:', error);
+                    sendNotification('Error', "Error uploading file: ".concat(error.message || 'Unknown error'), "./img/Utils/error-icon.png");
+                    _a.label = 6;
+                case 6: return [3 /*break*/, 8];
+                case 7:
+                    error_9 = _a.sent();
+                    console.error('Error uploading file:', error_9);
+                    errorMessage = error_9 instanceof Error ? error_9.message : String(error_9);
+                    sendNotification('Error', "Error uploading file: ".concat(errorMessage), "./img/Utils/error-icon.png");
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/, null];
+            }
+        });
+    });
+}
+export function getUserAvatar(userId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, filePath, error_10, errorMessage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    return [4 /*yield*/, apiFetch("/user_images/avatar/".concat(userId))];
+                case 1:
+                    response = _a.sent();
+                    // Check if response is successful
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch avatar: ".concat(response.status));
+                    }
+                    return [4 /*yield*/, response.text()];
+                case 2:
+                    filePath = _a.sent();
+                    return [2 /*return*/, filePath];
+                case 3:
+                    error_10 = _a.sent();
+                    console.error('Error fetching user avatar:', error_10);
+                    errorMessage = error_10 instanceof Error ? error_10.message : String(error_10);
+                    if (typeof sendNotification === 'function') {
+                        sendNotification('API Error', "Failed to fetch avatar: ".concat(errorMessage), './img/Utils/API-icon.png');
+                    }
+                    throw error_10;
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+export function getUserBackground(userId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, filePath, error_11, errorMessage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    return [4 /*yield*/, apiFetch("/user_images/wallpaper/".concat(userId))];
+                case 1:
+                    response = _a.sent();
+                    // Check if response is successful
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch background: ".concat(response.status));
+                    }
+                    return [4 /*yield*/, response.text()];
+                case 2:
+                    filePath = _a.sent();
+                    return [2 /*return*/, filePath];
+                case 3:
+                    error_11 = _a.sent();
+                    console.error('Error fetching user background:', error_11);
+                    errorMessage = error_11 instanceof Error ? error_11.message : String(error_11);
+                    if (typeof sendNotification === 'function') {
+                        sendNotification('API Error', "Failed to fetch background: ".concat(errorMessage), './img/Utils/API-icon.png');
+                    }
+                    throw error_11;
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}

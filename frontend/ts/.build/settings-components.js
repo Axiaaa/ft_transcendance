@@ -35,47 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { sendNotification } from "./notification.js";
-function uploadFile(userId, file, fileType) {
-    return __awaiter(this, void 0, void 0, function () {
-        var formData, reponse, result, error, error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    formData = new FormData();
-                    formData.append('file', file);
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 7, , 8]);
-                    return [4 /*yield*/, fetch("/api/user_images/".concat(fileType, "/").concat(userId), {
-                            method: 'POST',
-                            body: formData,
-                        })];
-                case 2:
-                    reponse = _a.sent();
-                    if (!reponse.ok) return [3 /*break*/, 4];
-                    return [4 /*yield*/, reponse.json()];
-                case 3:
-                    result = _a.sent();
-                    console.log('File uploaded successfully:', result);
-                    sendNotification('File Uploaded', "File uploaded successfully: ".concat(result.message), "./img/Utils/API-icon.png");
-                    return [3 /*break*/, 6];
-                case 4: return [4 /*yield*/, reponse.json()];
-                case 5:
-                    error = _a.sent();
-                    console.error('Error uploading file:', error);
-                    _a.label = 6;
-                case 6: return [3 /*break*/, 8];
-                case 7:
-                    error_1 = _a.sent();
-                    console.error('Error uploading file:', error_1);
-                    sendNotification('Error', "Error uploading file: ".concat(error_1), "./img/Utils/error-icon.png");
-                    return [3 /*break*/, 8];
-                case 8: return [2 /*return*/, null];
-            }
-        });
-    });
-}
-;
+import { getUserAvatar, uploadFile } from "./API.js";
 document.addEventListener('DOMContentLoaded', function () {
     var _a;
     var categoryContainer = document.getElementById('settings-app-category-container');
@@ -309,18 +269,34 @@ document.addEventListener('DOMContentLoaded', function () {
         fileInput_2.accept = 'image/*';
         fileInput_2.style.display = 'none';
         importButton.onclick = function () { return fileInput_2.click(); };
-        fileInput_2.onchange = function (e) {
+        fileInput_2.onchange = function (e) { return __awaiter(void 0, void 0, void 0, function () {
+            var file, newAvatar;
             var _a;
-            var file = (_a = e.target.files) === null || _a === void 0 ? void 0 : _a[0];
-            if (file) {
-                currentAvatarName_1.textContent = file.name;
-                currentAvatarPreview_1.src = URL.createObjectURL(file);
-                sendNotification('Avatar Changed', "Avatar changed to ".concat(file.name), "./img/Utils/profile-icon.png");
-            }
-            else {
-                sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
-            }
-        };
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        file = (_a = e.target.files) === null || _a === void 0 ? void 0 : _a[0];
+                        if (!file) return [3 /*break*/, 2];
+                        uploadFile(1, file, 'avatar');
+                        return [4 /*yield*/, getUserAvatar(1)];
+                    case 1:
+                        newAvatar = _b.sent();
+                        if (newAvatar) {
+                            console.log("New avatar URL: ", newAvatar);
+                            currentAvatarPreview_1.src = newAvatar;
+                            currentAvatarName_1.textContent = file.name;
+                        }
+                        // currentAvatarName.textContent = file.name;
+                        // currentAvatarPreview.src = URL.createObjectURL(file);
+                        sendNotification('Avatar Changed', "Avatar changed to ".concat(file.name), "./img/Utils/profile-icon.png");
+                        return [3 /*break*/, 3];
+                    case 2:
+                        sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
+                        _b.label = 3;
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); };
         var resolutionText = document.createElement('span');
         rightColumn.appendChild(resolutionText);
         resolutionText.id = 'avatar-resolution-text';

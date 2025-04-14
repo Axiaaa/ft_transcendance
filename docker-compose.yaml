@@ -68,8 +68,8 @@ services:
     #   - ${FASTIFY_PORT}:4321
     volumes:
       - sqlite_data:/usr/src/app/db/
-      - ./IMAGES:/server/img_storage
-      # - img_storage:/server/img_storage
+      # - ./IMAGES:/server/img_storage # Uncomment this line if you want to use a local directory for images
+      - img_storage:/server/img_storage # Uncomment this line if you want to use a named volume for images
     environment:
       - PORT=${FASTIFY_PORT}
       - API_USERNAME=${API_USERNAME}
