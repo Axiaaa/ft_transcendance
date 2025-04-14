@@ -4,9 +4,143 @@ import keras
 import numpy as np
 import time
 
-class Agent(keras.Model):
+class SumTree:
+	def __init__(self, capacity):
+		self.capacity = capacity
+		self.tree = np.zeros(2 * capacity - 1)
+		self.data = np.zeros(capacity, dtype=object)
+		self.size = 0
+		self.ptr = 0
+		self.counter = 0
+
+	def add(self, priority, sample):
+		idx = self.ptr + self.capacity - 1
+		self.data[self.ptr] = sample
+		self.update(idx, priority)
+
+		self.ptr = (self.ptr + 1) % self.capacity
+		self.size = min(self.size + 1, self.capacity)
+		self.counter += 1
+
+	def update(self, idx, priority):
+		if hasattr(priority, "shape") and priority.shape:
+			priority = float(priority.item())
+
+		change = priority - self.tree[idx]
+		self.tree[idx] = priority
+
+		while idx != 0:
+			idx = (idx - 1) // 2
+			if hasattr(change, "shape") and change.shape:
+				change = float(change.item())
+			self.tree[idx] += change
+
+	def get_leaf(self, idx):
+		data_idx = idx - self.capacity + 1
+		return idx, self.tree[idx], self.data[data_idx]
+
+	def sample(self, s):
+		idx = 0
+		while idx < self.capacity - 1:
+			left, right = 2 * idx + 1, 2 * idx + 2
+
+			if self.tree[left] <= 0:
+				idx = right
+			elif self.tree[right] <= 0:
+				idx = left
+			elif s <= self.tree[left]:
+				idx = left
+			else:
+				s -= self.tree[left]
+				idx = right
+		return self.get_leaf(idx)
+
+	def total_priority(self):
+		return self.tree[0]
+
+	def __len__(self):
+		return self.size
+
+class PrioritizedReplayBuffer:
+	def __init__(self, capacity, batch_size, alpha=0.6, beta=0.4, beta_inc=0.001, epsilon=0.01):
+		self.tree = SumTree(capacity)
+		self.batch_size = batch_size
+		self.alpha = alpha
+		self.beta = beta
+		self.beta_inc = beta_inc
+		self.epsilon = epsilon
+		self.max_priority = 1.0
+		self.last_indices = None
+
+	def store(self, state, target):
+		priority = self.max_priority
+		if isinstance(state, tf.Tensor):
+			state = state.numpy()
+		if isinstance(target, tf.Tensor):
+			target = target.numpy()
+		self.tree.add(priority, (state, target))
+
+	def sample(self):
+		if len(self.tree) < self.batch_size:
+			return None
+
+		batch_indices, batch_states, batch_targets, batch_weights = [], [], [], []
+
+		total_priority = self.tree.total_priority()
+		if total_priority <= 0:
+			return None
+
+		self.beta = min(1.0, self.beta + self.beta_inc)
+		segment = total_priority / self.batch_size
+
+		for i in range(self.batch_size):
+			a, b = segment * i, segment * (i + 1)
+			s = random.uniform(a, b)
+
+			idx, priority, data = self.tree.sample(s)
+
+			sampling_probability = priority / total_priority
+			weight = (sampling_probability * len(self.tree)) ** -self.beta
+
+			batch_indices.append(idx)
+			state, target = data
+			batch_states.append(tf.convert_to_tensor(state, dtype=tf.float32))
+			if np.isscalar(target):
+				batch_targets.append(tf.convert_to_tensor([target], dtype=tf.float32))
+			else:
+				batch_targets.append(tf.convert_to_tensor(target, dtype=tf.float32))
+			batch_weights.append(weight)
+
+		batch_weights = np.array(batch_weights) / max(batch_weights)
+
+		states = tf.stack(batch_states)
+		targets = tf.stack(batch_targets)
+		weights = tf.convert_to_tensor(batch_weights, dtype=tf.float32)
+
+		self.last_indices = batch_indices
+
+		return states, targets, weights
+
+	def update_priorities(self, td_errors):
+		if self.last_indices is None:
+			return
+
+		if isinstance(td_errors, tf.Tensor):
+			td_errors = td_errors.numpy()
+
+		for idx, error in zip(self.last_indices, td_errors):
+			priority = (abs(error) + self.epsilon) ** self.alpha
+			self.tree.update(idx, priority)
+			self.max_priority = max(self.max_priority, priority)
+
+		self.last_indices = None
+
+	def __len__(self):
+		return len(self.tree)
+
+class Network(keras.Model):
 	def __init__(self, input_dim, output_dim):
-		super(Agent, self).__init__()
+		super(Network, self).__init__()
 		self.model = keras.models.Sequential([
 			keras.layers.Input(shape=(input_dim,)),
 			keras.layers.Dense(64, activation='relu'),
@@ -15,27 +149,33 @@ class Agent(keras.Model):
 			keras.layers.Dense(output_dim)
 			])
 
-		self.optimizer = keras.optimizers.Adam(learning_rate=0.001)
-		self.loss = keras.losses.MeanSquaredError()
-
-		self.sequence = []
-		self.buffer = []
-		self.capacity = 100000
-		self.batch_size = 64
-
 	def call(self, input, training=False):
 		return self.model(input, training=training)
 
+	def save_model(self, path):
+		self.model.save(path + ".keras")
+
+	def load_model(self, path):
+		self.model = keras.models.load_model(path + ".keras")
+
+class PredictBall():
+	def __init__(self, input_dim, output_dim):
+		self.model = Network(input_dim, output_dim)
+		self.optimizer = keras.optimizers.Adam(learning_rate=0.001)
+		self.loss = keras.losses.MeanSquaredError(reduction='none')
+
+		self.sequence = []
+		self.capacity = 100000
+		self.batch_size = 64
+		self.buffer = PrioritizedReplayBuffer(self.capacity, self.batch_size)
+
 	def normalize_state(self, state):
-		paddle1x = state[0]
-		paddle1y = state[1]
+		norm_state = []
+		for i in state[0:6]:
+			norm_state.append(round(i+6, 2))
 
-		paddle2x = state[2]
-		paddle2y = state[3]
-
-		ballx = round(state[4]+6.00, 2)
-		bally = round(state[5]+6.00, 2)
-		norm_state = [paddle1x, paddle1y, paddle2x, paddle2y, ballx, bally, state[6], state[7]]
+		norm_state.append(state[6])
+		norm_state.append(state[7])
 
 		return norm_state
 
@@ -50,11 +190,9 @@ class Agent(keras.Model):
 		if self.sequence[-1][3] * state[3] > 0 :
 			self.sequence.append(state)
 		else:
-			target = self.sequence[-1][0]
+			target = state[0]
 			for i in self.sequence:
-				if len(self.buffer) > self.capacity:
-					self.buffer.pop(0)
-				self.buffer.append((i, target))
+				self.buffer.store(i, target)
 			self.sequence.clear()
 			self.sequence.append(state)
 
@@ -62,23 +200,22 @@ class Agent(keras.Model):
 		if len(self.buffer) < self.batch_size:
 			return
 
-		batch = random.sample(self.buffer, self.batch_size)
-		state, target = [], []
-		for i, j in batch:
-			state.append(i)
-			target.append(j)
-
-		state = tf.convert_to_tensor(state, dtype=tf.float32)
-		target = tf.expand_dims(tf.convert_to_tensor(target, dtype=tf.float32), axis=1)
+		batch = self.buffer.sample()
+		if batch is None:
+			return None
+		state, target, weight = batch
 
 		with tf.GradientTape() as tape:
-			prediction = self.call(state, training=True)
+			prediction = self.model(state, training=True)
+			loss = self.loss(target, prediction)
+			weighted_loss = loss * weight
+			loss = tf.reduce_mean(weighted_loss)
 
-			loss = self.loss(prediction, target)
+		td_errors = tf.abs(prediction - target)
 
-		gradients = tape.gradient(loss, self.trainable_variables)
-		self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
-
+		gradients = tape.gradient(loss, self.model.trainable_variables)
+		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+		self.buffer.update_priorities(td_errors)
 		return loss.numpy()
 
 	def train(self, epoch):
@@ -112,9 +249,9 @@ class Agent(keras.Model):
 
 		state = env.get_state()
 		while (1):
+			print(env.paddle_bottom.x, env.paddle_bottom.y)
 			if frame % delay == 0:
 				predict = round(self.predict(state), 2)
-				print(f"Predict: {predict}")
 				if env.ball.vy < 0:
 					y = -5
 				else:
@@ -131,7 +268,6 @@ class Agent(keras.Model):
 			frame += 1
 
 			if env.num_hit != count:
-				print(f"In fact it is {env.ball.x + 6.0:.1f}\n")
 				count = env.num_hit
 
 			if done:
@@ -142,16 +278,12 @@ class Agent(keras.Model):
 				env.root.update()
 			time.sleep(0.017)
 
-	def save_model(self, path):
-		self.model.save(path + ".keras")
-	def load_model(self, path):
-		self.model = keras.models.load_model(path + ".keras")
-
 from simple_Pong import Game
+
 if __name__ == "__main__":
 	env = Game(600, 600, True)
-	agent = Agent(4, 1)
-	# agent.train(100000)
-	# agent.save_model("saving")
-	agent.load_model("saving")
-	agent.test()
+	predict = PredictBall(4, 1)
+	# predict.train(200000)
+	# predict.model.save_model("final")
+	predict.model.load_model("final")
+	predict.test()
