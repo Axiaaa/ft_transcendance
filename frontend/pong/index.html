@@ -27,6 +27,7 @@
                     color: white;
                     font-size: 48px;
                     text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+                    z-index: 1;
                 }
 
                 #playButton {
@@ -37,6 +38,7 @@
                     width: 80%;
                     background: transparent;
                     border: 2px solid white;
+                    border-radius: calc(10px * var(--scale-factor));
                     padding: 10px 30px;
                     color: white;
                     font-size: 24px;
@@ -59,6 +61,7 @@
                     width: 80%;
                     background: transparent;
                     border: 2px solid white;
+                    border-radius: calc(10px * var(--scale-factor));
                     padding: 10px 30px;
                     color: white;
                     font-size: 24px;
@@ -81,6 +84,7 @@
                     width: 80%;
                     background: transparent;
                     border: 2px solid white;
+                    border-radius: calc(10px * var(--scale-factor));
                     padding: 10px 30px;
                     color: white;
                     font-size: 24px;
@@ -119,6 +123,7 @@
                     left: 50%;
                     transform: translate(-50%, -50%);
                     font-size: 100px;
+                    z-index: 1;
                 }
 
                 #countdown-go {
@@ -129,6 +134,7 @@
                     opacity: 0;
                     font-size: 120px;
                     text-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00, 0 0 80px #00ff00;
+                    z-index: 1;
                 }
 
                 /* GO! Animation */
@@ -174,7 +180,7 @@
                     text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff;
                 }
 
-                #global-container {
+                #pong-global-container {
                     position: absolute;
                     top: 0;
                     left: 0;
@@ -195,37 +201,56 @@
                     top: 50%; left: 50%;
                     transform: translate(-50%, -50%) scale(var(--scale-factor));
                     transform-origin: center;
-                    background: rgba(0, 0, 0, 0.8);
                     display: none;
                     justify-content: center;
                     align-items: center;
+                    z-index: 10;
                 }
-
                 .pause-content {
-                    background: #222;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    background: #000;
                     padding: 40px;
-                    border-radius: 12px;
+                    border-radius: calc(10px * var(--scale-factor));
                     text-align: center;
                     color: white;
                     text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff;
                     font-family: Orbitron, sans-serif;
-                    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+                    box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
                 }
 
                 #home-button {
                     margin-top: 20px;
                     padding: 10px 20px;
                     font-size: 18px;
-                    border: none;
-                    border-radius: 6px;
-                    background: white;
-                    color: #00ffff;
+                    border: 2px solid white;
+                    border-radius: calc(10px * var(--scale-factor));
+                    background: transparent;
+                    color: white;
+                    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
                     cursor: pointer;
                     font-family: Orbitron, sans-serif;
                     transition: 0.2s ease-out;
                 }
-
                 #home-button:hover {
+                    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+                }
+
+                #resume-button {
+                    margin-top: 20px;
+                    padding: 10px 20px;
+                    font-size: 18px;
+                    border: 2px solid white;
+                    border-radius: calc(10px * var(--scale-factor));
+                    background: transparent;
+                    color: white;
+                    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+                    cursor: pointer;
+                    font-family: Orbitron, sans-serif;
+                    transition: 0.2s ease-out;
+                }
+                #resume-button:hover {
                     box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
                 }
                     
@@ -292,6 +317,86 @@
                     color: #00ffff;
                     outline: none;
                 }
+
+                #continueTournament {
+                    display: none;
+                    margin-top: calc(20px * var(--scale-factor));
+                    padding: calc(10px * var(--scale-factor)) calc(30px * var(--scale-factor));
+                    font-size: calc(24px * var(--scale-factor));
+                    background: transparent;
+                    border: 2px solid white;
+                    color: white;
+                    font-family: 'Orbitron', sans-serif;
+                    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+                    border-radius: calc(10px * var(--scale-factor));
+                    cursor: pointer;
+                    transition: 0.2s ease-out;
+                }
+
+                #continueTournament:hover {
+                    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+                    transform: scale(1.1);
+                }
+
+                #match-list {
+                    display: none;
+                    color: white;
+                    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+                    font-family: Orbitron, sans-serif;
+                }
+
+                #overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    z-index: 0;
+                }
+
+                #home-confirmation {
+                    display: none;
+                    background-color: #000;
+                    color: white;
+                    border: 2px solid rgb(0, 255, 255);
+                    border-radius: calc(10px * var(--scale-factor));
+                    padding: calc(20px * var(--scale-factor));
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    text-align: center;
+                    z-index: 12;
+                    font-family: 'Orbitron', sans-serif;
+                    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 10px;
+                    width: 200px;
+                }
+                #home-confirmation .button-container {
+                    display: flex;
+                    gap: 10px;
+                }
+                #home-confirmation button {
+                    padding: 6px 12px;
+                    font-size: calc(14px * var(--scale-factor));
+                    font-family: 'Orbitron', sans-serif;
+                    color: white;
+                    background-color: transparent;
+                    border: 2px solid white;
+                    border-radius: calc(10px * var(--scale-factor));
+                    cursor: pointer;
+                    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+                    transition: 0.2s ease-out;
+                }
+                #home-confirmation button:hover {
+                    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+                    transform: scale(1.1);
+                }
+
             `;
             document.head.appendChild(style);
         </script>
@@ -313,7 +418,7 @@
     <body>
         <script type="module" src="pong.js"></script>
         <canvas id="canvas"></canvas>
-        <div id="global-container">
+        <div id="pong-global-container">
             <div id="menu">
                 <h1>PONG</h1>
                 <button id="rankedButton">RANKED</button>
@@ -323,6 +428,7 @@
             <div id="countdown-container">
                 <span id="countdown"></span>
                 <span id="countdown-go">GO!</span>
+                <div id="overlay"></div>
             </div>
             <div id="winner">
                 <h1>WINNER</h1>
@@ -333,6 +439,8 @@
                     <button class="player-option" data-count="8">8</button>
                 </div>
                 <div id="player-inputs"></div>
+                <button id="continueTournament">CONTINUE</button>
+                <div id="match-list"></div>
             </div>
         </div>
     </body>

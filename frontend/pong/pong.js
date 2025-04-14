@@ -22,7 +22,7 @@ camera.minZ = 0.1;
 camera.maxZ = 1000;
 camera.inputs.clear(); // Disable camera controls with arrowLeft and arrowRight
 // Jcuzin update on size of the canvas
-const globalContainer = document.getElementById("global-container");
+const pongGlobalContainer = document.getElementById("pong-global-container");
 let resizePending = false;
 const updateCanvasSize = () => {
     if (resizePending)
@@ -46,7 +46,7 @@ const updateCanvasSize = () => {
 };
 updateCanvasSize();
 const resizeObserver = new ResizeObserver(updateCanvasSize);
-resizeObserver.observe(globalContainer);
+resizeObserver.observe(pongGlobalContainer);
 // Add a hemispheric light
 const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 5, 5), scene);
 light.intensity = 0.8;
@@ -66,6 +66,8 @@ let numHit = 0; // Number of time the ball has been hit (0 to 5)
 let speedIncrement = 0.025; // Speed increase every 5 hits
 let ballSpeedReachedMax = false; // Check if maxSpeed has been reached
 let isPaused = false; // Pause the game after scoring
+let overlay = document.getElementById("overlay");
+let countdownContainer = document.getElementById("countdown-container");
 ////////////////////////////// ECHAP //////////////////////////////
 // Creation of the Pause Menu
 const pauseMenu = document.createElement("div");
@@ -73,18 +75,47 @@ pauseMenu.id = "pause-menu";
 pauseMenu.innerHTML = `
     <div class="pause-content">
         <h2>PAUSE</h2>
-        <button id="home-button">Accueil</button>
+        <button id="resume-button">Resume</button>
+        <button id="home-button">Home</button>
+        <div id="home-confirmation">
+            <h2>Are you sure ?</h2>
+            <div class="button-container">
+                <button id="confirm-yes">Yes</button>
+                <button id="confirm-no">No</button>
+            </div>
+        </div>
     </div> `;
 document.body.appendChild(pauseMenu);
-// Handling the home button
 document.getElementById("home-button").addEventListener("click", () => {
-    location.reload(); // restart the page; bring back to home
+    document.getElementById("home-confirmation").style.display = "flex"; // Display confirmation
 });
-// Toggle pause with echap key
+document.getElementById("confirm-yes").addEventListener("click", () => {
+    location.reload();
+});
+document.getElementById("confirm-no").addEventListener("click", () => {
+    document.getElementById("home-confirmation").style.display = "none"; // Just hide the confirmation
+});
+// Handling the resume button
+document.getElementById("resume-button").addEventListener("click", () => {
+    pauseMenu.style.display = "none";
+    countdownContainer.style.display = "none";
+    overlay.style.display = "none";
+    isPaused = false;
+});
+// Toggle pause with Escape key
 window.addEventListener("keydown", (e) => {
     if (e.code === "Escape") {
-        isPaused = !isPaused; // Toggle pause state
-        pauseMenu.style.display = isPaused ? "block" : "none";
+        isPaused = !isPaused; // Alterne l'état de pause
+        if (isPaused) {
+            pauseMenu.style.display = "block"; // Affiche le menu de pause
+            countdownContainer.style.display = "block"; // Affiche le compte à rebours
+            overlay.style.display = "block"; // Affiche l'overlay
+        }
+        else {
+            pauseMenu.style.display = "none"; // Cache le menu de pause
+            countdownContainer.style.display = "none"; // Cache le compte à rebours
+            overlay.style.display = "none"; // Cache l'overlay
+        }
     }
 });
 ////////////////////////////// START PLAY //////////////////////////////
@@ -92,8 +123,6 @@ let countdownComplete = false;
 let countdownElement = document.getElementById("countdown");
 let goElement = document.getElementById("countdown-go");
 let menu = document.getElementById("menu");
-let countdownContainer = document.getElementById("countdown-container");
-let overlay = document.getElementById("overlay");
 // Start the game after the countdown
 function startGame() {
     countdownContainer.style.display = "none";
@@ -131,13 +160,13 @@ function startCountdown(callback) {
     startCountdown(startGame);
 });
 ////////////////////////////// TOURNAMENT //////////////////////////////
+const tournamentButton = document.getElementById('tournamentButton');
+const tournamentButtonContainer = document.getElementById('tournament-button-container');
+const playerCountSelector = document.getElementById('player-count-selector');
+const playerInputs = document.getElementById('player-inputs');
+const continueButton = document.getElementById('continueTournament');
 document.addEventListener('DOMContentLoaded', function () {
-    const tournamentButton = document.getElementById('tournamentButton');
-    const menu = document.getElementById('menu');
-    const tournamentButtonContainer = document.getElementById('tournament-button-container');
-    const playerCountSelector = document.getElementById('player-count-selector');
-    const playerInputs = document.getElementById('player-inputs');
-    if (tournamentButton && menu && tournamentButtonContainer && playerCountSelector && playerInputs) {
+    if (tournamentButton && menu && tournamentButtonContainer && playerCountSelector && playerInputs && continueButton) {
         tournamentButton.addEventListener('click', function () {
             menu.style.display = 'none';
             tournamentButtonContainer.style.display = 'flex';
@@ -161,10 +190,66 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     playerInputs.appendChild(columnDiv);
                 }
+                const allInputs = playerInputs.querySelectorAll('input');
+                allInputs.forEach(input => {
+                    input.addEventListener('input', () => {
+                        const allFilled = Array.from(allInputs).every(input => input.value.trim() !== '');
+                        continueButton.style.display = allFilled ? 'block' : 'none';
+                    });
+                });
+            }
+        });
+        continueButton.addEventListener('click', () => {
+            const allInputs = playerInputs.querySelectorAll('input');
+            const playerNames = Array.from(allInputs).map(input => input.value.trim());
+            if (playerNames.length === 4 || playerNames.length === 8) {
+                launchTournament(playerNames);
             }
         });
     }
 });
+function launchTournament(players) {
+    // Shuffle the players
+    const shuffled = players.sort(() => Math.random() - 0.5);
+    // Create match pairs
+    const rounds = [];
+    for (let i = 0; i < shuffled.length; i += 2) {
+        rounds.push([shuffled[i], shuffled[i + 1]]);
+    }
+    // Hide inputs
+    playerInputs.style.display = 'none';
+    continueButton.style.display = 'none';
+    playerCountSelector.style.display = 'none';
+    // Display matches
+    const matchList = document.getElementById('match-list');
+    if (matchList) {
+        matchList.innerHTML = '<h2>Upcoming Game :</h2>';
+        const list = document.createElement('ul');
+        list.style.listStyle = 'none';
+        list.style.padding = '0';
+        rounds.forEach(([p1, p2], index) => {
+            const item = document.createElement('li');
+            item.textContent = `Match ${index + 1} : ${p1} vs ${p2}`;
+            item.style.marginBottom = '8px';
+            list.appendChild(item);
+        });
+        matchList.appendChild(list);
+        //  Add a "Start Tournament" button
+        const startButton = document.createElement('button');
+        startButton.textContent = 'Start Tournament';
+        startButton.style.marginTop = '20px';
+        startButton.style.padding = '10px 20px';
+        startButton.style.fontSize = '16px';
+        startButton.addEventListener('click', () => {
+            matchList.style.display = 'none';
+            startTournamentGame(rounds);
+        });
+        matchList.appendChild(startButton);
+        matchList.style.display = 'block';
+    }
+}
+function startTournamentGame(rounds) {
+}
 ////////////////////////////// FIELD //////////////////////////////
 // Field Properties
 const fieldThickness = 0.2;
