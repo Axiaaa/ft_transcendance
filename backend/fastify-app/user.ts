@@ -289,3 +289,23 @@ export async function getPendingFriendsListFromDb(userId: number): Promise<Array
         return null;
     }
 }
+
+export  async function updateUserAvatar(user: User, filePath: string) : Promise<string | null> {
+    const userFromDb = await getUserFromDb(user.id);
+    if (userFromDb == null) {
+        return "User not found";
+    }
+    userFromDb.avatar = filePath;
+    const req_message = await userFromDb.updateUserInDb();
+    return req_message;
+}
+
+export async function updateUserBackground(user: User, filePath: string) : Promise<string | null> {
+    const userFromDb = await getUserFromDb(user.id);
+    if (userFromDb == null) {
+        return "User not found";
+    }
+    userFromDb.background = filePath;
+    const req_message = await userFromDb.updateUserInDb();
+    return req_message;
+}

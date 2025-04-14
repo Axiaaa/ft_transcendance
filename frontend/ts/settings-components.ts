@@ -1,23 +1,30 @@
 import { sys } from "../node_modules/typescript/lib/typescript.js";
 import { sendNotification } from "./notification.js";
 
-function uploadFile(file: File, fileName: string): Promise<Response> {
+async function uploadFile(userId: number, file: File, fileType: string): Promise<Response | null> {
 
 	const formData = new FormData();
-	formData.append(fileName, file);
-
-	return fetch('/user_images/', {
-		method: 'POST',
-		body: formData,
-	}).then(response => {
-		if (!response.ok) {
-			throw new Error('Network response was not ok');
+	formData.append('file', file);
+	try {
+		const reponse = await fetch(`/user_images/${fileType}/${userId}`, {
+			method: 'POST',
+			body: formData,
+		});
+		if (reponse.ok)
+		{
+			const result = await reponse.json();
+			console.log('File uploaded successfully:', result);
+			sendNotification('File Uploaded', `File uploaded successfully: ${result.message}`, "./img/Utils/API-icon.png");
 		}
-		return response;
-	}).catch(error => {
-		console.error('There was a problem with the fetch operation:', error);
-		throw error; // Re-throw the error to maintain Promise<Response> type
-	});
+		else {
+			const error = await reponse.json();
+			console.error('Error uploading file:', error);
+		}
+	} catch (error) {
+		console.error('Error uploading file:', error);
+		sendNotification('Error', `Error uploading file: ${error}`, "./img/Utils/error-icon.png");
+	}
+	return null;
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -103,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
 				currentWallpaperName.textContent = file.name;
-				uploadFile(file, 'wallpaper')
+				uploadFile(1, file, 'wallpaper')
 				.then(response => {
 					sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
 				}).catch(error => {

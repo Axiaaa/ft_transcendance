@@ -13,6 +13,8 @@ exports.User = exports.DEFAULT_BACKGROUND_URL = exports.DEFAULT_AVATAR_URL = voi
 exports.getUserFromDb = getUserFromDb;
 exports.getFriendsFromDb = getFriendsFromDb;
 exports.getPendingFriendsListFromDb = getPendingFriendsListFromDb;
+exports.updateUserAvatar = updateUserAvatar;
+exports.updateUserBackground = updateUserBackground;
 const _1 = require(".");
 const _2 = require(".");
 exports.DEFAULT_AVATAR_URL = "https://zizi.fr";
@@ -240,5 +242,27 @@ function getPendingFriendsListFromDb(userId) {
             _2.server.log.error(`Could not fetch pending friends from DB ${error}`);
             return null;
         }
+    });
+}
+function updateUserAvatar(user, filePath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const userFromDb = yield getUserFromDb(user.id);
+        if (userFromDb == null) {
+            return "User not found";
+        }
+        userFromDb.avatar = filePath;
+        const req_message = yield userFromDb.updateUserInDb();
+        return req_message;
+    });
+}
+function updateUserBackground(user, filePath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const userFromDb = yield getUserFromDb(user.id);
+        if (userFromDb == null) {
+            return "User not found";
+        }
+        userFromDb.background = filePath;
+        const req_message = yield userFromDb.updateUserInDb();
+        return req_message;
     });
 }

@@ -124,9 +124,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// SANDBOX AREA
 	{
-		let CurrentUser = await getUser(1);
-		if (!CurrentUser) {
-			CurrentUser = await createUser({username: 'Guest', password: 'guest', email: 'guest@guest.com'});
+		try {
+			let CurrentUser = await getUser(1);
+			if (!CurrentUser) {
+				CurrentUser = await createUser({username: 'Guest', password: 'guest', email: 'guest@guest.com'});
+			}
+		} catch (error) {
+			console.error('Error fetching or creating user:', error);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			sendNotification('User Error', `Failed to get or create User: ${errorMessage}`, './img/Utils/API-icon.png');
 		}
 		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
