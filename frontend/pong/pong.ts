@@ -268,6 +268,7 @@ function launchTournament(players: string[]) {
         matchList.appendChild(list);
         //  Add a "Start Tournament" button
         const startButton = document.createElement('button');
+        startButton.id = 'start-tournament-button';
         startButton.textContent = 'Start Tournament';
         startButton.style.marginTop = '20px';
         startButton.style.padding = '10px 20px';
