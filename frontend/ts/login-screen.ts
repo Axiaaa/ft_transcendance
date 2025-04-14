@@ -206,6 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
 						sessionStorage.setItem("wxp_token", newUser.token);
 						sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
 						goToDesktopPage();
+						signUpUsername.value = "";
+						signUpPassword.value = "";
+						signUpConfirmPassword.value = "";
+
 					} catch (error) {
 						console.error("Error creating user:", error);
 						signUpUsername.value = "";
@@ -234,6 +238,8 @@ document.addEventListener('DOMContentLoaded', () => {
 						sessionStorage.setItem("wxp_token", user.token);
 						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
 						goToDesktopPage();
+						signInUsername.value = "";
+						signInPassword.value = "";
 						} 
 					catch (error) {
 						console.error("Error signing in:", error);

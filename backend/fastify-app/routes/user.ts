@@ -3,6 +3,7 @@ import { db } from "..";
 import { getUserFromDb  } from "../user";
 import { FastifyInstance, FastifyContextConfig } from "fastify";
 import { RateLimits } from '../limit_rate';
+import crypto from "crypto";
 
 declare module "fastify" {
   interface FastifyContextConfig {
@@ -44,12 +45,12 @@ export async function userRoutes(server : FastifyInstance) {
         handler: async (request, reply) => {
           const { id } = request.params;
           const user = await getUserFromDb(Number(id));
-          
           if (user == null) {
-            reply.code(404).send({ error: "User not found" });
-            return;
-        }
-        reply.code(200).send(user);
+              reply.code(404).send({ error: "User not found" });
+              return;
+            }
+            
+          reply.code(200).send(user);
         }
       });
 
@@ -72,6 +73,7 @@ export async function userRoutes(server : FastifyInstance) {
                 reply.code(404).send({error: "User not found"});
                 return;
             }
+            user.token = crypto.randomBytes(32).toString('hex');
             reply.code(200).send(user);
             }
         }
@@ -84,7 +86,7 @@ export async function userRoutes(server : FastifyInstance) {
         }
         }>({
         method: 'POST',
-        url: '/users',
+        url: '/users/login',
         config: {
             rateLimit: RateLimits.login,
         },

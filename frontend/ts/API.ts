@@ -193,7 +193,7 @@ export async function getCurrentUser(): Promise<User> {
 // Create a new user
 export async function createUser(userData: Partial<User>): Promise<User> {
 	try {
-		const response = await apiFetch('/users', {
+		const response = await apiFetch('/users/login', {
 			method: 'POST',
 			body: JSON.stringify(userData)
 		});

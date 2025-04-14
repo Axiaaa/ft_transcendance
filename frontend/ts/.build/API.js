@@ -252,7 +252,7 @@ export function createUser(userData) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, apiFetch('/users', {
+                    return [4 /*yield*/, apiFetch('/users/login', {
                             method: 'POST',
                             body: JSON.stringify(userData)
                         })];
