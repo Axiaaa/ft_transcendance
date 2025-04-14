@@ -4,6 +4,7 @@ import metrics from "fastify-metrics"
 import { userRoutes } from "./routes/user";
 import { tournamentRoutes } from "./routes/tournaments";
 import { matchsRoutes } from "./routes/matchs";
+import rateLimit from '@fastify/rate-limit';
 import { keepAliveRoute } from "./routes/keep_alive";
 
 const Port = process.env.PORT || 4321
@@ -20,14 +21,6 @@ server.addHook('preHandler', async (req, reply) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Basic ')) {
       return reply.code(401).send({ error: 'Unauthorized' });
-    }
-  
-    const base64Credentials = authHeader.split(' ')[1];
-    const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
-    const [username, password] = credentials.split(':');
-  
-    if (username !== envUser || password !== envPassword) {
-      return reply.code(401).send({ error: 'Unauthorized. Please provid valid credentials' });
     }
 
     if (req.method === 'POST' || req.method === 'PATCH') {
@@ -46,6 +39,7 @@ server.get('/ping', async (request, reply) => {
 
 const start = async () => {
     try {
+        await server.register(rateLimit, {global: false,});
         await server.register(metrics,{endpoint: '/metrics'});
         await server.register(tournamentRoutes, { prefix: '/api' });
         await server.register(userRoutes, { prefix: '/api' });
@@ -58,6 +52,7 @@ const start = async () => {
         process.exit(1)
     }
 }
+
 
 start();
 
