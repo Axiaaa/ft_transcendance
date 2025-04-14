@@ -69,9 +69,7 @@ services:
     volumes:
       - sqlite_data:/usr/src/app/db/
     environment:
-      - PORT=${FASTIFY_PORT}
-      - API_USERNAME=${API_USERNAME}
-      - API_PASSWORD=${API_PASSWORD}
+      - PORT=${FASTIFY_PORT}  
       - SALT=${SALT}
     depends_on:
       - sqlite
@@ -263,9 +261,6 @@ services:
     build :
       context: ./services/prometheus
       dockerfile: Dockerfile
-      args:
-        - ADMIN_USER=${API_USERNAME}
-        - ADMIN_PASS=${API_PASSWORD}
     volumes:
       - certs:/etc/prometheus/certs
     ports:

@@ -1,14 +1,14 @@
-import { User } from "../user";
+import { getUserFromHash, User } from "../user";
 import { db } from "..";
 import { getUserFromDb  } from "../user";
 import { FastifyInstance, FastifyContextConfig } from "fastify";
+import { RateLimits } from '../limit_rate';
 
 declare module "fastify" {
   interface FastifyContextConfig {
     rateLimit?: unknown;
   }
 }
-import { RateLimits } from '../limit_rate';
 
 export async function userRoutes(server : FastifyInstance) {
 
@@ -48,30 +48,63 @@ export async function userRoutes(server : FastifyInstance) {
           if (user == null) {
             reply.code(404).send({ error: "User not found" });
             return;
-          }
-          
-          return user;
+        }
+        reply.code(200).send(user);
         }
       });
 
     server.route<{
-        Body: { name: string; email: string; password: string };
-      }>({
+        Querystring: { username: string, password: string }
+        }>({
+        method: 'GET',
+        url: '/login',
+        config: {
+            rateLimit: RateLimits.login,
+        },
+        handler: async (request, reply) => {
+            const { username, password } = request.query;
+            if (!username || !password) {
+                reply.code(400).send({error: "Username and password are required"});
+                return;
+            }
+            const user = await getUserFromHash(username, password);
+            if (user == null) {
+                reply.code(404).send({error: "User not found"});
+                return;
+            }
+            reply.code(200).send(user);
+            }
+        }
+    );
+
+    server.route<{
+        Body: {
+            username: string,
+            password: string
+        }
+        }>({
         method: 'POST',
         url: '/users',
         config: {
-          rateLimit: RateLimits.signup,
+            rateLimit: RateLimits.login,
         },
-        handler: async (request, reply) => {
-          const { name, email, password } = request.body;
-          const user = new User(name, email, password);
-          const req_message = await user.pushUserToDb();
-      
-          req_message === null
-            ? reply.code(201).send({ id: user.id })
-            : reply.code(409).send({ error: req_message });
-        },
-      });
+            handler: async (request, reply) => {
+            const { username, password } = request.body;
+            if (!username || !password) {
+                reply.code(400).send({error: "Username and password are required"});
+                return;
+            }
+            const existingUser = await getUserFromHash(username, password);
+            if (existingUser) {
+                reply.code(409).send({error: "Username already exists"});
+                return;
+            }
+            const user = new User(username, password);
+            user.pushUserToDb();
+            reply.code(201).send({ id: user.id, token : user.token });
+            }
+        }
+    );
 
     server.route<{
         Params: { id: string },

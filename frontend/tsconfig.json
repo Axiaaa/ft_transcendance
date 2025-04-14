@@ -13,7 +13,7 @@
 		"strict": true,
 		// "composite": true    // Décommentez cette ligne
 	},
-	"include": ["ts/**/*.ts"],
+	"include": ["ts/*.ts"],
 	"exclude": ["node_modules"],
 	// "references": [
 	// 	{ "path": "./game" }

@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { sendNotification } from "./notification.js";
-import { getUser } from "./API.js";
+import { getUserById } from "./API.js";
 import { createUser } from "./API.js";
 document.addEventListener('DOMContentLoaded', function () { return __awaiter(void 0, void 0, void 0, function () {
     function animateLogo(Logo) {
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                 document.addEventListener('scroll', resetTimer);
                 // Start the initial timer
                 resetTimer();
-                return [4 /*yield*/, getUser(1)];
+                return [4 /*yield*/, getUserById(1)];
             case 1:
                 CurrentUser = _a.sent();
                 if (!!CurrentUser) return [3 /*break*/, 3];
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                         switch (_a.label) {
                             case 0:
                                 _a.trys.push([0, 2, , 3]);
-                                return [4 /*yield*/, getUser(1)];
+                                return [4 /*yield*/, getUserById(1)];
                             case 1:
                                 user1 = _a.sent();
                                 if (user1) {

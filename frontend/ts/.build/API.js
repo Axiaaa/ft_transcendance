@@ -51,10 +51,10 @@ import { sendNotification } from "./notification.js";
  */
 var API_CONFIG = {
     baseUrl: '/api',
-    credentials: {
-        username: 'admin',
-        password: 'adminpassword'
-    }
+    // credentials: {
+    // 	username: 'admin',
+    // 	password: 'adminpassword'
+    // }
 };
 /*
 New version with environment variables
@@ -74,21 +74,21 @@ const API_CONFIG = {
  */
 function apiFetch(url_1) {
     return __awaiter(this, arguments, void 0, function (url, options) {
-        var credentials, headers, response, error;
+        var headers, response;
         if (options === void 0) { options = {}; }
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    credentials = btoa("".concat(API_CONFIG.credentials.username, ":").concat(API_CONFIG.credentials.password));
-                    headers = __assign({ 'Authorization': "Basic ".concat(credentials), 'Content-Type': 'application/json' }, options.headers);
+                    headers = __assign({ 'Content-Type': 'application/json' }, options.headers);
+                    console.log('API Fetch:', "".concat(API_CONFIG.baseUrl).concat(url), options);
                     return [4 /*yield*/, fetch("".concat(API_CONFIG.baseUrl).concat(url), __assign(__assign({}, options), { headers: headers }))];
                 case 1:
                     response = _a.sent();
-                    if (!response.ok) {
-                        error = new Error("HTTP error! status: ".concat(response.status));
-                        error.status = response.status;
-                        throw error;
-                    }
+                    // if (!response.ok) {
+                    // 	const error = new Error(`HTTP error! status: ${response.status}`);
+                    // 	(error as any).status = response.status;
+                    // 	throw error;
+                    // }
                     return [2 /*return*/, response];
             }
         });
@@ -133,12 +133,13 @@ export function getAllUsers() {
 }
 /**
  * Get user by ID
- * @param userId - User ID to fetch
+ * @param userId - User ID
  * @returns Promise with User object
+ * @throws Will throw an error if the user is not found
  */
-export function getUser(userId) {
+export function getUserById(userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, error_2, errorMessage;
+        var response, error, error_2, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -146,16 +147,57 @@ export function getUser(userId) {
                     return [4 /*yield*/, apiFetch("/users/".concat(userId))];
                 case 1:
                     response = _a.sent();
+                    if (!response.ok) {
+                        error = new Error("HTTP error! status: ".concat(response.status));
+                        error.status = response.status;
+                        throw error;
+                    }
                     return [4 /*yield*/, response.json()];
                 case 2: return [2 /*return*/, _a.sent()];
                 case 3:
                     error_2 = _a.sent();
-                    console.error('Error fetching user:', error_2);
+                    console.error('Error fetching user by ID:', error_2);
                     errorMessage = error_2 instanceof Error ? error_2.message : String(error_2);
+                    if (typeof sendNotification === 'function') {
+                        sendNotification('API Error', "Failed to fetch user by ID: ".concat(errorMessage), './img/Utils/API-icon.png');
+                    }
+                    throw error_2;
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+/**
+ * Get user by username and password
+ * @param username - User's username
+ * @param password - User's password
+ * @returns Promise with User object
+ */
+export function getUser(username, password) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, error, error_3, errorMessage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    return [4 /*yield*/, apiFetch("/users/login?username=".concat(encodeURIComponent(username), "&password=").concat(encodeURIComponent(password)))];
+                case 1:
+                    response = _a.sent();
+                    if (!response.ok) {
+                        error = new Error("HTTP error! status: ".concat(response.status));
+                        error.status = response.status;
+                        throw error;
+                    }
+                    return [4 /*yield*/, response.json()];
+                case 2: return [2 /*return*/, _a.sent()];
+                case 3:
+                    error_3 = _a.sent();
+                    console.error('Error fetching user:', error_3);
+                    errorMessage = error_3 instanceof Error ? error_3.message : String(error_3);
                     if (typeof sendNotification === 'function') {
                         sendNotification('API Error', "Failed to fetch user data: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_2;
+                    throw error_3;
                 case 4: return [2 /*return*/];
             }
         });
@@ -167,7 +209,7 @@ export function getUser(userId) {
  */
 export function getCurrentUser() {
     return __awaiter(this, void 0, void 0, function () {
-        var response, user, error_3, errorMessage;
+        var response, user, error_4, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -184,13 +226,13 @@ export function getCurrentUser() {
                     }
                     return [2 /*return*/, user];
                 case 3:
-                    error_3 = _a.sent();
-                    console.error('Error fetching current user:', error_3);
-                    errorMessage = error_3 instanceof Error ? error_3.message : String(error_3);
+                    error_4 = _a.sent();
+                    console.error('Error fetching current user:', error_4);
+                    errorMessage = error_4 instanceof Error ? error_4.message : String(error_4);
                     if (typeof sendNotification === 'function') {
                         sendNotification('Session Error', "Failed to get current user: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_3;
+                    throw error_4;
                 case 4: return [2 /*return*/];
             }
         });
@@ -205,7 +247,7 @@ export function getCurrentUser() {
 // Create a new user
 export function createUser(userData) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, error_4, conflictMessage, errorMessage;
+        var response, error, error_5, conflictMessage, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -216,24 +258,29 @@ export function createUser(userData) {
                         })];
                 case 1:
                     response = _a.sent();
+                    if (!response.ok) {
+                        error = new Error("HTTP error! status: ".concat(response.status));
+                        error.status = response.status;
+                        throw error;
+                    }
                     return [4 /*yield*/, response.json()];
                 case 2: return [2 /*return*/, _a.sent()];
                 case 3:
-                    error_4 = _a.sent();
-                    console.error('Error creating user:', error_4);
+                    error_5 = _a.sent();
+                    console.error('Error creating user:', error_5);
                     // Handle conflict (user already exists)
-                    if (error_4.status === 409) {
+                    if (error_5.status === 409) {
                         conflictMessage = "User already exists. Please try a different username or email.";
                         if (typeof sendNotification === 'function') {
                             sendNotification('User Creation Error', conflictMessage, './img/Utils/API-icon.png');
                         }
                         throw new Error(conflictMessage);
                     }
-                    errorMessage = error_4 instanceof Error ? error_4.message : String(error_4);
+                    errorMessage = error_5 instanceof Error ? error_5.message : String(error_5);
                     if (typeof sendNotification === 'function') {
                         sendNotification('API Error', "Failed to create user: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_4;
+                    throw error_5;
                 case 4: return [2 /*return*/];
             }
         });
@@ -253,7 +300,7 @@ export function createUser(userData) {
  */
 export function updateUser(userId, userData) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, error_5, errorMessage;
+        var response, error_6, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -267,13 +314,13 @@ export function updateUser(userId, userData) {
                     return [4 /*yield*/, response.json()];
                 case 2: return [2 /*return*/, _a.sent()];
                 case 3:
-                    error_5 = _a.sent();
-                    console.error('Error updating user:', error_5);
-                    errorMessage = error_5 instanceof Error ? error_5.message : String(error_5);
+                    error_6 = _a.sent();
+                    console.error('Error updating user:', error_6);
+                    errorMessage = error_6 instanceof Error ? error_6.message : String(error_6);
                     if (typeof sendNotification === 'function') {
                         sendNotification('API Error', "Failed to update user: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_5;
+                    throw error_6;
                 case 4: return [2 /*return*/];
             }
         });
@@ -286,7 +333,7 @@ export function updateUser(userId, userData) {
  */
 export function deleteUser(userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, error_6, errorMessage;
+        var response, error_7, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -299,13 +346,13 @@ export function deleteUser(userId) {
                     return [4 /*yield*/, response.json()];
                 case 2: return [2 /*return*/, _a.sent()];
                 case 3:
-                    error_6 = _a.sent();
-                    console.error('Error deleting user:', error_6);
-                    errorMessage = error_6 instanceof Error ? error_6.message : String(error_6);
+                    error_7 = _a.sent();
+                    console.error('Error deleting user:', error_7);
+                    errorMessage = error_7 instanceof Error ? error_7.message : String(error_7);
                     if (typeof sendNotification === 'function') {
                         sendNotification('API Error', "Failed to delete user: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_6;
+                    throw error_7;
                 case 4: return [2 /*return*/];
             }
         });
@@ -313,7 +360,7 @@ export function deleteUser(userId) {
 }
 export function getUserByUsername(username) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, users, error_7, errorMessage;
+        var response, users, error_8, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -332,13 +379,13 @@ export function getUserByUsername(username) {
                     }
                     return [3 /*break*/, 4];
                 case 3:
-                    error_7 = _a.sent();
-                    console.error('Error fetching user by username:', error_7);
-                    errorMessage = error_7 instanceof Error ? error_7.message : String(error_7);
+                    error_8 = _a.sent();
+                    console.error('Error fetching user by username:', error_8);
+                    errorMessage = error_8 instanceof Error ? error_8.message : String(error_8);
                     if (typeof sendNotification === 'function') {
                         sendNotification('API Error', "Failed to fetch user by username: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_7;
+                    throw error_8;
                 case 4: return [2 /*return*/];
             }
         });
@@ -346,7 +393,7 @@ export function getUserByUsername(username) {
 }
 export function loginUser(username, password) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, user, error_8, errorMessage;
+        var response, user, error_9, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -365,13 +412,13 @@ export function loginUser(username, password) {
                 case 3: return [2 /*return*/, null];
                 case 4: return [3 /*break*/, 6];
                 case 5:
-                    error_8 = _a.sent();
-                    console.error('Error logging in:', error_8);
-                    errorMessage = error_8 instanceof Error ? error_8.message : String(error_8);
+                    error_9 = _a.sent();
+                    console.error('Error logging in:', error_9);
+                    errorMessage = error_9 instanceof Error ? error_9.message : String(error_9);
                     if (typeof sendNotification === 'function') {
                         sendNotification('Login Error', "Failed to log in: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_8;
+                    throw error_9;
                 case 6: return [2 /*return*/];
             }
         });

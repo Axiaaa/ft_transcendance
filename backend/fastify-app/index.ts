@@ -18,18 +18,32 @@ export const server = fastify({
 });
 
 server.addHook('preHandler', async (req, reply) => {
+  if (req.url === '/api/users' && req.method === 'POST') {
+    return;
+    /// Allow unauthenticated access to user creation
+  }
+
+  if (req.method === 'POST' || req.method === 'DELETE' || req.method === 'PATCH') {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Basic ')) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return reply.code(401).send({ error: 'Unauthorized' });
     }
 
-    if (req.method === 'POST' || req.method === 'PATCH') {
-      try {
-        JSON.parse(JSON.stringify(req.body));
-      } catch (error) {
-        return reply.code(400).send({ error: 'Invalid JSON body' });
-      }
+    const token = authHeader.split(' ')[1];
+    const tokenExists = db.prepare('SELECT 1 FROM tokens WHERE token = ?').get(token);
+
+    if (!tokenExists) {
+      return reply.code(401).send({ error: 'Unauthorized' });
     }
+  }
+  
+  if (req.method === 'POST' || req.method === 'PATCH') {
+    try {
+      JSON.parse(JSON.stringify(req.body));
+    } catch (error) {
+      return reply.code(400).send({ error: 'Invalid JSON body' });
+    }
+  }
 });
 
 
@@ -39,7 +53,7 @@ server.get('/ping', async (request, reply) => {
 
 const start = async () => {
     try {
-        await server.register(rateLimit, {global: false,});
+        await server.register(rateLimit, {global: false});
         await server.register(metrics,{endpoint: '/metrics'});
         await server.register(tournamentRoutes, { prefix: '/api' });
         await server.register(userRoutes, { prefix: '/api' });

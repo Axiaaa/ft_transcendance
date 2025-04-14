@@ -17,4 +17,5 @@ export interface IUser {
     friend_list: Array<number>;
     pending_friend_list: Array<number>;
     font_size: number;
+    token: string;
 }

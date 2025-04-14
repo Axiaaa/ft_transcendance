@@ -1,6 +1,6 @@
 import { send } from "process";
 import { sendNotification } from "./notification.js";
-import { getCurrentUser, updateUser } from "./API.js";
+import { getCurrentUser, getUserById } from "./API.js";
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
 import { create } from "domain";
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// SANDBOX AREA
 	{
-		let CurrentUser = await getUser(1);
+		let CurrentUser = await getUserById(1);
 		if (!CurrentUser) {
 			CurrentUser = await createUser({username: 'Guest', password: 'guest', email: 'guest@guest.com'});
 		}
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
 			try {
 				
-			let user1 = await getUser(1);
+			let user1 = await getUserById(1);
 			if (user1) {
 					sendNotification('User Data', `User ID: ${user1.id}, Username: ${user1.username}, Email: ${user1.email}`, './img/Utils/API-icon.png');
 					console.log("User ID: " + user1.id + " Username: " + user1.username);
