@@ -153,10 +153,10 @@ class Network(keras.Model):
 		return self.model(input, training=training)
 
 	def save_model(self, path):
-		self.model.save(path + ".keras")
+		self.model.save(path, zipped=False)
 
 	def load_model(self, path):
-		self.model = keras.models.load_model(path + ".keras")
+		self.model = keras.models.load_model(path)
 
 class PredictBall():
 	def __init__(self, input_dim, output_dim):
@@ -249,7 +249,6 @@ class PredictBall():
 
 		state = env.get_state()
 		while (1):
-			print(env.paddle_bottom.x, env.paddle_bottom.y)
 			if frame % delay == 0:
 				predict = round(self.predict(state), 2)
 				if env.ball.vy < 0:
@@ -283,7 +282,8 @@ from simple_Pong import Game
 if __name__ == "__main__":
 	env = Game(600, 600, True)
 	predict = PredictBall(4, 1)
-	# predict.train(200000)
-	# predict.model.save_model("final")
-	predict.model.load_model("final")
-	predict.test()
+
+	predict.model.load_model("saving.keras")
+	import tensorflowjs as tfjs
+	tfjs.converters.save_keras_model(predict.model.model, 'network')
+	# keras.Model.save(predict.model.model, "ToConvert.h5", zipped=True)
