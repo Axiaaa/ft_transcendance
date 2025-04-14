@@ -6,7 +6,8 @@ async function uploadFile(userId: number, file: File, fileType: string): Promise
 	const formData = new FormData();
 	formData.append('file', file);
 	try {
-		const reponse = await fetch(`/user_images/${fileType}/${userId}`, {
+		
+		const reponse = await fetch(`/api/user_images/${fileType}/${userId}`, {
 			method: 'POST',
 			body: formData,
 		});

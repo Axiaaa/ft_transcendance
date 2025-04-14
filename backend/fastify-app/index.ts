@@ -5,6 +5,7 @@ import { userRoutes } from "./routes/user";
 import { tournamentRoutes } from "./routes/tournaments";
 import { matchsRoutes } from "./routes/matchs";
 import { keepAliveRoute } from "./routes/keep_alive";
+import { uploadRoutes } from "./routes/upload";
 
 const Port = process.env.PORT || 4321
 const envUser = process.env.API_USERNAME || 'admin'
@@ -47,6 +48,7 @@ const start = async () => {
     try {
         await server.register(metrics,{endpoint: '/metrics'});
         await server.register(tournamentRoutes, { prefix: '/api' });
+        await server.register(uploadRoutes, { prefix: '/api' });
         await server.register(userRoutes, { prefix: '/api' });
         await server.register(matchsRoutes, { prefix: '/api' });
         await server.register(keepAliveRoute, { prefix: '/api' });

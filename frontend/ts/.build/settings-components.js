@@ -46,7 +46,7 @@ function uploadFile(userId, file, fileType) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 7, , 8]);
-                    return [4 /*yield*/, fetch("/user_images/".concat(fileType, "/").concat(userId), {
+                    return [4 /*yield*/, fetch("/api/user_images/".concat(fileType, "/").concat(userId), {
                             method: 'POST',
                             body: formData,
                         })];

@@ -20,6 +20,7 @@ const user_1 = require("./routes/user");
 const tournaments_1 = require("./routes/tournaments");
 const matchs_1 = require("./routes/matchs");
 const keep_alive_1 = require("./routes/keep_alive");
+const upload_1 = require("./routes/upload");
 const Port = process.env.PORT || 4321;
 const envUser = process.env.API_USERNAME || 'admin';
 const envPassword = process.env.API_PASSWORD || 'admin';
@@ -54,6 +55,7 @@ const start = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield exports.server.register(fastify_metrics_1.default, { endpoint: '/metrics' });
         yield exports.server.register(tournaments_1.tournamentRoutes, { prefix: '/api' });
+        yield exports.server.register(upload_1.uploadRoutes, { prefix: '/api' });
         yield exports.server.register(user_1.userRoutes, { prefix: '/api' });
         yield exports.server.register(matchs_1.matchsRoutes, { prefix: '/api' });
         yield exports.server.register(keep_alive_1.keepAliveRoute, { prefix: '/api' });
