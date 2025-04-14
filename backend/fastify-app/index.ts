@@ -15,21 +15,6 @@ export const server = fastify({
     logger: true
 });
 
-<<<<<<< HEAD
-// server.addHook('preHandler', async (req, reply) => {
-//     const authHeader = req.headers.authorization;
-//     if (!authHeader || !authHeader.startsWith('Basic ')) {
-//       return reply.code(401).send({ error: 'Unauthorized' });
-//     }
-  
-//     const base64Credentials = authHeader.split(' ')[1];
-//     const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
-//     const [username, password] = credentials.split(':');
-  
-//     if (username !== envUser || password !== envPassword) {
-//       return reply.code(401).send({ error: 'Unauthorized. Please provid valid credentials' });
-//     }
-=======
 
 
 // const registerRateLimit = async () => {
@@ -64,16 +49,15 @@ server.addHook('preHandler', async (req, reply) => {
     // if (username !== envUser || password !== envPassword) {
     //   return reply.code(401).send({ error: 'Unauthorized. Please provid valid credentials' });
     // }
->>>>>>> main
 
-//     if (req.method === 'POST' || req.method === 'PATCH') {
-//       try {
-//         JSON.parse(JSON.stringify(req.body));
-//       } catch (error) {
-//         return reply.code(400).send({ error: 'Invalid JSON body' });
-//       }
-//     }
-// });
+    if (req.method === 'POST' || req.method === 'PATCH') {
+      try {
+        JSON.parse(JSON.stringify(req.body));
+      } catch (error) {
+        return reply.code(400).send({ error: 'Invalid JSON body' });
+      }
+    }
+});
 
 
 server.get('/ping', async (request, reply) => {
