@@ -1,4 +1,3 @@
-import { Tournament } from "./tournaments";
 
   const withError = (config: { max: number; timeWindow: string }) => ({
     ...config,
