@@ -9,6 +9,6 @@ COPY . .
 RUN mkdir /usr/src/app/db/
 RUN npm install @fastify/rate-limit
 RUN npm run build
-CMD npm start
+CMD ["npm", "start"]
 
 EXPOSE 4321

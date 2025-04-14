@@ -5,10 +5,12 @@ import { userRoutes } from "./routes/user";
 import { tournamentRoutes } from "./routes/tournaments";
 import { matchsRoutes } from "./routes/matchs";
 import rateLimit from '@fastify/rate-limit';
+import { keepAliveRoute } from "./routes/keep_alive";
 
 const Port = process.env.PORT || 4321
 const envUser = process.env.API_USERNAME || 'admin'
 const envPassword = process.env.API_PASSWORD || 'admin'
+export const salt = process.env.SALT || 'salt'
 export const db = new database(`/usr/src/app/db/database.db`)
 
 export const server = fastify({
@@ -74,6 +76,7 @@ const start = async () => {
         await server.register(tournamentRoutes, { prefix: '/api' });
         await server.register(userRoutes, { prefix: '/api' });
         await server.register(matchsRoutes, { prefix: '/api' });
+        await server.register(keepAliveRoute, { prefix: '/api' });
         await server.listen({ port: Number(Port) , host: '0.0.0.0'})
         console.log('Server started sucessfully')
     } catch (err) {

@@ -1,10 +1,11 @@
 import { Match } from "./matchs";
-import { db } from ".";
-import { server } from ".";
+import { server, db, salt } from ".";
 import { getMatchFromDb } from "./matchs";
 import path from "path";
+import { sha256 } from "js-sha256";
 
 export const DEFAULT_AVATAR_URL : string = "https://zizi.fr";
+export const DEFAULT_BACKGROUND_URL : string = "https://zizi.fr";
 
 export class User implements User {
 
@@ -14,12 +15,15 @@ export class User implements User {
     public password: string;
     public is_online: boolean;
     public created_at: Date;
+    public last_login: Date;
     public history: Array<number>;
     public win_nbr: number;
     public loss_nbr: number; 
     public avatar: string;
+    public background: string;
     public friend_list: Array<number>;
     public pending_friend_list: Array<number>;
+    public font_size: number;
 
     constructor(
         username: string,
@@ -30,15 +34,18 @@ export class User implements User {
         this.id = 0; //Id value is only a placeholder, It'll be set in the DB
         this.username = username;
         this.email = email;
-        this.password = password;
+        this.password = sha256.hmac(salt, password);
         this.is_online = false;
         this.created_at = new Date();
+        this.last_login = new Date();
         this.history = new Array<number>();
         this.win_nbr = 0;
         this.loss_nbr = 0;
         this.avatar = DEFAULT_AVATAR_URL;
+        this.background = DEFAULT_BACKGROUND_URL;
         this.friend_list = new Array<number>();
         this.pending_friend_list = new Array<number>();
+        this.font_size = 15;
     }
 
     
@@ -51,23 +58,26 @@ export class User implements User {
         
         try {
             const insertUser = db.prepare(`
-                INSERT INTO users (username, email, password, is_online, created_at, win_nbr, loss_nbr, avatar)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO users (username, email, password, is_online, created_at, win_nbr, loss_nbr, avatar, background, last_login, font_size)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `);
                 
                     db.transaction(() => {
                         
                         const result = insertUser.run(
                             this.username,  
-                    this.email,
-                    this.password,
-                    this.is_online ? 1 : 0,
-                    Number(this.created_at),
-                    this.win_nbr,
-                    this.loss_nbr,
-                    this.avatar
+                            this.email,
+                            this.password,
+                            this.is_online ? 1 : 0,
+                            Number(this.created_at),
+                            this.win_nbr,
+                            this.loss_nbr,
+                            this.avatar,
+                            this.background,
+                            Number(this.last_login),
+                            this.font_size
+                            
                 );
-                
                 const lastId = result.lastInsertRowid as number;
                 this.id = lastId;
                 
@@ -94,7 +104,7 @@ export class User implements User {
         try {
             const updateUser = db.prepare(`
                 UPDATE users 
-                SET username = ?, email = ?, password = ?, is_online = ?, win_nbr = ?, loss_nbr = ?, avatar = ?
+                SET username = ?, email = ?, password = ?, is_online = ?, win_nbr = ?, loss_nbr = ?, avatar = ?, background = ?, last_login = ?, font_size = ?
                 WHERE id = ?
             `);
 
@@ -113,7 +123,10 @@ export class User implements User {
                     this.win_nbr,
                     this.loss_nbr,
                     this.avatar,
-                    this.id
+                    this.background,
+                    Number(this.last_login),
+                    this.font_size,
+                    this.id,
                 );
                 deleteFriends.run(this.id);
                 this.friend_list.forEach(friend_id => {
@@ -209,6 +222,9 @@ export async function getUserFromDb(query: number): Promise<User | null> {
             win_nbr: number;
             loss_nbr: number;
             avatar: string;
+            background: string;
+            last_login: string;
+            font_size: number;
         } | undefined; 
 
         if (!userRow) return null;
@@ -220,6 +236,9 @@ export async function getUserFromDb(query: number): Promise<User | null> {
         user.win_nbr = userRow.win_nbr;
         user.loss_nbr = userRow.loss_nbr;
         user.avatar = userRow.avatar;
+        user.background = userRow.background;
+        user.last_login = new Date(userRow.last_login);
+        user.font_size = userRow.font_size;
         const friends = await getFriendsFromDb(user.id);
         if (friends) user.friend_list = friends.map(f => f.id);
         const pending_friends = await getPendingFriendsListFromDb(user.id)

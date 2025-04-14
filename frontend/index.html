@@ -16,15 +16,7 @@
 	<link rel="stylesheet" href="./css/start-menu.css">
 	<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
 	<!-- Pong Components -->
-	<!-- <script type="importmap">
-		{
-			"imports": {
-				"@babylonjs/core": "https://cdn.jsdelivr.net/npm/@babylonjs/core@6.27.0/+esm",
-				"@babylonjs/loaders": "https://cdn.jsdelivr.net/npm/@babylonjs/loaders@6.27.0/+esm",
-				"@babylonjs/gui": "https://cdn.jsdelivr.net/npm/@babylonjs/gui@6.27.0/+esm"
-			}
-		}
-	</script> -->
+	<!-- 	TODO  -->
 </head>
 <body>
 	<div class="login-screen">
@@ -35,44 +27,44 @@
 					<h4>To begin, click your user name</h4>
 				</div>
 				<div class="login-screen-right">
-					<div class="login-screen-right-profile-box" id="test-profile">
+					<div class="login-screen-right-profile-box go-to-desktop" id="test-profile">
 						<div class="login-screen-right-profile"></div>
 						<img src="./img/Login_Screen/demo-user-profile-icon.jpg" alt="demo-user-profile-icon">
 						<h4>Xxx_D4rkS4suke36_xxX</h4>
 					</div>
-					<div class="login-screen-right-profile-box" id="new-profile">
+					<div class="login-screen-right-profile-box go-to-forms" id="new-profile">
 						<div class="login-screen-right-profile"></div>
 						<img src="./img/Login_Screen/new-profile-icon.png" alt="new-profile">
 						<h4>Sign In / Sign Up</h4>
 					</div>
 					<div class="login-screen-formulary">
-						<div class="login-screen-sign-in">
+						<div class="login-screen-sign-in" id="sign-in">
 							<img src="./img/Login_Screen/new-profile-icon.png" alt="new-profile">
 							<h4>Sign in</h4>
-							<form action="/login" method="post" id ="loginform">
+							<form action="/login" method="post" id="sign-in-form">
 								<div>
-									<input type="text" id="username" name="username" placeholder="Username" required>
+									<input type="text" id="sign-in-username" name="username" placeholder="Username" required>
 								</div>
 								<div>
-									<input type="password" id="password" name="password" placeholder="Password" required>
+									<input type="password" id="sign-in-password" name="password" placeholder="Password" required>
 								</div>
-								<button type="submit">Sign in</button>
+								<button type="submit" id="sign-in-button">Sign in</button>
 							</form>
 						</div>
-						<div class="login-screen-sign-up">
+						<div class="login-screen-sign-up" id="sign-up">
 							<h4>Sign up</h4>
 							<img src="./img/Login_Screen/sign-up-icon.jpg" alt="sign-up-icon">
-							<form action="/signup" method="post">
+							<form action="/signup" method="post" id="sign-up-form">
 								<div>
-									<input type="text" id="newUsername" name="newUsername" placeholder="Username" required>
+									<input type="text" id="sign-up-username" name="newUsername" placeholder="Username" required>
 								</div>
 								<div>
-									<input type="password" id="newPassword" name="newPassword" placeholder="Password" required>
+									<input type="password" id="sign-up-password" name="newPassword" placeholder="Password" required>
 								</div>
 								<div>
-									<input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+									<input type="password" id="sign-up-confirm-password" name="confirmPassword" placeholder="Confirm Password" required>
 								</div>
-								<button type="submit">Sign up</button>
+								<button type="submit" id="sign-up-button">Sign up</button>
 							</form>
 						</div>
 					</div>
@@ -160,7 +152,7 @@
 				<img src="./img/Start_Menu/shutdown-icon.png" alt="shutdown-icon">
 				<h4>Shutdown</h4> 
 			</div>
-			<div class="start-menu-system-button menu-item" id="log-off-button">
+			<div class="start-menu-system-button menu-item go-to-login" id="log-off-button">
 				<img src="./img/Start_Menu/log-off-icon.png" alt="log-off-button">
 				<h4>Log off</h4> 
 			</div>
@@ -178,16 +170,10 @@
 	<div class="app-icon" id="pong-app">
 		<img src="./img/Desktop/pong-game.png" alt="bin" height="60"><p>Play Pong</p>
 	</div>
-	<!-- <div class="app-icon">
-		<img src="./img/friend-social-icon.png" alt="bin" height="60"><p>Friends</p>
-	</div> -->
 	<div class="app-icon" id="settings-app">
 		<img src="./img/Desktop/settings-icon.png" alt="bin" height="60"><p>Settings</p>
 	</div>
 
-	<!-- <div id="particles-js"></div> -->
-	<!-- <script type="module">img/internet-explorer-icon.png
-	</script> -->
 	<script src="./ts/.build/app-icon.js" type="module"></script>
 	<script src="./ts/.build/apps-utils.js" type="module"></script>
 	<script src="./ts/.build/window.js" type="module"></script>
@@ -202,5 +188,6 @@
 	<script src="./ts/.build/pong.js" type="module"></script>
 	<script src="./ts/.build/profile-app.js" type="module"></script>
 	<script src="./ts/.build/social-app.js" type="module"></script>
+	<script src="./ts/.build/API.js" type="module"></script>
 </body>
 </html>

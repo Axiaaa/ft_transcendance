@@ -83,6 +83,9 @@ export async function userRoutes(server : FastifyInstance) {
             avatar?: string,
             win_nbr?: number,
             loss_nbr?: number,
+            background?: string,
+            last_login?: number,
+            font_size?: number
         }
     }>({
         method: 'PATCH',
@@ -91,20 +94,26 @@ export async function userRoutes(server : FastifyInstance) {
             rateLimit: RateLimits.patch_user,
         },
         handler: async (request, reply) => {
-            const { id } = request.params;
-            const { username, email, password, is_online, avatar, win_nbr, loss_nbr } = request.body;
-            let user = await getUserFromDb(Number(id));
-            if (user == null) {
-                reply.code(404).send({error: "User not found"});
-                return;
-            }
-            if (username)   { user.username = username }
-            if (email)      { user.email = email }
-            if (password)   { user.password = password; }
-            if (is_online)  { user.is_online = is_online; }
-            if (avatar)     { user.avatar = avatar; }
-            if (win_nbr)    { user.win_nbr = win_nbr; }
-            if (loss_nbr)   { user.loss_nbr = loss_nbr; }
+
+        const { id } = request.params;
+        const { username, email, password, is_online, avatar, win_nbr, loss_nbr, background, last_login, font_size } = request.body;
+        let user = await getUserFromDb(Number(id));
+        if (user == null) {
+            reply.code(404).send({error: "User not found"});
+            return;
+        }
+        if (username)   { user.username = username }
+        if (email)      { user.email = email }
+        if (password)   { user.password = password; }
+        if (is_online)  { user.is_online = is_online; }
+        if (avatar)     { user.avatar = avatar; }
+        if (win_nbr)    { user.win_nbr = win_nbr; }
+        if (loss_nbr)   { user.loss_nbr = loss_nbr; }
+        if (background) { user.background = background; }
+        if (last_login) { user.last_login = new Date(last_login); }
+        if (font_size)  { 
+            user.font_size = Math.max(10, Math.min(font_size, 20));
+        }
         
             const req_message = await user.updateUserInDb();
             req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });

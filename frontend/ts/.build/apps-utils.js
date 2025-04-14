@@ -14,8 +14,8 @@ function resetEasterEgg(CurrentContent, InternetExplorerWindow, InternetExplorer
         InternetExplorerWindow.style.minHeight = '400px';
         InternetExplorerWindow.style.maxWidth = '100%';
         InternetExplorerWindow.style.maxHeight = '100%';
-        InternetExplorerWindow.style.width = '800px';
-        InternetExplorerWindow.style.height = '600px';
+        InternetExplorerWindow.style.width = '500px';
+        InternetExplorerWindow.style.height = '400px';
         setTimeout(function () {
             InternetExplorerWindow.style.transition = '';
         }, 100);
