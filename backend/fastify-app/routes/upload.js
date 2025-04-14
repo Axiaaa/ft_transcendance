@@ -17,6 +17,8 @@ exports.uploadRoutes = uploadRoutes;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = require("path");
 const user_1 = require("../user");
+const user_2 = require("../user");
+const user_3 = require("../user");
 const VOLUME_DIR = "/server/img_storage/";
 function createDirectory(path) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -28,52 +30,52 @@ function createDirectory(path) {
 ;
 function uploadRoutes(server) {
     return __awaiter(this, void 0, void 0, function* () {
-        server.post('/user_images/:type/:id', (request, reply) => __awaiter(this, void 0, void 0, function* () {
-            reply.code(200);
-            return;
-            // const { id, type } = request.params;
-            // const user = await getUserFromDb(Number(id));
-            // if (user == null) {
-            // 	reply.code(404).send({error: "User not found"});
-            // 	return;
-            // }
-            // const file = request.body.file;
-            // if (!file) {
-            // 	reply.code(400).send({error: "No file provided"});
-            // 	return;
-            // }
-            // if (type !== "avatar" && type !== "wallpaper") {
-            // 	reply.code(400).send({error: "Invalid type"});
-            // 	return;
-            // }
-            // const filePath = join(VOLUME_DIR, `${id}_${type}.png`);
-            // if (type === "avatar") {
-            // 	const user = await getUserFromDb(Number(id));
-            // 	if (user == null) {
-            // 		reply.code(404).send({error: "User not found"});
-            // 		return;
-            // 	}
-            // 	user.avatar = filePath;
-            // 	await updateUserAvatar(user, filePath);
-            // }
-            // else if (type === "wallpaper") {
-            // 	const user = await getUserFromDb(Number(id));
-            // 	if (user == null) {
-            // 		reply.code(404).send({error: "User not found"});
-            // 		return;
-            // 	}
-            // 	user.background = filePath;
-            // 	await updateUserBackground(user, filePath);
-            // }
-            // await createDirectory(VOLUME_DIR);
-            // const bufferdata = await file.toBuffer();
-            // fs.writeFile(filePath, bufferdata, (err) => {
-            // 	if (err) {
-            // 		reply.code(500).send({error: "Failed to save file"});
-            // 		return;
-            // 	}
-            // 	reply.code(200).send({message: "File uploaded successfully"});
-            // });
+        server.post('user_images/:type/:id', (request, reply) => __awaiter(this, void 0, void 0, function* () {
+            // reply.code(200).send({message: "File uploaded successfully"});
+            // return ;
+            const { id, type } = request.params;
+            const user = yield (0, user_1.getUserFromDb)(Number(id));
+            if (user == null) {
+                reply.code(404).send({ error: "User not found" });
+                return;
+            }
+            const file = yield request.file();
+            if (!file) {
+                reply.code(400).send({ error: "No file provided" });
+                return;
+            }
+            if (type !== "avatar" && type !== "wallpaper") {
+                reply.code(400).send({ error: "Invalid type" });
+                return;
+            }
+            const filePath = (0, path_1.join)(VOLUME_DIR, `${id}_${type}.png`);
+            if (type === "avatar") {
+                const user = yield (0, user_1.getUserFromDb)(Number(id));
+                if (user == null) {
+                    reply.code(404).send({ error: "User not found" });
+                    return;
+                }
+                user.avatar = filePath;
+                yield (0, user_2.updateUserAvatar)(user, filePath);
+            }
+            else if (type === "wallpaper") {
+                const user = yield (0, user_1.getUserFromDb)(Number(id));
+                if (user == null) {
+                    reply.code(404).send({ error: "User not found" });
+                    return;
+                }
+                user.background = filePath;
+                yield (0, user_3.updateUserBackground)(user, filePath);
+            }
+            yield createDirectory(VOLUME_DIR);
+            const bufferdata = yield file.toBuffer();
+            fs_1.default.writeFile(filePath, bufferdata, (err) => {
+                if (err) {
+                    reply.code(400).send({ error: "Failed to save file" });
+                    return;
+                }
+            });
+            reply.code(200).send({ message: "File uploaded successfully" });
         }));
         server.get('/user_images/:type/:id', (request, reply) => __awaiter(this, void 0, void 0, function* () {
             const { id, type } = request.params;

@@ -6,6 +6,8 @@ import { tournamentRoutes } from "./routes/tournaments";
 import { matchsRoutes } from "./routes/matchs";
 import { keepAliveRoute } from "./routes/keep_alive";
 import { uploadRoutes } from "./routes/upload";
+import multipart from '@fastify/multipart';
+
 
 const Port = process.env.PORT || 4321
 const envUser = process.env.API_USERNAME || 'admin'
@@ -30,13 +32,13 @@ server.addHook('preHandler', async (req, reply) => {
       return reply.code(401).send({ error: 'Unauthorized. Please provid valid credentials' });
     }
 
-    if (req.method === 'POST' || req.method === 'PATCH') {
-      try {
-        JSON.parse(JSON.stringify(req.body));
-      } catch (error) {
-        return reply.code(400).send({ error: 'Invalid JSON body' });
-      }
-    }
+    // if (req.method === 'POST' || req.method === 'PATCH') {
+    //   try {
+    //     JSON.parse(JSON.stringify(req.body));
+    //   } catch (error) {
+    //     return reply.code(400).send({ error: 'Invalid JSON body' });
+    //   }
+    // }
 });
 
 
@@ -46,9 +48,10 @@ server.get('/ping', async (request, reply) => {
 
 const start = async () => {
     try {
+        await server.register(multipart);
         await server.register(metrics,{endpoint: '/metrics'});
         await server.register(tournamentRoutes, { prefix: '/api' });
-        await server.register(uploadRoutes, { prefix: '/api' });
+        await server.register(uploadRoutes, { prefix: '/api/' });
         await server.register(userRoutes, { prefix: '/api' });
         await server.register(matchsRoutes, { prefix: '/api' });
         await server.register(keepAliveRoute, { prefix: '/api' });

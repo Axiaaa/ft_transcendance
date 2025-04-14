@@ -21,6 +21,7 @@ const tournaments_1 = require("./routes/tournaments");
 const matchs_1 = require("./routes/matchs");
 const keep_alive_1 = require("./routes/keep_alive");
 const upload_1 = require("./routes/upload");
+const multipart_1 = __importDefault(require("@fastify/multipart"));
 const Port = process.env.PORT || 4321;
 const envUser = process.env.API_USERNAME || 'admin';
 const envPassword = process.env.API_PASSWORD || 'admin';
@@ -39,23 +40,23 @@ exports.server.addHook('preHandler', (req, reply) => __awaiter(void 0, void 0, v
     if (username !== envUser || password !== envPassword) {
         return reply.code(401).send({ error: 'Unauthorized. Please provid valid credentials' });
     }
-    if (req.method === 'POST' || req.method === 'PATCH') {
-        try {
-            JSON.parse(JSON.stringify(req.body));
-        }
-        catch (error) {
-            return reply.code(400).send({ error: 'Invalid JSON body' });
-        }
-    }
+    // if (req.method === 'POST' || req.method === 'PATCH') {
+    //   try {
+    //     JSON.parse(JSON.stringify(req.body));
+    //   } catch (error) {
+    //     return reply.code(400).send({ error: 'Invalid JSON body' });
+    //   }
+    // }
 }));
 exports.server.get('/ping', (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
     return 'pong\n';
 }));
 const start = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        yield exports.server.register(multipart_1.default);
         yield exports.server.register(fastify_metrics_1.default, { endpoint: '/metrics' });
         yield exports.server.register(tournaments_1.tournamentRoutes, { prefix: '/api' });
-        yield exports.server.register(upload_1.uploadRoutes, { prefix: '/api' });
+        yield exports.server.register(upload_1.uploadRoutes, { prefix: '/api/' });
         yield exports.server.register(user_1.userRoutes, { prefix: '/api' });
         yield exports.server.register(matchs_1.matchsRoutes, { prefix: '/api' });
         yield exports.server.register(keep_alive_1.keepAliveRoute, { prefix: '/api' });
