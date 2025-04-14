@@ -57,7 +57,7 @@ export async function userRoutes(server : FastifyInstance) {
         Querystring: { username: string, password: string }
         }>({
         method: 'GET',
-        url: '/login',
+        url: '/users/login',
         config: {
             rateLimit: RateLimits.login,
         },
