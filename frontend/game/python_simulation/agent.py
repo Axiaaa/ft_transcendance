@@ -1,6 +1,5 @@
 import tensorflow as tf
 import random
-import keras
 import numpy as np
 import time
 
@@ -138,31 +137,53 @@ class PrioritizedReplayBuffer:
 	def __len__(self):
 		return len(self.tree)
 
-class Network(keras.Model):
+class Network(tf.keras.Model):
 	def __init__(self, input_dim, output_dim):
 		super(Network, self).__init__()
-		self.model = keras.models.Sequential([
-			keras.layers.Input(shape=(input_dim,)),
-			keras.layers.Dense(64, activation='relu'),
-			keras.layers.Dense(128, activation='relu'),
-			keras.layers.Dense(64, activation='relu'),
-			keras.layers.Dense(output_dim)
-			])
+		self.model = tf.keras.models.Sequential()
+		self.model.add(tf.keras.Input(shape=(input_dim,)))
+		self.model.add(tf.keras.layers.Dense(64, activation='relu'))
+		self.model.add(tf.keras.layers.Dense(128, activation='relu'))
+		self.model.add(tf.keras.layers.Dense(64, activation='relu'))
+		self.model.add(tf.keras.layers.Dense(output_dim))
+
+		self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+		self.loss = tf.keras.losses.MeanSquaredError(reduction='none')
+		self.model.compile(optimizer=self.optimizer, loss=self.loss)
 
 	def call(self, input, training=False):
 		return self.model(input, training=training)
 
 	def save_model(self, path):
-		self.model.save(path, zipped=False)
+		self.model.save(path)
 
 	def load_model(self, path):
-		self.model = keras.models.load_model(path)
+		self.model = tf.keras.models.load_model(path)
+
+	def train(self, data):
+		states, targets, weights = data
+
+		with tf.GradientTape() as tape:
+			predictions = self.model(states, training=True)
+			loss_values = self.loss(targets, predictions)
+			weighted_loss = loss_values * weights
+			total_loss = tf.reduce_mean(weighted_loss)
+
+		gradients = tape.gradient(total_loss, self.model.trainable_variables)
+		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+		td_errors = tf.abs(predictions - targets)
+
+		return total_loss, td_errors
+
+	def save_model(self, path):
+		self.model.save(path)
+
+	def load_model(self, path):
+		self.model = tf.keras.models.load_model(path)
 
 class PredictBall():
 	def __init__(self, input_dim, output_dim):
 		self.model = Network(input_dim, output_dim)
-		self.optimizer = keras.optimizers.Adam(learning_rate=0.001)
-		self.loss = keras.losses.MeanSquaredError(reduction='none')
 
 		self.sequence = []
 		self.capacity = 100000
@@ -171,9 +192,14 @@ class PredictBall():
 
 	def normalize_state(self, state):
 		norm_state = []
-		for i in state[0:6]:
-			norm_state.append(round(i+6, 2))
 
+		norm_state.append(state[0] + 6)
+		norm_state.append(state[1] + 6)
+		norm_state.append(state[2] + 6)
+		norm_state.append(state[3] + 6)
+
+		norm_state.append((state[4] + 6))
+		norm_state.append((state[5] + 6))
 		norm_state.append(state[6])
 		norm_state.append(state[7])
 
@@ -203,22 +229,13 @@ class PredictBall():
 		batch = self.buffer.sample()
 		if batch is None:
 			return None
-		state, target, weight = batch
 
-		with tf.GradientTape() as tape:
-			prediction = self.model(state, training=True)
-			loss = self.loss(target, prediction)
-			weighted_loss = loss * weight
-			loss = tf.reduce_mean(weighted_loss)
+		loss, error = self.model.train(batch)
+		self.buffer.update_priorities(error)
 
-		td_errors = tf.abs(prediction - target)
-
-		gradients = tape.gradient(loss, self.model.trainable_variables)
-		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
-		self.buffer.update_priorities(td_errors)
 		return loss.numpy()
 
-	def train(self, epoch):
+	def training(self, epoch):
 		state = env.get_state()
 		total_loss = []
 		for frame in range(epoch):
@@ -229,8 +246,6 @@ class PredictBall():
 				total_loss.append(loss)
 			if (frame+1) % 100 == 0:
 				print(f"Frame: {frame}, Loss: {np.mean(total_loss[-100:]):.4f}")
-			if env.visual and (frame+1) % 50 == 0:
-				env.root.update()
 
 	def predict(self, state):
 		state = self.normalize_state(state)
@@ -280,10 +295,13 @@ class PredictBall():
 from simple_Pong import Game
 
 if __name__ == "__main__":
-	env = Game(600, 600, True)
+	env = Game(600, 600, False)
 	predict = PredictBall(4, 1)
 
-	predict.model.load_model("saving.keras")
-	import tensorflowjs as tfjs
-	tfjs.converters.save_keras_model(predict.model.model, 'network')
-	# keras.Model.save(predict.model.model, "ToConvert.h5", zipped=True)
+	# predict.model.load_model()
+	# predict.test()
+
+	datat = env
+	predict.training(100000)
+	model = predict.model.model
+	model.save('final.h5')

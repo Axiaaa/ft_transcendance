@@ -1,8 +1,7 @@
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
-
-
+import { PongAI } from './pong-ai.js';
 
 // Create the canvas element and append it to the document html
 let globalContainer = document.createElement('div');
@@ -43,14 +42,14 @@ camera.inputs.clear(); // Disable camera controls with arrowLeft and arrowRight
 const updateCanvasSize = () => {
 	const containerWidth = globalContainer.clientWidth;
 	const containerHeight = globalContainer.clientHeight;
-	
+
 	canvas.width = containerWidth;
 	canvas.height = containerHeight;
-	
+
 	// Adjust camera FOV based on aspect ratio
 	const aspectRatio = containerWidth / containerHeight;
 	camera.fov = Math.min(Math.PI / 2, Math.PI / 2 / aspectRatio);
-	
+
 	engine.resize();
 };
 
@@ -70,7 +69,7 @@ const pipeline: BABYLON.DefaultRenderingPipeline = new BABYLON.DefaultRenderingP
 // Enable bloom effect
 pipeline.bloomEnabled = true;
 pipeline.bloomThreshold = 0.8;
-pipeline.bloomKernel = 64;      // Controls blur radius of bloom
+pipeline.bloomKernel = 64;	  // Controls blur radius of bloom
 
 // Define players's color
 const player1Color: BABYLON.Color3 = new BABYLON.Color3(0, 1, 0); // Green
@@ -152,7 +151,7 @@ const circles: BABYLON.Mesh[] = [];
 // Function to create a circle mesh
 function createCircle(x: number, z: number, radius: number = 0.3): BABYLON.Mesh {
 	const circle: BABYLON.Mesh = BABYLON.MeshBuilder.CreateDisc("circle", {
-		radius: radius, tessellation: 64    // Higher = smoother circle
+		radius: radius, tessellation: 64	// Higher = smoother circle
 	}, scene);
 	// Assign material
 	const circleMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("circleMaterial", scene);
@@ -353,13 +352,15 @@ updateScores();
 
 //////////////////////////////// KEYS PRINT ////////////////////////////////
 // Keys creation
-interface KeyConfig {
+interface KeyConfig
+{
 	key: string;
 	side: string;
 	top: string;
 }
 
-const keysPrint: KeyConfig[] = [
+const keysPrint: KeyConfig[] =
+[
 	{ key: "Q", side: "left", top: "25%" },  // Position for Q
 	{ key: "D", side: "left", top: "40%" },  // Position for D
 	{ key: "←", side: "right", top: "25%" }, // Position for ←
@@ -411,11 +412,11 @@ document.head.appendChild(styleKeys);
 document.addEventListener("keydown", (event: KeyboardEvent) => {
 	const key = event.key;
 	const keyElements = document.querySelectorAll(".key-display");
-	
+
 	keyElements.forEach((element: Element) => {
 		const htmlElement = element as HTMLElement;
-		if (htmlElement.textContent?.toUpperCase() === key.toUpperCase() || 
-			(key === "ArrowLeft" && htmlElement.textContent === "←") || 
+		if (htmlElement.textContent?.toUpperCase() === key.toUpperCase() ||
+			(key === "ArrowLeft" && htmlElement.textContent === "←") ||
 			(key === "ArrowRight" && htmlElement.textContent === "→")) {
 			htmlElement.classList.add("key-pressed");
 		}
@@ -425,11 +426,11 @@ document.addEventListener("keydown", (event: KeyboardEvent) => {
 document.addEventListener("keyup", (event: KeyboardEvent) => {
 	const key = event.key;
 	const keyElements = document.querySelectorAll(".key-display");
-	
+
 	keyElements.forEach((element: Element) => {
 		const htmlElement = element as HTMLElement; // Cast to HTMLElement
-		if (htmlElement.textContent?.toUpperCase() === key.toUpperCase() || 
-			(key === "ArrowLeft" && htmlElement.textContent === "←") || 
+		if (htmlElement.textContent?.toUpperCase() === key.toUpperCase() ||
+			(key === "ArrowLeft" && htmlElement.textContent === "←") ||
 			(key === "ArrowRight" && htmlElement.textContent === "→")) {
 			htmlElement.classList.remove("key-pressed");
 		}
@@ -451,12 +452,22 @@ window.addEventListener('keyup', (e: KeyboardEvent) => { if (keys.hasOwnProperty
 // Paddle movement
 let paddleSpeed: number = 0.1;
 const MAX_PADDLE_SPEED = 0.15;
-function movePaddles(): void {
-	if (keys.KeyA && paddle1.position.x < 5) paddle1.position.x += paddleSpeed;
-	if (keys.KeyD && paddle1.position.x > -5) paddle1.position.x -= paddleSpeed;
+const agent1 = new PongAI()
+const agent2 = new PongAI()
 
-	if (keys.ArrowLeft && paddle2.position.x < 5) paddle2.position.x += paddleSpeed;
-	if (keys.ArrowRight && paddle2.position.x > -5) paddle2.position.x -= paddleSpeed;
+function movePaddles(): void
+{
+	let action1 = agent1.getAction(ball, ballSpeed, paddle1, paddleSpeed)
+	if (action1 == 0 && paddle1.position.x < 5)
+		paddle1.position.x += paddleSpeed;
+	if (action1 == 1 && paddle1.position.x > -5)
+		paddle1.position.x -= paddleSpeed;
+
+	let action2 = agent2.getAction(ball, ballSpeed, paddle2, paddleSpeed)
+	if (action2 == 0 && paddle2.position.x < 5)
+		paddle2.position.x += paddleSpeed;
+	if (action2 == 1 && paddle2.position.x > -5)
+		paddle2.position.x -= paddleSpeed;
 }
 
 ////////////////////////////// GOAL EFFECT //////////////////////////////
@@ -570,6 +581,7 @@ function handleKeyPress(event: KeyboardEvent): void {
 		window.removeEventListener('keydown', handleKeyPress);
 	}
 }
+
 function restartGame() {
 	gameIsFinished = false;
 	score1 = 0;
@@ -595,6 +607,7 @@ function checkCollision(): void {
 		ballSpeed.x = speed * Math.sin(bounceAngle);
 		ballSpeed.z = -Math.abs(speed * Math.cos(bounceAngle)); // Ensure ball moves upward
 		numHit++;
+		console.log("REAL:", ball.position.x)
 	}
 	// Paddle2 (purple)
 	if (ball.position.z < -6 && ball.position.z > -7 && Math.abs(ball.position.x - paddle2.position.x) < 1.5) {
@@ -606,6 +619,8 @@ function checkCollision(): void {
 		ballSpeed.x = speed * Math.sin(bounceAngle);
 		ballSpeed.z = Math.abs(speed * Math.cos(bounceAngle)); // Ensure ball moves downward
 		numHit++;
+		console.log("REAL:", ball.position.x)
+		agent1
 	}
 	// Increase speed every 5 hits
 	if (numHit >= 5) {
@@ -648,7 +663,8 @@ function checkCollision(): void {
 
 // Render loop
 engine.runRenderLoop(() => {
-	if (!isPaused && countdownComplete) {
+	if (!isPaused && countdownComplete)
+	{
 		movePaddles();
 		ball.position.x += ballSpeed.x;
 		ball.position.z += ballSpeed.z;
