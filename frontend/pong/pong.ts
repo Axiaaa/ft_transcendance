@@ -79,6 +79,7 @@ let isPaused: boolean = false; // Pause the game after scoring
 let overlay = document.getElementById("overlay") as HTMLDivElement;
 let countdownContainer = document.getElementById("countdown-container")as HTMLDivElement;
 let isTournament: number = 0; // 0 = no tournament, 1 = tournament
+let isLastTournamentMatch = false; // Check if it's the last match of the tournament
 
 let matchEndCallback: ((winner: string) => void) | null = null;
 function onMatchEnd(callback: (winner: string) => void): void {
@@ -300,6 +301,7 @@ let currentPlayer2 = "";
 function startTournamentGame(rounds: string[][]) {
     let currentMatchIndex = 0;
     const winners: string[] = [];
+    isLastTournamentMatch = rounds.length === 1;
 
     function playNextMatch() {
         if (currentMatchIndex >= rounds.length) {
@@ -836,7 +838,8 @@ function endGame(): void {
     gameIsFinished = true;
     document.removeEventListener("keydown", handleKeyPress);
     const winnerText = document.getElementById("winner");
-    if (winnerText) {
+    const isFinal = isTournament === 1 && isLastTournamentMatch;
+    if (winnerText && !isFinal) {
         winnerText.style.display = "block";
         const winnerColor = score1 > 9 ? player1Color.toHexString() : player2Color.toHexString();
         winnerText.style.color = "white";
@@ -845,6 +848,7 @@ function endGame(): void {
     countdownContainer.style.display = "block"; // Hide countdown
     overlay.style.display = "block"; // Show overlay
     setTimeout(() => {
+        if (isFinal) return;
         const restartButton = document.createElement("button-endgame");
         if (isTournament === 1) {
             restartButton.textContent = "Next Match";
@@ -876,7 +880,7 @@ function handleKeyPress(event: KeyboardEvent): void {
 function restartGame(callback?: () => void) {
     gameIsFinished = false;
     score1 = 0;
-    score2 = 0;
+    score2 = 9;
     lastScorer = null;
     isPaused = true;
     const winnerText = document.querySelector("#winner") as HTMLElement;
