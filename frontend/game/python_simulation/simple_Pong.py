@@ -23,7 +23,6 @@ class Ball:
 			self.ball_id = self.canvas.create_oval(scaled_x - scaled_radius, scaled_y - scaled_radius, scaled_x + scaled_radius, scaled_y + scaled_radius, fill=color)
 
 	def tp(self, x, y):
-		x = x - 6.00
 		x, y = self.game_to_canvas(x, y)
 		self.canvas.moveto(self.ball_id, x, y)
 
@@ -281,16 +280,12 @@ class Game:
 
 	def get_state(self):
 		state = [
-			self.paddle_bottom.x,
-			self.paddle_bottom.y,
-			self.paddle_top.x,
-			self.paddle_top.y,
 			self.ball.x,
 			self.ball.y,
 			self.ball.vx,
-			self.ball.vy,
-		]
-		return [round(value, 2) for value in state]
+			self.ball.vy
+			]
+		return state
 
 	def reset(self):
 		self.winner = 0

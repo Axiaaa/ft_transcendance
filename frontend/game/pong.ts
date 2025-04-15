@@ -78,7 +78,7 @@ const player1Color4: BABYLON.Color4 = new BABYLON.Color4(player1Color.r, player1
 const player2Color4: BABYLON.Color4 = new BABYLON.Color4(player2Color.r, player2Color.g, player2Color.b, 1);
 // Game Variables
 let numHit: number = 0; // Number of time the ball has been hit (0 to 5)
-let speedIncrement: number = 0.025; // Speed increase every 5 hits
+let speedIncrement: number = 0.005; // Speed increase every 2 hits
 let ballSpeedReachedMax: boolean = false; // Check if maxSpeed has been reached
 let isPaused: boolean = false; // Pause the game after scoring
 
@@ -314,7 +314,7 @@ ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0); // Yellow
 ballMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
 ball.material = ballMaterial;
 ball.position = new BABYLON.Vector3(0, fieldHeight + 0.2, 0);
-let ballSpeed: {x: number, z: number} = { x: 0, z: 0.05 };
+let ballSpeed: {x: number, z: number} = { x: 0, z: 0.02 };
 let lastScorer: 1 | 2 | null = null;
 const MAX_BALL_SPEED: number = 0.2;
 
@@ -622,8 +622,8 @@ function checkCollision(): void {
 		console.log("REAL:", ball.position.x)
 		agent1
 	}
-	// Increase speed every 5 hits
-	if (numHit >= 5) {
+	// Increase speed every 2 hits
+	if (numHit >= 2) {
 		ballSpeed.x += Math.sign(ballSpeed.x) * speedIncrement; // Horizontaly
 		ballSpeed.z += Math.sign(ballSpeed.z) * speedIncrement; // Verticaly
 		ballSpeed.x = Math.min(Math.abs(ballSpeed.x), MAX_BALL_SPEED) * Math.sign(ballSpeed.x);
