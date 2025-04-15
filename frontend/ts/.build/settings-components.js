@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { sendNotification } from "./notification.js";
 import { updateUser } from "./API.js";
+import { getUserAvatar, uploadFile } from "./API.js";
 document.addEventListener('DOMContentLoaded', function () {
     var _a;
     var categoryContainer = document.getElementById('settings-app-category-container');
@@ -277,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     case 0:
                         file = (_a = e.target.files) === null || _a === void 0 ? void 0 : _a[0];
                         if (!file) return [3 /*break*/, 3];
-                        return [4 /*yield*/, uploadFile(1, file, 'avatar')];
+                        return [4 /*yield*/, uploadFile(Number(sessionStorage.getItem('wxp_user_id')), file, 'avatar')];
                     case 1:
                         _b.sent();
                         return [4 /*yield*/, getUserAvatar(1)];

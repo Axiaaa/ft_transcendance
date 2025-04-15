@@ -439,10 +439,11 @@ export function uploadFile(userId, file, fileType) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 7, , 8]);
-                    return [4 /*yield*/, fetch("".concat(API_CONFIG.baseUrl, "/user_images/").concat(fileType, "/").concat(userId), {
+                    return [4 /*yield*/, apiFetch("/user_images/".concat(fileType, "/").concat(userId), {
                             method: 'POST',
                             body: formData
-                            // Note: Don't set Content-Type for FormData, browser will set it with boundary
+                            // Note: When using FormData, browser will set the correct Content-Type with boundary
+                            // Even though apiFetch sets application/json, the browser should override it
                         })];
                 case 2:
                     response = _a.sent();

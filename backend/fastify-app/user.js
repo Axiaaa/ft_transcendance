@@ -152,12 +152,17 @@ class User {
 exports.User = User;
 async function getUserFromDb(query) {
     try {
-        const sqlRequest = "SELECT * FROM users WHERE id = ?";
-        const userRow = _1.db.prepare(sqlRequest).get(query);
+        const conditions = Object.keys(query)
+            .map(key => `${key} = ?`)
+            .join(" AND ");
+        const values = Object.values(query);
+        const sqlRequest = `SELECT * FROM users WHERE ${conditions}`;
+        const userRow = _1.db.prepare(sqlRequest).get(...values);
         if (!userRow)
             return null;
         let user = new User(userRow.username, userRow.password);
         user.id = userRow.id;
+        user.password = userRow.password;
         user.is_online = userRow.is_online === 1;
         user.created_at = new Date(userRow.created_at);
         user.win_nbr = userRow.win_nbr;
@@ -190,7 +195,7 @@ async function getFriendsFromDb(userId) {
         const friendsRow = _1.db.prepare(sqlRequest).all(userId);
         const users = new Array();
         for (const friend of friendsRow) {
-            const user = await getUserFromDb(friend.friend_id);
+            const user = await getUserFromDb({ id: friend.friend_id });
             if (user)
                 users.push(user);
         }
@@ -207,7 +212,7 @@ async function getPendingFriendsListFromDb(userId) {
         const friendsRow = _1.db.prepare(sqlRequest).all(userId);
         const users = new Array();
         for (const friend of friendsRow) {
-            const user = await getUserFromDb(friend.friend_id);
+            const user = await getUserFromDb({ id: friend.friend_id });
             if (user)
                 users.push(user);
         }
@@ -219,7 +224,7 @@ async function getPendingFriendsListFromDb(userId) {
     }
 }
 async function updateUserAvatar(user, filePath) {
-    const userFromDb = await getUserFromDb(user.id);
+    const userFromDb = await getUserFromDb({ id: user.id });
     if (userFromDb == null) {
         return "User not found";
     }
@@ -228,7 +233,7 @@ async function updateUserAvatar(user, filePath) {
     return req_message;
 }
 async function updateUserBackground(user, filePath) {
-    const userFromDb = await getUserFromDb(user.id);
+    const userFromDb = await getUserFromDb({ id: user.id });
     if (userFromDb == null) {
         return "User not found";
     }

@@ -8,11 +8,9 @@ const fastify_1 = __importDefault(require("fastify"));
 const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
 const fastify_metrics_1 = __importDefault(require("fastify-metrics"));
 const user_1 = require("./routes/user");
-const tournaments_1 = require("./routes/tournaments");
 const matchs_1 = require("./routes/matchs");
 const rate_limit_1 = __importDefault(require("@fastify/rate-limit"));
 const keep_alive_1 = require("./routes/keep_alive");
-const upload_1 = require("./routes/upload");
 const multipart_1 = __importDefault(require("@fastify/multipart"));
 const Port = process.env.PORT || 4321;
 const envUser = process.env.API_USERNAME || 'admin';
@@ -31,7 +29,14 @@ exports.server.addHook('preHandler', async (req, reply) => {
     if (!authHeader || !authHeader.startsWith('Bearer '))
         return reply.code(401).send({ error: 'Unauthorized' });
     const token = authHeader.split(' ')[1];
-    const tokenExists = exports.db.prepare('SELECT 1 FROM tokens WHERE token = ?').get(token);
+    let tokenExists;
+    try {
+        tokenExists = exports.db.prepare('SELECT * FROM users WHERE token = ?').get(token);
+    }
+    catch (error) {
+        exports.server.log.error('Database query failed:', error);
+        return reply.code(500).send({ error: 'Internal Server Error' });
+    }
     if (!tokenExists) {
         return reply.code(401).send({ error: 'Unauthorized' });
     }
@@ -52,8 +57,6 @@ const start = async () => {
         await exports.server.register(multipart_1.default);
         await exports.server.register(rate_limit_1.default, { global: false });
         await exports.server.register(fastify_metrics_1.default, { endpoint: '/metrics' });
-        await exports.server.register(tournaments_1.tournamentRoutes, { prefix: '/api' });
-        await exports.server.register(upload_1.uploadRoutes, { prefix: '/api/' });
         await exports.server.register(user_1.userRoutes, { prefix: '/api' });
         await exports.server.register(matchs_1.matchsRoutes, { prefix: '/api' });
         await exports.server.register(keep_alive_1.keepAliveRoute, { prefix: '/api' });

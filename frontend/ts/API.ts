@@ -326,10 +326,11 @@ export async function uploadFile(userId: number, file: File, fileType: string): 
 	formData.append('file', file);
 	
 	try {
-		const response = await fetch(`${API_CONFIG.baseUrl}/user_images/${fileType}/${userId}`, {
+		const response = await apiFetch(`/user_images/${fileType}/${userId}`, {
 			method: 'POST',
 			body: formData
-			// Note: Don't set Content-Type for FormData, browser will set it with boundary
+			// Note: When using FormData, browser will set the correct Content-Type with boundary
+			// Even though apiFetch sets application/json, the browser should override it
 		});
 		
 		if (response.ok) {

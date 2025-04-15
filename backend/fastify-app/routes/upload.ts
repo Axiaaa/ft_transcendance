@@ -22,7 +22,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 	server.post<{ Params: { id: string, type: string}, Body: { file: MultipartFile } }>('user_images/:type/:id', async (request, reply) => {
 		console.log("uploading file");
 		const { id, type } = request.params;
-		const user = await getUserFromDb(Number(id));
+		const user = await getUserFromDb({ id: Number(id) });
 		if (user == null) {
 			reply.code(404).send({error: "User not found"});
 			return;
@@ -39,7 +39,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
 		const frontFilePath = join(FRONT_VOLUME_DIR, `${id}_${type}.png`);
 		if (type === "avatar") {
-			const user = await getUserFromDb(Number(id));
+			const user = await getUserFromDb({ id: Number(id) });
 			if (user == null) {
 				reply.code(404).send({error: "User not found"});
 				return;
@@ -48,7 +48,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 			await updateUserAvatar(user, frontFilePath);
 		}
 		else if (type === "wallpaper") {
-			const user = await getUserFromDb(Number(id));
+			const user = await getUserFromDb({ id: Number(id) });
 			if (user == null) {
 				reply.code(404).send({error: "User not found"});
 				return;
@@ -70,7 +70,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 	server.get<{ Params: { id: string, type: string } }>('/user_images/:type/:id', async (request, reply) => {
 		console.log("get user image");
 		const { id, type } = request.params;
-		const user = await getUserFromDb(Number(id));
+		const user = await getUserFromDb({ id: Number(id) });
 		if (user == null) {
 			reply.code(404).send({error: "User not found"});
 			return;
@@ -87,7 +87,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 	server.delete<{ Params: { id: string, type: string } }>('/user_images/:type/:id', async (request, reply) => {
 		console.log("delete user image");
 		const { id, type } = request.params;
-		const user = await getUserFromDb(Number(id));
+		const user = await getUserFromDb({ id: Number(id) });
 		if (user == null) {
 			reply.code(404).send({error: "User not found"});
 			return;

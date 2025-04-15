@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		fileInput.onchange = async (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
-				await uploadFile(1, file, 'avatar');
+				await uploadFile(Number(sessionStorage.getItem('wxp_user_id')), file, 'avatar');
 				let newAvatar = await getUserAvatar(1);
 				if (newAvatar)
 				{

@@ -98,17 +98,17 @@ async function getMatchFromDb(id) {
         match.created_at = new Date(matchRow.created_at);
         match.tournament_id = matchRow.tournament_id;
         if (matchRow.winner != null) {
-            if (await (0, user_1.getUserFromDb)(Number(matchRow.winner)) == null) {
+            if (await (0, user_1.getUserFromDb)({ id: Number(matchRow.winner) }) == null) {
                 match.winner = "Deleted user";
             }
             else {
                 match.winner = matchRow.winner;
             }
         }
-        if (await (0, user_1.getUserFromDb)(Number(matchRow.player1)) == null) {
+        if (await (0, user_1.getUserFromDb)({ id: Number(matchRow.player1) }) == null) {
             match.player1 = "Deleted user";
         }
-        if (await (0, user_1.getUserFromDb)(Number(matchRow.player2)) == null) {
+        if (await (0, user_1.getUserFromDb)({ id: Number(matchRow.player2) }) == null) {
             match.player2 = "Deleted user";
         }
         if (match.player1 === "Deleted user" && match.player2 === "Deleted user") {

@@ -301,7 +301,7 @@ export async function getPendingFriendsListFromDb(userId: number): Promise<Array
 }
 
 export  async function updateUserAvatar(user: User, filePath: string) : Promise<string | null> {
-    const userFromDb = await getUserFromDb(user.id);
+    const userFromDb = await getUserFromDb({ id: user.id });
     if (userFromDb == null) {
         return "User not found";
     }
@@ -311,7 +311,7 @@ export  async function updateUserAvatar(user: User, filePath: string) : Promise<
 }
 
 export async function updateUserBackground(user: User, filePath: string) : Promise<string | null> {
-    const userFromDb = await getUserFromDb(user.id);
+    const userFromDb = await getUserFromDb({ id: user.id });
     if (userFromDb == null) {
         return "User not found";
     }
