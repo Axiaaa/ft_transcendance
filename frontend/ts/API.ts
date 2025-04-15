@@ -76,36 +76,6 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
 	return response;
 }
 
-/**
- * Fetch function with authentication but without API base URL
- * @param url - Full URL endpoint
- * @param options - Fetch options
- * @returns Promise with response
- */
-async function backFetch(url: string, options: RequestInit = {}): Promise<Response> {
-	const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
-	
-	const headers = {
-		'Authorization': `Basic ${credentials}`,
-		'Content-Type': 'application/json',
-		...options.headers
-	};
-
-	const response = await fetch(url, {
-		...options,
-		headers
-	});
-	
-	if (!response.ok) {
-		const error = new Error(`HTTP error! status: ${response.status}`);
-		(error as any).status = response.status;
-		throw error;
-	}
-	
-	return response;
-}
-
-
 
 /**
  * Fetches all users from the API.
@@ -348,21 +318,15 @@ export async function loginUser(username: string, password: string): Promise<Use
 		throw error;
 	}
 }
-
 export async function uploadFile(userId: number, file: File, fileType: string): Promise<Response | null> {
 	const formData = new FormData();
 	formData.append('file', file);
 	
 	try {
-		const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
-		
 		const response = await fetch(`${API_CONFIG.baseUrl}/user_images/${fileType}/${userId}`, {
 			method: 'POST',
-			body: formData,
-			headers: {
-				'Authorization': `Basic ${credentials}`
-				// Note: Don't set Content-Type for FormData, browser will set it with boundary
-			}
+			body: formData
+			// Note: Don't set Content-Type for FormData, browser will set it with boundary
 		});
 		
 		if (response.ok) {
