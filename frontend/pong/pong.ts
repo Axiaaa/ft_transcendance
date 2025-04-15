@@ -78,6 +78,12 @@ let ballSpeedReachedMax: boolean = false; // Check if maxSpeed has been reached
 let isPaused: boolean = false; // Pause the game after scoring
 let overlay = document.getElementById("overlay") as HTMLDivElement;
 let countdownContainer = document.getElementById("countdown-container")as HTMLDivElement;
+let isTournament: number = 0; // 0 = no tournament, 1 = tournament
+
+let matchEndCallback: ((winner: string) => void) | null = null;
+function onMatchEnd(callback: (winner: string) => void): void {
+    matchEndCallback = callback;
+}
 
 ////////////////////////////// ECHAP //////////////////////////////
 // Creation of the Pause Menu
@@ -151,6 +157,8 @@ function startGame(): void {
 function startCountdown(callback: () => void): void {
     menu.style.display = "none"; // Hide menu
     countdownContainer.style.display = "block"; // Print the countdown
+    countdownElement.style.opacity = "1";
+    goElement.style.opacity = "0";
     let count = 3;
     countdownElement.textContent = count.toString();
     function updateCountdown(): void {
@@ -160,6 +168,7 @@ function startCountdown(callback: () => void): void {
             setTimeout(updateCountdown, 1000);
         } else {
             countdownElement.style.opacity = "0";
+            goElement.style.display = "block";
             goElement.style.opacity = "1"; // Print GO!
             goElement.style.animation = "goFlash 2s ease-out forwards";
             setTimeout(() => {
@@ -196,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
         playerCountSelector.addEventListener('click', function (e) {
             const target = e.target as HTMLElement;
             const count = parseInt(target.dataset.count || "");
+            continueButton.style.display = 'none';
 
             if (count === 4 || count === 8) {
                 playerInputs.innerHTML = "";
@@ -232,13 +242,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const playerNames: string[] = Array.from(allInputs).map(input => input.value.trim());
 
             if (playerNames.length === 4 || playerNames.length === 8) {
-                launchTournament(playerNames);
+                showTournament(playerNames);
             }
         });
     }
 });
 
-function launchTournament(players: string[]) {
+function showTournament(players: string[]) {
     // Shuffle the players
     const shuffled = players.sort(() => Math.random() - 0.5);
     // Create match pairs
@@ -284,7 +294,69 @@ function launchTournament(players: string[]) {
     }
 }
 
+let currentPlayer1 = "";
+let currentPlayer2 = "";
+
 function startTournamentGame(rounds: string[][]) {
+    let currentMatchIndex = 0;
+    const winners: string[] = [];
+
+    function playNextMatch() {
+        if (currentMatchIndex >= rounds.length) {
+            if (winners.length === 1) {
+                alert(`🏆 ${winners[0]} remporte le tournoi !`);
+                return;
+            }
+            startTournamentGame(pairWinners(winners));
+            return;
+        }
+        const [player1, player2] = rounds[currentMatchIndex];
+        currentPlayer1 = player1;
+        currentPlayer2 = player2;
+        showMatchInfo(player1, player2);
+        startCountdown(() => {
+            isTournament = 1;
+            startGame();
+            onMatchEnd((winner: string) => {
+                winners.push(winner);
+                currentMatchIndex++;
+                playNextMatch();
+            });
+        });
+    }
+    playNextMatch();
+}
+
+function pairWinners(players: string[]): string[][] {
+    const shuffled = players.sort(() => Math.random() - 0.5);
+    const rounds: string[][] = [];
+    for (let i = 0; i < shuffled.length; i += 2) {
+        rounds.push([shuffled[i], shuffled[i + 1]]);
+    }
+    return rounds;
+}
+
+// Change color babylon to css
+function color3ToCSS(color: BABYLON.Color3): string {
+    const r = Math.round(color.r * 255);
+    const g = Math.round(color.g * 255);
+    const b = Math.round(color.b * 255);
+    return `rgb(${r}, ${g}, ${b})`;
+}
+// Show who is playing 
+function showMatchInfo(player1: string, player2: string) {
+    const matchInfo = document.getElementById("match-info");
+    if (!matchInfo) return;
+
+    const cssColor1 = color3ToCSS(player1Color);
+    const cssColor2 = color3ToCSS(player2Color);
+
+    matchInfo.innerHTML = `
+        <span style="color: ${cssColor1}; text-shadow: 0 0 5px ${cssColor1}; font-weight: bold;">${player1}</span>
+        <span style="color: white; text-shadow: 0 0 5px white; font-size: 24px;"> vs </span>
+        <span style="color: ${cssColor2}; margin-left: 5px; text-shadow: 0 0 5px ${cssColor2}; font-weight: bold;">${player2}</span>
+    `;
+    matchInfo.style.display = "block";
 }
 
 ////////////////////////////// FIELD //////////////////////////////
@@ -770,11 +842,26 @@ function endGame(): void {
         winnerText.style.color = "white";
         winnerText.style.textShadow = `0 0 5px ${winnerColor}, 0 0 10px ${winnerColor}, 0 0 20px ${winnerColor}`;
     }
-
+    countdownContainer.style.display = "block"; // Hide countdown
+    overlay.style.display = "block"; // Show overlay
     setTimeout(() => {
         const restartButton = document.createElement("button-endgame");
-        restartButton.textContent = "Restart Game";
-        restartButton.onclick = restartGame;
+        if (isTournament === 1) {
+            restartButton.textContent = "Next Match";
+            restartButton.onclick = () => {
+                const winnerName = score1 > 9 ? currentPlayer1 : currentPlayer2;
+                if (matchEndCallback) {
+                    matchEndCallback(winnerName);
+                    matchEndCallback = null; // Reset to avoid multiple calls
+                }
+                restartGame(() => {
+                    startGame();
+                });
+            };
+        } else {
+            restartButton.textContent = "Restart Game";
+            restartButton.onclick = () => restartGame(() => startGame());
+        }
         document.body.appendChild(restartButton);
     }, 2500);
 }
@@ -786,20 +873,23 @@ function handleKeyPress(event: KeyboardEvent): void {
         window.removeEventListener('keydown', handleKeyPress);
     }
 }
-function restartGame() {
+function restartGame(callback?: () => void) {
     gameIsFinished = false;
     score1 = 0;
     score2 = 0;
     lastScorer = null;
     isPaused = true;
-    reset();
-    document.removeEventListener("keydown", handleKeyPress);
-    document.addEventListener("keydown", handleKeyPress);
-    const restartButton = document.querySelector("button-endgame");
-    if (restartButton) restartButton.remove();
     const winnerText = document.querySelector("#winner") as HTMLElement;
     if(winnerText) winnerText.style.display = "none";
+    const restartButton = document.querySelector("button-endgame");
+    if (restartButton) restartButton.remove();
+    reset();
     updateScores();
+    document.removeEventListener("keydown", handleKeyPress);
+    document.addEventListener("keydown", handleKeyPress);
+    startCountdown(() => {
+        if (callback) callback(); // Launch what we want after the countdown
+    });
 }
 
 //////////////////////////////// MOUSE LEAVE ////////////////////////////////
