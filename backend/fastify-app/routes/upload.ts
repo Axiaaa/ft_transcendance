@@ -8,7 +8,8 @@ import { User } from "../user";
 import { updateUserAvatar } from "../user";
 import { updateUserBackground } from "../user";
 
-const VOLUME_DIR = "/server/img_storage/"
+const BACK_VOLUME_DIR = "/server/img_storage/"
+const FRONT_VOLUME_DIR = "/user_images/"
 
 export async function createDirectory(path: string) {
 	if (!fs.existsSync(path)) {
@@ -19,8 +20,7 @@ export async function createDirectory(path: string) {
 export async function uploadRoutes(server: FastifyInstance) {
 
 	server.post<{ Params: { id: string, type: string}, Body: { file: MultipartFile } }>('user_images/:type/:id', async (request, reply) => {
-		// reply.code(200).send({message: "File uploaded successfully"});
-		// return ;
+		console.log("uploading file");
 		const { id, type } = request.params;
 		const user = await getUserFromDb(Number(id));
 		if (user == null) {
@@ -36,15 +36,16 @@ export async function uploadRoutes(server: FastifyInstance) {
 			reply.code(400).send({error: "Invalid type"});
 			return;
 		}
-		const filePath = join(VOLUME_DIR, `${id}_${type}.png`);
+		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
+		const frontFilePath = join(FRONT_VOLUME_DIR, `${id}_${type}.png`);
 		if (type === "avatar") {
 			const user = await getUserFromDb(Number(id));
 			if (user == null) {
 				reply.code(404).send({error: "User not found"});
 				return;
 			}
-			user.avatar = filePath;
-			await updateUserAvatar(user, filePath);
+			user.avatar = frontFilePath;
+			await updateUserAvatar(user, frontFilePath);
 		}
 		else if (type === "wallpaper") {
 			const user = await getUserFromDb(Number(id));
@@ -52,10 +53,10 @@ export async function uploadRoutes(server: FastifyInstance) {
 				reply.code(404).send({error: "User not found"});
 				return;
 			}
-			user.background = filePath;
-			await updateUserBackground(user, filePath);
+			user.background = frontFilePath;
+			await updateUserBackground(user, frontFilePath);
 		}
-		await createDirectory(VOLUME_DIR);
+		await createDirectory(BACK_VOLUME_DIR);
 		const bufferdata = await file.toBuffer();
 		fs.writeFile(filePath, bufferdata, (err) => {
 			if (err) {
@@ -67,28 +68,32 @@ export async function uploadRoutes(server: FastifyInstance) {
 	});
 
 	server.get<{ Params: { id: string, type: string } }>('/user_images/:type/:id', async (request, reply) => {
+		console.log("get user image");
 		const { id, type } = request.params;
 		const user = await getUserFromDb(Number(id));
 		if (user == null) {
 			reply.code(404).send({error: "User not found"});
 			return;
 		}
-		const filePath = join(VOLUME_DIR, `${id}_${type}.png`);
+		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
+		const fileFrontPath = join(FRONT_VOLUME_DIR, `${id}_${type}.png`);
 		if (!fs.existsSync(filePath)) {
 			reply.code(404).send({error: "File not found"});
 			return;
 		}
-		reply.code(200).send(filePath);
+		reply.code(200).send(fileFrontPath);
 	});
 
 	server.delete<{ Params: { id: string, type: string } }>('/user_images/:type/:id', async (request, reply) => {
+		console.log("delete user image");
 		const { id, type } = request.params;
 		const user = await getUserFromDb(Number(id));
 		if (user == null) {
 			reply.code(404).send({error: "User not found"});
 			return;
 		}
-		const filePath = join(VOLUME_DIR, `${id}_${type}.png`);
+		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
+		const frontFilePath = join(FRONT_VOLUME_DIR, `${id}_${type}.png`);
 		if (!fs.existsSync(filePath)) {
 			reply.code(404).send({error: "File not found"});
 			return;

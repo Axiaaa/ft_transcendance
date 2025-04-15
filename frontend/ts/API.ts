@@ -39,7 +39,6 @@ const API_CONFIG = {
 	}
 };
 */
-
 /**
  * Base fetch function with authentication
  * @param url - API endpoint
@@ -56,6 +55,35 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
 	};
 
 	const response = await fetch(`${API_CONFIG.baseUrl}${url}`, {
+		...options,
+		headers
+	});
+	
+	if (!response.ok) {
+		const error = new Error(`HTTP error! status: ${response.status}`);
+		(error as any).status = response.status;
+		throw error;
+	}
+	
+	return response;
+}
+
+/**
+ * Fetch function with authentication but without API base URL
+ * @param url - Full URL endpoint
+ * @param options - Fetch options
+ * @returns Promise with response
+ */
+async function backFetch(url: string, options: RequestInit = {}): Promise<Response> {
+	const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
+	
+	const headers = {
+		'Authorization': `Basic ${credentials}`,
+		'Content-Type': 'application/json',
+		...options.headers
+	};
+
+	const response = await fetch(url, {
 		...options,
 		headers
 	});
@@ -313,7 +341,8 @@ export async function uploadFile(userId: number, file: File, fileType: string): 
 export async function getUserAvatar(userId: number): Promise<string> {
 	try {
 		const response = await apiFetch(`/user_images/avatar/${userId}`);
-		
+		console.log("Get user " + userId + " avatar");
+		console.log("Response: ", response);
 		// Check if response is successful
 		if (!response.ok) {
 			throw new Error(`Failed to fetch avatar: ${response.status}`);

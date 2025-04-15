@@ -298,17 +298,17 @@ document.addEventListener('DOMContentLoaded', () => {
 		fileInput.onchange = async (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
-				uploadFile(1, file, 'avatar');
+				await uploadFile(1, file, 'avatar');
 				let newAvatar = await getUserAvatar(1);
 				if (newAvatar)
 				{
 					console.log("New avatar URL: ", newAvatar);
 					currentAvatarPreview.src = newAvatar;
-					currentAvatarName.textContent = file.name;
+					currentAvatarName.textContent = newAvatar.split('/').pop() || 'default.jpg';
 				}
 				// currentAvatarName.textContent = file.name;
 				// currentAvatarPreview.src = URL.createObjectURL(file);
-				sendNotification('Avatar Changed', `Avatar changed to ${file.name}`, "./img/Utils/profile-icon.png");
+				sendNotification('Avatar Changed', `Avatar changed to ${newAvatar}`, "./img/Utils/profile-icon.png");
 			}
 			else {
 				sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");

@@ -276,24 +276,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 switch (_b.label) {
                     case 0:
                         file = (_a = e.target.files) === null || _a === void 0 ? void 0 : _a[0];
-                        if (!file) return [3 /*break*/, 2];
-                        uploadFile(1, file, 'avatar');
-                        return [4 /*yield*/, getUserAvatar(1)];
+                        if (!file) return [3 /*break*/, 3];
+                        return [4 /*yield*/, uploadFile(1, file, 'avatar')];
                     case 1:
+                        _b.sent();
+                        return [4 /*yield*/, getUserAvatar(1)];
+                    case 2:
                         newAvatar = _b.sent();
                         if (newAvatar) {
                             console.log("New avatar URL: ", newAvatar);
                             currentAvatarPreview_1.src = newAvatar;
-                            currentAvatarName_1.textContent = file.name;
+                            currentAvatarName_1.textContent = newAvatar.split('/').pop() || 'default.jpg';
                         }
                         // currentAvatarName.textContent = file.name;
                         // currentAvatarPreview.src = URL.createObjectURL(file);
-                        sendNotification('Avatar Changed', "Avatar changed to ".concat(file.name), "./img/Utils/profile-icon.png");
-                        return [3 /*break*/, 3];
-                    case 2:
+                        sendNotification('Avatar Changed', "Avatar changed to ".concat(newAvatar), "./img/Utils/profile-icon.png");
+                        return [3 /*break*/, 4];
+                    case 3:
                         sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
-                        _b.label = 3;
-                    case 3: return [2 /*return*/];
+                        _b.label = 4;
+                    case 4: return [2 /*return*/];
                 }
             });
         }); };

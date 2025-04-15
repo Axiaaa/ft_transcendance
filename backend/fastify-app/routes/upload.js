@@ -19,7 +19,8 @@ const path_1 = require("path");
 const user_1 = require("../user");
 const user_2 = require("../user");
 const user_3 = require("../user");
-const VOLUME_DIR = "/server/img_storage/";
+const BACK_VOLUME_DIR = "/server/img_storage/";
+const FRONT_VOLUME_DIR = "/user_images/";
 function createDirectory(path) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!fs_1.default.existsSync(path)) {
@@ -31,8 +32,7 @@ function createDirectory(path) {
 function uploadRoutes(server) {
     return __awaiter(this, void 0, void 0, function* () {
         server.post('user_images/:type/:id', (request, reply) => __awaiter(this, void 0, void 0, function* () {
-            // reply.code(200).send({message: "File uploaded successfully"});
-            // return ;
+            console.log("uploading file");
             const { id, type } = request.params;
             const user = yield (0, user_1.getUserFromDb)(Number(id));
             if (user == null) {
@@ -48,15 +48,16 @@ function uploadRoutes(server) {
                 reply.code(400).send({ error: "Invalid type" });
                 return;
             }
-            const filePath = (0, path_1.join)(VOLUME_DIR, `${id}_${type}.png`);
+            const filePath = (0, path_1.join)(BACK_VOLUME_DIR, `${id}_${type}.png`);
+            const frontFilePath = (0, path_1.join)(FRONT_VOLUME_DIR, `${id}_${type}.png`);
             if (type === "avatar") {
                 const user = yield (0, user_1.getUserFromDb)(Number(id));
                 if (user == null) {
                     reply.code(404).send({ error: "User not found" });
                     return;
                 }
-                user.avatar = filePath;
-                yield (0, user_2.updateUserAvatar)(user, filePath);
+                user.avatar = frontFilePath;
+                yield (0, user_2.updateUserAvatar)(user, frontFilePath);
             }
             else if (type === "wallpaper") {
                 const user = yield (0, user_1.getUserFromDb)(Number(id));
@@ -64,10 +65,10 @@ function uploadRoutes(server) {
                     reply.code(404).send({ error: "User not found" });
                     return;
                 }
-                user.background = filePath;
-                yield (0, user_3.updateUserBackground)(user, filePath);
+                user.background = frontFilePath;
+                yield (0, user_3.updateUserBackground)(user, frontFilePath);
             }
-            yield createDirectory(VOLUME_DIR);
+            yield createDirectory(BACK_VOLUME_DIR);
             const bufferdata = yield file.toBuffer();
             fs_1.default.writeFile(filePath, bufferdata, (err) => {
                 if (err) {
@@ -78,27 +79,31 @@ function uploadRoutes(server) {
             reply.code(200).send({ message: "File uploaded successfully" });
         }));
         server.get('/user_images/:type/:id', (request, reply) => __awaiter(this, void 0, void 0, function* () {
+            console.log("get user image");
             const { id, type } = request.params;
             const user = yield (0, user_1.getUserFromDb)(Number(id));
             if (user == null) {
                 reply.code(404).send({ error: "User not found" });
                 return;
             }
-            const filePath = (0, path_1.join)(VOLUME_DIR, `${id}_${type}.png`);
+            const filePath = (0, path_1.join)(BACK_VOLUME_DIR, `${id}_${type}.png`);
+            const fileFrontPath = (0, path_1.join)(FRONT_VOLUME_DIR, `${id}_${type}.png`);
             if (!fs_1.default.existsSync(filePath)) {
                 reply.code(404).send({ error: "File not found" });
                 return;
             }
-            reply.code(200).send(filePath);
+            reply.code(200).send(fileFrontPath);
         }));
         server.delete('/user_images/:type/:id', (request, reply) => __awaiter(this, void 0, void 0, function* () {
+            console.log("delete user image");
             const { id, type } = request.params;
             const user = yield (0, user_1.getUserFromDb)(Number(id));
             if (user == null) {
                 reply.code(404).send({ error: "User not found" });
                 return;
             }
-            const filePath = (0, path_1.join)(VOLUME_DIR, `${id}_${type}.png`);
+            const filePath = (0, path_1.join)(BACK_VOLUME_DIR, `${id}_${type}.png`);
+            const frontFilePath = (0, path_1.join)(FRONT_VOLUME_DIR, `${id}_${type}.png`);
             if (!fs_1.default.existsSync(filePath)) {
                 reply.code(404).send({ error: "File not found" });
                 return;
