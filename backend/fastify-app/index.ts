@@ -4,6 +4,7 @@ import metrics from "fastify-metrics"
 import { userRoutes } from "./routes/user";
 import { tournamentRoutes } from "./routes/tournaments";
 import { matchsRoutes } from "./routes/matchs";
+import rateLimit from '@fastify/rate-limit';
 import { keepAliveRoute } from "./routes/keep_alive";
 import { uploadRoutes } from "./routes/upload";
 import multipart from '@fastify/multipart';
@@ -12,6 +13,7 @@ import multipart from '@fastify/multipart';
 const Port = process.env.PORT || 4321
 const envUser = process.env.API_USERNAME || 'admin'
 const envPassword = process.env.API_PASSWORD || 'admin'
+export const salt = process.env.SALT || 'salt'
 export const db = new database(`/usr/src/app/db/database.db`)
 
 export const server = fastify({
@@ -19,26 +21,30 @@ export const server = fastify({
 });
 
 server.addHook('preHandler', async (req, reply) => {
+  if (req.url.startsWith('/api/users/login')) {
+    return;
+  }
+ 
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Basic ')) {
+    server.log.info('Auth Header:', authHeader);
+    if (!authHeader || !authHeader.startsWith('Bearer ')) 
+      return reply.code(401).send({ error: 'Unauthorized' });
+
+    const token = authHeader.split(' ')[1];
+    const tokenExists = db.prepare('SELECT 1 FROM tokens WHERE token = ?').get(token);
+
+    if (!tokenExists) {
       return reply.code(401).send({ error: 'Unauthorized' });
     }
   
-    const base64Credentials = authHeader.split(' ')[1];
-    const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
-    const [username, password] = credentials.split(':');
   
-    if (username !== envUser || password !== envPassword) {
-      return reply.code(401).send({ error: 'Unauthorized. Please provid valid credentials' });
+    if (req.method === 'POST' || req.method === 'PATCH') {
+      try {
+        JSON.parse(JSON.stringify(req.body));
+      } catch (error) {
+        return reply.code(400).send({ error: 'Invalid JSON body' });
+      }
     }
-
-    // if (req.method === 'POST' || req.method === 'PATCH') {
-    //   try {
-    //     JSON.parse(JSON.stringify(req.body));
-    //   } catch (error) {
-    //     return reply.code(400).send({ error: 'Invalid JSON body' });
-    //   }
-    // }
 });
 
 
@@ -49,6 +55,7 @@ server.get('/ping', async (request, reply) => {
 const start = async () => {
     try {
         await server.register(multipart);
+        await server.register(rateLimit, {global: false});
         await server.register(metrics,{endpoint: '/metrics'});
         await server.register(tournamentRoutes, { prefix: '/api' });
         await server.register(uploadRoutes, { prefix: '/api/' });
@@ -62,6 +69,7 @@ const start = async () => {
         process.exit(1)
     }
 }
+
 
 start();
 

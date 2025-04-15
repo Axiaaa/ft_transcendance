@@ -1,10 +1,13 @@
 import { getCurrentUser, updateUser } from "./API.js";
+import { Cookies, getCookie, setCookie } from 'typescript-cookie'
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
 import { initHistoryAPI } from "./system.js";
 import { goToDesktopPage } from "./system.js";
 import { goToFormsPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
+import { sign } from "crypto";
+import { Session } from "inspector/promises";
 
 let	titleScreenBackground = document.createElement('div');
 titleScreenBackground.id = 'title-screen-background';
@@ -189,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	let signUpForm = document.getElementById("sign-up-form") as HTMLFormElement;
 	let signUpButton = document.getElementById("sign-up-button") as HTMLButtonElement;
 	let signUpUsername = document.getElementById("sign-up-username") as HTMLInputElement;
+	let signUpConfirmPassword = document.getElementById("sign-up-confirm-password") as HTMLInputElement;
 	let signUpPassword = document.getElementById("sign-up-password") as HTMLInputElement;
 	if (signUpButton) {
 		signUpButton.addEventListener("click", async (event) => {
@@ -199,11 +203,18 @@ document.addEventListener('DOMContentLoaded', () => {
 				if (username && password) {
 					try {
 						const newUser = await createUser({ username, password });
-						console.log("User created:", newUser);
-						// Optionally, redirect to a different page or show a success message
+						sessionStorage.setItem("wxp_token", newUser.token);
+						sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
+						goToDesktopPage();
+						signUpUsername.value = "";
+						signUpPassword.value = "";
+						signUpConfirmPassword.value = "";
+
 					} catch (error) {
 						console.error("Error creating user:", error);
-						// Optionally, show an error message to the user
+						signUpUsername.value = "";
+						signUpPassword.value = "";
+						signUpConfirmPassword.value = "";
 					}
 				}
 			}
@@ -215,4 +226,28 @@ document.addEventListener('DOMContentLoaded', () => {
 	let signInButton = document.getElementById("sign-in-button") as HTMLButtonElement;
 	let signInUsername = document.getElementById("sign-in-username") as HTMLInputElement;
 	let signInPassword = document.getElementById("sign-in-password") as HTMLInputElement;
+	if (signInButton) {
+		signInButton.addEventListener("click", async (event) => {
+			event.preventDefault();
+			if (signInUsername && signInPassword) {
+				const username = signInUsername.value;
+				const password = signInPassword.value;
+				if (username && password) {
+					try {
+						const user = await getUser(username, password );
+						sessionStorage.setItem("wxp_token", user.token);
+						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
+						goToDesktopPage();
+						signInUsername.value = "";
+						signInPassword.value = "";
+						} 
+					catch (error) {
+						console.error("Error signing in:", error);
+						signInUsername.value = "";
+						signInPassword.value = "";
+					}
+				}
+			}
+		});
+	}
 }

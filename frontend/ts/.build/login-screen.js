@@ -34,8 +34,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+import { getUser } from "./API.js";
 import { createUser } from "./API.js";
 import { initHistoryAPI } from "./system.js";
+import { goToDesktopPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
 var titleScreenBackground = document.createElement('div');
 titleScreenBackground.id = 'title-screen-background';
@@ -180,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var signUpForm = document.getElementById("sign-up-form");
     var signUpButton = document.getElementById("sign-up-button");
     var signUpUsername_1 = document.getElementById("sign-up-username");
+    var signUpConfirmPassword_1 = document.getElementById("sign-up-confirm-password");
     var signUpPassword_1 = document.getElementById("sign-up-password");
     if (signUpButton) {
         signUpButton.addEventListener("click", function (event) { return __awaiter(void 0, void 0, void 0, function () {
@@ -198,11 +201,19 @@ document.addEventListener('DOMContentLoaded', function () {
                         return [4 /*yield*/, createUser({ username: username, password: password })];
                     case 2:
                         newUser = _a.sent();
-                        console.log("User created:", newUser);
+                        sessionStorage.setItem("wxp_token", newUser.token);
+                        sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
+                        goToDesktopPage();
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
                         return [3 /*break*/, 4];
                     case 3:
                         error_1 = _a.sent();
                         console.error("Error creating user:", error_1);
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
@@ -211,6 +222,40 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     var signInForm = document.getElementById("sign-in-form");
     var signInButton = document.getElementById("sign-in-button");
-    var signInUsername = document.getElementById("sign-in-username");
-    var signInPassword = document.getElementById("sign-in-password");
+    var signInUsername_1 = document.getElementById("sign-in-username");
+    var signInPassword_1 = document.getElementById("sign-in-password");
+    if (signInButton) {
+        signInButton.addEventListener("click", function (event) { return __awaiter(void 0, void 0, void 0, function () {
+            var username, password, user, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        event.preventDefault();
+                        if (!(signInUsername_1 && signInPassword_1)) return [3 /*break*/, 4];
+                        username = signInUsername_1.value;
+                        password = signInPassword_1.value;
+                        if (!(username && password)) return [3 /*break*/, 4];
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, getUser(username, password)];
+                    case 2:
+                        user = _a.sent();
+                        sessionStorage.setItem("wxp_token", user.token);
+                        sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
+                        goToDesktopPage();
+                        signInUsername_1.value = "";
+                        signInPassword_1.value = "";
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_2 = _a.sent();
+                        console.error("Error signing in:", error_2);
+                        signInUsername_1.value = "";
+                        signInPassword_1.value = "";
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        }); });
+    }
 }

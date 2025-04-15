@@ -1,4 +1,6 @@
 import {sendNotification} from "./notification.js";
+import { getCookie, setCookie } from 'typescript-cookie'
+
 
 // API.ts - Client for API interactions
 
@@ -6,16 +8,22 @@ import {sendNotification} from "./notification.js";
  * User interface representing a user entity from the API
  */
 interface User {
-	id: number;
-	username: string;
-	email: string;
-	password: string;
-	isOnline: boolean;
-	created_at: string;
-	win_nbr: number;
-	loss_nbr: number;
-	avatar: string;
-	// Add other user properties as needed
+    id?: number;
+    email: string;  
+    password: string;
+    username: string;
+    is_online: boolean;
+    created_at: Date;
+    last_login: Date;
+    history: Array<number>;
+    win_nbr: number;
+    loss_nbr: number; 
+    avatar: string;
+    background: string;
+    friend_list: Array<number>;
+    pending_friend_list: Array<number>;
+    font_size: number;
+	token: string;
 }
 
 /**
@@ -23,10 +31,10 @@ interface User {
  */
 const API_CONFIG = {
 	baseUrl: '/api',
-	credentials: {
-		username: 'admin',
-		password: 'adminpassword'
-	}
+	// credentials: {
+	// 	username: 'admin',
+	// 	password: 'adminpassword'
+	// }
 };
 
 /*
@@ -46,24 +54,24 @@ const API_CONFIG = {
  * @returns Promise with response
  */
 async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
-	const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
+	// const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
 	
 	const headers = {
-		'Authorization': `Basic ${credentials}`,
 		'Content-Type': 'application/json',
 		...options.headers
 	};
 
+	console.log('API Fetch:', `${API_CONFIG.baseUrl}${url}`, options);
 	const response = await fetch(`${API_CONFIG.baseUrl}${url}`, {
 		...options,
 		headers
 	});
 	
-	if (!response.ok) {
-		const error = new Error(`HTTP error! status: ${response.status}`);
-		(error as any).status = response.status;
-		throw error;
-	}
+	// if (!response.ok) {
+	// 	const error = new Error(`HTTP error! status: ${response.status}`);
+	// 	(error as any).status = response.status;
+	// 	throw error;
+	// }
 	
 	return response;
 }
@@ -127,12 +135,44 @@ export async function getAllUsers(): Promise<User[]> {
 
 /**
  * Get user by ID
- * @param userId - User ID to fetch
+ * @param userId - User ID
  * @returns Promise with User object
+ * @throws Will throw an error if the user is not found
  */
-export async function getUser(userId: number): Promise<User> {
+export async function getUserById(userId: number): Promise<User> {
 	try {
 		const response = await apiFetch(`/users/${userId}`);
+		if (!response.ok) {
+			const error = new Error(`HTTP error! status: ${response.status}`);
+			(error as any).status = response.status;
+			throw error;
+		}
+		return await response.json();
+	} catch (error) {
+		console.error('Error fetching user by ID:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to fetch user by ID: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+}
+
+
+/**
+ * Get user by username and password
+ * @param username - User's username
+ * @param password - User's password
+ * @returns Promise with User object
+ */
+export async function getUser(username: string, password: string): Promise<User> {
+	try {
+		const response = await apiFetch(`/users/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+		if (!response.ok) {
+			const error = new Error(`HTTP error! status: ${response.status}`);
+			(error as any).status = response.status;
+			throw error;
+		}
 		return await response.json();
 	} catch (error) {
 		console.error('Error fetching user:', error);
@@ -140,7 +180,7 @@ export async function getUser(userId: number): Promise<User> {
 		if (typeof sendNotification === 'function') {
 			sendNotification('API Error', `Failed to fetch user data: ${errorMessage}`, './img/Utils/API-icon.png');
 		}
-		throw error;
+		throw error;	
 	}
 }
 
@@ -181,15 +221,21 @@ export async function getCurrentUser(): Promise<User> {
 // Create a new user
 export async function createUser(userData: Partial<User>): Promise<User> {
 	try {
-		const response = await apiFetch('/users', {
+		const response = await apiFetch('/users/login', {
 			method: 'POST',
 			body: JSON.stringify(userData)
 		});
 		
+		if (!response.ok) {
+			const error = new Error(`HTTP error! status: ${response.status}`);
+			(error as any).status = response.status;
+			throw error;
+		}
+
 		return await response.json();
+
 	} catch (error) {
 		console.error('Error creating user:', error);
-		
 		// Handle conflict (user already exists)
 		if ((error as any).status === 409) {
 			const conflictMessage = "User already exists. Please try a different username or email.";

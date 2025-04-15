@@ -1,49 +1,120 @@
-import { User } from "../user";
+import { getUserFromHash, User } from "../user";
 import { db } from "..";
 import { getUserFromDb  } from "../user";
-import { FastifyInstance } from "fastify";
+import { FastifyInstance, FastifyContextConfig } from "fastify";
+import { RateLimits } from '../limit_rate';
+import crypto from "crypto";
+
+declare module "fastify" {
+  interface FastifyContextConfig {
+    rateLimit?: unknown;
+  }
+}
 
 export async function userRoutes(server : FastifyInstance) {
 
-    server.get('/users', async (request, reply) => {
-        const users = db.prepare('SELECT * FROM users').all();
-        const result = await Promise.all(users.map(async (tmp: any) => {
-            const user = await getUserFromDb(tmp.id);
-            return user !== null ? user : null;
-        })).then(users => users.filter(user => user !== null));
-        if (result.length === 0) {
-            reply.code(404).send({ error: "No users found" });
-            return;
+    server.route({
+        method: 'GET',
+        url: '/users',
+        config: {
+            rateLimit: RateLimits.login,
+        },
+        handler: async (request, reply) => {
+            const users = db.prepare('SELECT * FROM users').all();
+            const result = await Promise.all(users.map(async (tmp: any) => {
+                const user = await getUserFromDb(tmp.id);
+                return user !== null ? user : null;
+            })).then(users => users.filter(user => user !== null));
+            
+            if (result.length === 0) {
+                reply.code(404).send({ error: "No users found" });
+                return;
+            }
+            reply.code(200).send(result);
         }
-        reply.code(200).send(result);
     });
 
-
-    server.get<{ Params: { id: string } }>('/users/:id', async (request, reply) => {
-        const { id } = request.params;
-        const user = await getUserFromDb(Number(id));
-        if (user == null) {
-            reply.code(404).send({error: "User not found"});
-            return;
+    server.route<{
+        Params: { id: string }
+      }>({
+        method: 'GET',
+        url: '/users/:id',
+        config: {
+          rateLimit: RateLimits.login,
+        },
+        handler: async (request, reply) => {
+          const { id } = request.params;
+          const user = await getUserFromDb(Number(id));
+          if (user == null) {
+              reply.code(404).send({ error: "User not found" });
+              return;
+            }
+            
+          reply.code(200).send(user);
         }
-        return user;
+      });
+
+    server.route<{
+        Querystring: { username: string, password: string }
+        }>({
+        method: 'GET',
+        url: '/users/login',
+        config: {
+            rateLimit: RateLimits.login,
+        },
+        handler: async (request, reply) => {
+            const { username, password } = request.query;
+            if (!username || !password) {
+                reply.code(400).send({error: "Username and password are required"});
+                return;
+            }
+            const user = await getUserFromHash(username, password);
+            if (user == null) {
+                reply.code(404).send({error: "User not found"});
+                return;
+            }
+            user.token = crypto.randomBytes(32).toString('hex');
+            reply.code(200).send(user);
+            }
         }
-    )
+    );
 
-    server.post<{ Body: { name: string, email: string, password: string } }>('/users', async (request, reply) => {
-        const { name, email, password } = request.body;
-        const user = new User(name, email, password);
-        const req_message = await user.pushUserToDb();
-        req_message === null ? reply.code(201).send({ id : user.id }) : reply.code(409).send({ error : req_message });
-    });
+    server.route<{
+        Body: {
+            username: string,
+            password: string
+        }
+        }>({
+        method: 'POST',
+        url: '/users/login',
+        config: {
+            rateLimit: RateLimits.login,
+        },
+            handler: async (request, reply) => {
+            const { username, password } = request.body;
+            if (!username || !password) {
+                reply.code(400).send({error: "Username and password are required"});
+                return;
+            }
+            const existingUser = await getUserFromHash(username, password);
+            if (existingUser) {
+                reply.code(409).send({error: "Username already exists"});
+                return;
+            }
+            const user = new User(username, password);
+            user.pushUserToDb();
+            reply.code(201).send({ id: user.id, token : user.token });
+            }
+        }
+    );
 
-    server.patch<{
-        Params : { id: string },
-        Body : {
-            username?: string, 
-            email?: string, 
-            password?: string, 
-            is_online?: boolean, 
+    server.route<{
+        Params: { id: string },
+        Body: {
+            username?: string,
+            email?: string,
+            password?: string,
+            is_online?: boolean,
             avatar?: string,
             win_nbr?: number,
             loss_nbr?: number,
@@ -51,7 +122,13 @@ export async function userRoutes(server : FastifyInstance) {
             last_login?: number,
             font_size?: number
         }
-        }>('/users/:id', async (request, reply) => {
+    }>({
+        method: 'PATCH',
+        url: '/users/:id',
+        config: {
+            rateLimit: RateLimits.patch_user,
+        },
+        handler: async (request, reply) => {
 
         const { id } = request.params;
         const { username, email, password, is_online, avatar, win_nbr, loss_nbr, background, last_login, font_size } = request.body;
@@ -73,25 +150,45 @@ export async function userRoutes(server : FastifyInstance) {
             user.font_size = Math.max(10, Math.min(font_size, 20));
         }
         
-        const req_message = await user.updateUserInDb();
-        req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });
+            const req_message = await user.updateUserInDb();
+            req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });
+        }
     });
 
 
-    server.delete<{ Params: { id: string } }>('/users/:id', async (request, reply) => {
-        const { id } = request.params;
-        const user = await getUserFromDb(Number(id));
-    
-        if (user == null) {
-            reply.code(404).send({error: "User not found"});
+    server.route<{
+        Params: { id: string }
+      }>({
+        method: 'DELETE',
+        url: '/users/:id',
+        config: {
+          rateLimit: RateLimits.delete_user,
+        },
+        handler: async (request, reply) => {
+          const { id } = request.params;
+          const user = await getUserFromDb(Number(id));
+      
+          if (user == null) {
+            reply.code(404).send({ error: "User not found" });
             return;
-        }   
-        const req_message = await user.deleteUserFromDb();
-        req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });
-        }
-    );
+          }
+      
+          const req_message = await user.deleteUserFromDb();
+          req_message === null
+            ? reply.code(204).send()
+            : reply.code(409).send({ error: req_message });
+        },
+      });
             
-    server.get<{ Params: { id: string } }>('/users/:id/friends', async (request, reply) => {
+    server.route <{ Params: { id: string } }>(
+    {
+        method : 'GET',
+        url : '/users/:id/friends',
+        config: {
+            rateLimit: RateLimits.friends,
+        },
+        handler : async (request, reply) => {
+    
         const { id } = request.params;
         const user = await getUserFromDb(Number(id));
         if (user == null) {
@@ -104,9 +201,15 @@ export async function userRoutes(server : FastifyInstance) {
         }
         return user.friend_list;
         }
-    );
+    });
 
-    server.post<{ Params: { id: string } , Body: { friend_id: number } }>('/users/:id/friends', async (request, reply) => {
+    server.route <{ Params: { id: string } , Body: { friend_id: number } }>({
+        method : 'POST',
+        url : '/users/:id/friends',
+        config: {
+            rateLimit: RateLimits.friends,
+        },
+        handler : async (request, reply) => {
         const { id } = request.params;
         const { friend_id } = request.body;
         const user = await getUserFromDb(Number(id));
@@ -130,9 +233,15 @@ export async function userRoutes(server : FastifyInstance) {
         } else  
             reply.code(409).send({error: "Friend already in friend list"});
         }
-    );
+});
 
-    server.delete<{ Params: { user_id: string, friend_id: string } }>('/users/:user_id/friends/:friend_id', async (request, reply) => {
+    server.route <{ Params: { user_id: string, friend_id: string } }>({
+        method : 'DELETE',
+        url : '/users/:user_id/friends/:friend_id',
+        config: {
+            rateLimit: RateLimits.friends,
+        },
+        handler : async (request, reply) => {
         const { user_id, friend_id } = request.params;
         const user = await getUserFromDb(Number(user_id));
         if (user == null) {
@@ -150,10 +259,16 @@ export async function userRoutes(server : FastifyInstance) {
         } else
             reply.code(404).send({error: "Friend not found in friend list"});
         }
-    );
+});
 
-    server.get<{ Params: { id: string } }>('/users/:id/pending_friends', async (request, reply) => {
-        const { id } = request.params;
+    server.route <{ Params: { id: string } }>({
+        method : 'GET',
+        url : '/users/:id/pending_friends',
+        config: {
+            rateLimit: RateLimits.friends,
+        },
+        handler : async (request, reply) => {
+         const { id } = request.params;
         const user = await getUserFromDb(Number(id));
         if (user == null) {
             reply.code(404).send({error: "User not found"});
@@ -165,10 +280,16 @@ export async function userRoutes(server : FastifyInstance) {
         }
         return user.pending_friend_list;
         }
-    );
+});
 
-    server.post<{ Params: { id: string } , Body: { friend_id: number } }>('/users/:id/pending_friends', async (request, reply) => {
-        const { id } = request.params;
+    server.route <{ Params: { id: string } , Body: { friend_id: number } }>({
+        method : 'POST',
+        url : '/users/:id/pending_friends',
+        config: {
+            rateLimit: RateLimits.friends,
+        },
+        handler : async (request, reply) => {
+       const { id } = request.params;
         const { friend_id } = request.body;
         const user = await getUserFromDb(Number(id));
         if (user == null) {
@@ -195,9 +316,15 @@ export async function userRoutes(server : FastifyInstance) {
         } else  
             reply.code(409).send({error: "Friend already in pending friend list"});
         }
-    );
+});
 
-    server.delete<{ Params: { user_id: string, friend_id: string } }>('/users/:user_id/pending_friends/:friend_id', async (request, reply) => {
+    server.route <{ Params: { user_id: string, friend_id: string } }>({
+        method : 'DELETE',
+        url : '/users/:user_id/pending_friends/:friend_id',
+        config: {
+            rateLimit: RateLimits.friends,
+        },
+        handler : async (request, reply) => {
         const { user_id, friend_id } = request.params;
         const user = await getUserFromDb(Number(user_id));
         if (user == null) {
@@ -215,6 +342,6 @@ export async function userRoutes(server : FastifyInstance) {
         } else
             reply.code(404).send({error: "Friend not found in pending friend list"});
         }
-    );
+});
 
 }

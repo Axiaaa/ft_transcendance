@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { sendNotification } from "./notification.js";
-import { getUser } from "./API.js";
+import { getUserById } from "./API.js";
 import { createUser } from "./API.js";
 document.addEventListener('DOMContentLoaded', function () { return __awaiter(void 0, void 0, void 0, function () {
     function animateLogo(Logo) {
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
         sleepLogo.style.display = 'none';
         // Set new timeout
         timeoutId = setTimeout(function () { return __awaiter(_this, void 0, void 0, function () {
-            var error_2;
+            var error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -111,15 +111,15 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                         sleepLogo.style.display = 'block';
                         return [3 /*break*/, 4];
                     case 3:
-                        error_2 = _a.sent();
-                        console.error('Error in inactivity timer:', error_2);
+                        error_1 = _a.sent();
+                        console.error('Error in inactivity timer:', error_1);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
             });
         }); }, INACTIVE_TIMEOUT);
     }
-    var sleepScreen, sleepLogo, timeoutId, INACTIVE_TIMEOUT, CurrentUser, error_1, errorMessage, trashBinApp;
+    var sleepScreen, sleepLogo, timeoutId, INACTIVE_TIMEOUT, CurrentUser, trashBinApp;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -155,33 +155,23 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                 document.addEventListener('scroll', resetTimer);
                 // Start the initial timer
                 resetTimer();
-                _a.label = 1;
+                return [4 /*yield*/, getUserById(1)];
             case 1:
-                _a.trys.push([1, 5, , 6]);
-                return [4 /*yield*/, getUser(1)];
+                CurrentUser = _a.sent();
+                if (!!CurrentUser) return [3 /*break*/, 3];
+                return [4 /*yield*/, createUser({ username: 'Guest', password: 'guest', email: 'guest@guest.com' })];
             case 2:
                 CurrentUser = _a.sent();
-                if (!!CurrentUser) return [3 /*break*/, 4];
-                return [4 /*yield*/, createUser({ username: 'Guest', password: 'guest', email: 'guest@guest.com' })];
+                _a.label = 3;
             case 3:
-                CurrentUser = _a.sent();
-                _a.label = 4;
-            case 4: return [3 /*break*/, 6];
-            case 5:
-                error_1 = _a.sent();
-                console.error('Error fetching or creating user:', error_1);
-                errorMessage = error_1 instanceof Error ? error_1.message : String(error_1);
-                sendNotification('User Error', "Failed to get or create User: ".concat(errorMessage), './img/Utils/API-icon.png');
-                return [3 /*break*/, 6];
-            case 6:
                 trashBinApp = document.getElementById('trash-bin-app');
                 trashBinApp.addEventListener('dblclick', function (e) { return __awaiter(void 0, void 0, void 0, function () {
-                    var user1, error_3, errorMessage;
+                    var user1, error_2, errorMessage;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
                                 _a.trys.push([0, 2, , 3]);
-                                return [4 /*yield*/, getUser(1)];
+                                return [4 /*yield*/, getUserById(1)];
                             case 1:
                                 user1 = _a.sent();
                                 if (user1) {
@@ -191,9 +181,9 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                                 }
                                 return [3 /*break*/, 3];
                             case 2:
-                                error_3 = _a.sent();
-                                console.error('Error fetching user:', error_3);
-                                errorMessage = error_3 instanceof Error ? error_3.message : String(error_3);
+                                error_2 = _a.sent();
+                                console.error('Error fetching user:', error_2);
+                                errorMessage = error_2 instanceof Error ? error_2.message : String(error_2);
                                 if (typeof sendNotification === 'function') {
                                     sendNotification('Session Error', "Failed to get user: ".concat(errorMessage), './img/Utils/API-icon.png');
                                 }

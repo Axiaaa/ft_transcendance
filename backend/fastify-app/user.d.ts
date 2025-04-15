@@ -3,7 +3,7 @@ import {User} from "./user";
 
 export interface IUser {
     id?: number;
-    email: string;
+    email: string;  
     password: string;
     username: string;
     is_online: boolean;
@@ -17,4 +17,5 @@ export interface IUser {
     friend_list: Array<number>;
     pending_friend_list: Array<number>;
     font_size: number;
+    token: string;
 }

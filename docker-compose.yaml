@@ -71,9 +71,8 @@ services:
       - ./IMAGES:/server/img_storage # Uncomment this line if you want to use a local directory for images
       - img_storage:/server/img_storage # Uncomment this line if you want to use a named volume for images
     environment:
-      - PORT=${FASTIFY_PORT}
-      - API_USERNAME=${API_USERNAME}
-      - API_PASSWORD=${API_PASSWORD}
+      - PORT=${FASTIFY_PORT}  
+      - SALT=${SALT}
     depends_on:
       - sqlite
       - nginx
@@ -264,9 +263,6 @@ services:
     build :
       context: ./services/prometheus
       dockerfile: Dockerfile
-      args:
-        - ADMIN_USER=${API_USERNAME}
-        - ADMIN_PASS=${API_PASSWORD}
     volumes:
       - certs:/etc/prometheus/certs
     ports:
