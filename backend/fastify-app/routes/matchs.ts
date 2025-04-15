@@ -3,7 +3,6 @@ import { db } from '..';
 import { Match, getMatchFromDb } from '../matchs';
 import { FastifyInstance } from 'fastify';
 import { getUserFromDb } from '../user';
-import { getTournamentFromDb } from '../tournaments';
 declare module "fastify" {
     interface FastifyContextConfig {
       rateLimit?: unknown;
@@ -53,8 +52,8 @@ export async function matchsRoutes(server : FastifyInstance) {
 
     server.route<{
         Body: {
-            player1: number,
-            player2: number,
+            player1: string,
+            player2: string,
             is_tournament: boolean,
             tournament_id?: number
         }
@@ -66,8 +65,8 @@ export async function matchsRoutes(server : FastifyInstance) {
         },
         handler: async (request, reply) => {
         const { player1, player2, is_tournament, tournament_id } = request.body;
-        const u1 = await getUserFromDb(player1);
-        const u2 = await getUserFromDb(player2);
+        const u1 = await getUserFromDb( { token : player1 });
+        const u2 = await getUserFromDb( { token : player2 });
         if (u1 == null || u2 == null) {
             reply.code(404).send({ error: "One of the players does not exist" });
             return;
@@ -76,18 +75,7 @@ export async function matchsRoutes(server : FastifyInstance) {
             reply.code(404).send({ error: "The two players must be different" });
             return;
         }
-        if (is_tournament == true) {
-            if (tournament_id) {
-                if (await getTournamentFromDb(tournament_id) == null) {
-                    reply.code(409).send({ error : "The tournament doesn't exists"});
-                    return ;
-                }
-            }
-            else {
-                reply.code(400).send({ error : "The tournament ID isn't specified" });
-                return;
-            }
-        }
+
         const match = new Match(player1.toString(), player2.toString(), is_tournament, is_tournament ? tournament_id : undefined);
         const req_message = await match.pushMatchToDb();        
         req_message === null ? reply.code(201).send({ id: match.id }) : reply.code(409).send({ error: req_message });
@@ -96,9 +84,9 @@ export async function matchsRoutes(server : FastifyInstance) {
     server.route<{
         Params: { id: string },
         Body: {
-            player1?: number;
-            player2?: number;
-            winner?: number | null;
+            player1?: string;
+            player2?: string;
+            winner?: string | null;
             created_at?: string;
             score?: string;
             is_tournament?: boolean;
@@ -118,9 +106,9 @@ export async function matchsRoutes(server : FastifyInstance) {
             return;
         }
         
-        if (player1 != null && await getUserFromDb(player1) == null ||
-            player2 != null && await getUserFromDb(player2) == null ||
-            winner != null && await getUserFromDb(winner) == null) {
+        if (player1 != null && await getUserFromDb({ token : player1 }) == null ||
+            player2 != null && await getUserFromDb({ token : player2 }) == null ||
+            winner != null && await getUserFromDb({ token : winner }) == null) {
             reply.code(409).send({ error: "One of the players or the winner does not exist" });
             return;
         }

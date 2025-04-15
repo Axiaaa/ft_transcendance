@@ -211,11 +211,15 @@ export class User implements User {
     }
 }
 
-export async function getUserFromDb(query?: number): Promise<User | null> {
+export async function getUserFromDb(query: Partial<User>): Promise<User | null> {
+    try {
+        const conditions = Object.keys(query)
+            .map(key => `${key} = ?`)
+            .join(" AND ");
+        const values = Object.values(query);
 
-    try { 
-        const sqlRequest = "SELECT * FROM users WHERE id = ?";
-        const userRow = db.prepare(sqlRequest).get(query) as { 
+        const sqlRequest = `SELECT * FROM users WHERE ${conditions}`;
+        const userRow = db.prepare(sqlRequest).get(...values) as { 
             id: number;
             username: string;
             email: string;
@@ -228,13 +232,14 @@ export async function getUserFromDb(query?: number): Promise<User | null> {
             background: string;
             last_login: string;
             font_size: number;
-            token : string;
-        } | undefined; 
+            token: string;
+        } | undefined;
 
         if (!userRow) return null;
 
         let user: User = new User(userRow.username, userRow.password);
         user.id = userRow.id;
+        user.password = userRow.password;
         user.is_online = userRow.is_online === 1;
         user.created_at = new Date(userRow.created_at);
         user.win_nbr = userRow.win_nbr;
@@ -246,9 +251,9 @@ export async function getUserFromDb(query?: number): Promise<User | null> {
         user.token = userRow.token;
         const friends = await getFriendsFromDb(user.id);
         if (friends) user.friend_list = friends.map(f => f.id);
-        const pending_friends = await getPendingFriendsListFromDb(user.id)
-        if (pending_friends) user.pending_friend_list = pending_friends.map(f => f.id); 
-        
+        const pending_friends = await getPendingFriendsListFromDb(user.id);
+        if (pending_friends) user.pending_friend_list = pending_friends.map(f => f.id);
+
         const userId = Number(user.id);
         const matches = db.prepare("SELECT * FROM matchs").all() as Array<Match>;
         const userMatches = matches.filter(match => match.player1 === userId.toString() || match.player2 === userId.toString());
@@ -256,7 +261,7 @@ export async function getUserFromDb(query?: number): Promise<User | null> {
         return user;
 
     } catch (error) {
-        server.log.error(`Could not fetch user from DB ${error}`)
+        server.log.error(`Could not fetch user from DB ${error}`);
         return null;
     }
 }
@@ -268,7 +273,7 @@ export async function getFriendsFromDb(userId: number): Promise<Array<User> | nu
         const friendsRow = db.prepare(sqlRequest).all(userId) as Array<{ friend_id: number }>;
         const users = new Array<User>();
         for (const friend of friendsRow) {
-            const user = await getUserFromDb(friend.friend_id);
+            const user = await getUserFromDb({ id: friend.friend_id });
             if (user) users.push(user);
         }
         return users;
@@ -285,7 +290,7 @@ export async function getPendingFriendsListFromDb(userId: number): Promise<Array
         const friendsRow = db.prepare(sqlRequest).all(userId) as Array<{ friend_id: number }>;
         const users = new Array<User>();
         for (const friend of friendsRow) {
-            const user = await getUserFromDb(friend.friend_id);
+            const user = await getUserFromDb({ id: friend.friend_id });
             if (user) users.push(user);
         }
         return users;

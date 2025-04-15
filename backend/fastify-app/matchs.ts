@@ -149,7 +149,7 @@ export async function getMatchFromDb(id : number) : Promise<Match | null> {
         match.tournament_id = matchRow.tournament_id;
 
         if (matchRow.winner != null) {
-            if (await getUserFromDb(Number(matchRow.winner)) == null) {
+            if (await getUserFromDb({ id : Number(matchRow.winner)}) == null) {
                 match.winner = "Deleted user";
             }
             else {
@@ -157,10 +157,10 @@ export async function getMatchFromDb(id : number) : Promise<Match | null> {
             }
         }
 
-        if (await getUserFromDb(Number(matchRow.player1)) == null) {
+        if (await getUserFromDb({ id : Number(matchRow.player1)}) == null) {
             match.player1 = "Deleted user";
         }
-        if (await getUserFromDb(Number(matchRow.player2)) == null) {
+        if (await getUserFromDb({ id : Number(matchRow.player2)}) == null) {
             match.player2 = "Deleted user";
         }
         

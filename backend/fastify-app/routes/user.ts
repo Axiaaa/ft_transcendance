@@ -1,9 +1,11 @@
 import { getUserFromHash, User } from "../user";
-import { db } from "..";
+import { db, salt } from "..";
 import { getUserFromDb  } from "../user";
 import { FastifyInstance, FastifyContextConfig } from "fastify";
 import { RateLimits } from '../limit_rate';
 import crypto from "crypto";
+import { sha256 } from "js-sha256";
+
 
 declare module "fastify" {
   interface FastifyContextConfig {
@@ -22,7 +24,7 @@ export async function userRoutes(server : FastifyInstance) {
         handler: async (request, reply) => {
             const users = db.prepare('SELECT * FROM users').all();
             const result = await Promise.all(users.map(async (tmp: any) => {
-                const user = await getUserFromDb(tmp.id);
+                const user = await getUserFromDb( { id: tmp.id });
                 return user !== null ? user : null;
             })).then(users => users.filter(user => user !== null));
             
@@ -35,16 +37,16 @@ export async function userRoutes(server : FastifyInstance) {
     });
 
     server.route<{
-        Params: { id: string }
+        Params: { token: string}
       }>({
         method: 'GET',
-        url: '/users/:id',
+        url: '/users/:token',
         config: {
           rateLimit: RateLimits.login,
         },
         handler: async (request, reply) => {
-          const { id } = request.params;
-          const user = await getUserFromDb(Number(id));
+          const { token } = request.params;
+          const user = await getUserFromDb({ token });
           if (user == null) {
               reply.code(404).send({ error: "User not found" });
               return;
@@ -109,7 +111,7 @@ export async function userRoutes(server : FastifyInstance) {
     );
 
     server.route<{
-        Params: { id: string },
+        Params: { token: string },
         Body: {
             username?: string,
             email?: string,
@@ -124,22 +126,24 @@ export async function userRoutes(server : FastifyInstance) {
         }
     }>({
         method: 'PATCH',
-        url: '/users/:id',
+        url: '/users/:token',
         config: {
             rateLimit: RateLimits.patch_user,
         },
         handler: async (request, reply) => {
 
-        const { id } = request.params;
+        const { token } = request.params;
         const { username, email, password, is_online, avatar, win_nbr, loss_nbr, background, last_login, font_size } = request.body;
-        let user = await getUserFromDb(Number(id));
+        
+
+        let user = await getUserFromDb({ token });
         if (user == null) {
             reply.code(404).send({error: "User not found"});
             return;
         }
         if (username)   { user.username = username }
         if (email)      { user.email = email }
-        if (password)   { user.password = password; }
+        if (password)   { user.password = sha256.hmac(salt, password); }
         if (is_online)  { user.is_online = is_online; }
         if (avatar)     { user.avatar = avatar; }
         if (win_nbr)    { user.win_nbr = win_nbr; }
@@ -157,7 +161,7 @@ export async function userRoutes(server : FastifyInstance) {
 
 
     server.route<{
-        Params: { id: string }
+        Params: { token: string}
       }>({
         method: 'DELETE',
         url: '/users/:id',
@@ -165,8 +169,8 @@ export async function userRoutes(server : FastifyInstance) {
           rateLimit: RateLimits.delete_user,
         },
         handler: async (request, reply) => {
-          const { id } = request.params;
-          const user = await getUserFromDb(Number(id));
+          const { token } = request.params;
+          const user = await getUserFromDb({ token });
       
           if (user == null) {
             reply.code(404).send({ error: "User not found" });
@@ -180,7 +184,7 @@ export async function userRoutes(server : FastifyInstance) {
         },
       });
             
-    server.route <{ Params: { id: string } }>(
+    server.route <{ Params: { token: string} }>(
     {
         method : 'GET',
         url : '/users/:id/friends',
@@ -189,8 +193,8 @@ export async function userRoutes(server : FastifyInstance) {
         },
         handler : async (request, reply) => {
     
-        const { id } = request.params;
-        const user = await getUserFromDb(Number(id));
+        const { token } = request.params;
+        const user = await getUserFromDb({ token });
         if (user == null) {
             reply.code(404).send({error: "User not found"});
             return;
@@ -203,21 +207,21 @@ export async function userRoutes(server : FastifyInstance) {
         }
     });
 
-    server.route <{ Params: { id: string } , Body: { friend_id: number } }>({
+    server.route <{ Params: { token: string} , Body: { friend_username: string } }>({
         method : 'POST',
-        url : '/users/:id/friends',
+        url : '/users/:token/friends',
         config: {
             rateLimit: RateLimits.friends,
         },
         handler : async (request, reply) => {
-        const { id } = request.params;
-        const { friend_id } = request.body;
-        const user = await getUserFromDb(Number(id));
+        const { token } = request.params;
+        const { friend_username } = request.body;
+        const user = await getUserFromDb({ token });
         if (user == null) {
             reply.code(404).send({error: "User not found"});
             return;
         }
-        const friend = await getUserFromDb(friend_id);
+        const friend = await getUserFromDb({username : friend_username});
         if (friend == null) {
             reply.code(404).send({error: "Friend not found"});
             return;
@@ -235,20 +239,20 @@ export async function userRoutes(server : FastifyInstance) {
         }
 });
 
-    server.route <{ Params: { user_id: string, friend_id: string } }>({
+    server.route <{ Params: { token: string, friend_username: string } }>({
         method : 'DELETE',
-        url : '/users/:user_id/friends/:friend_id',
+        url : '/users/:token/friends/:friend_id',
         config: {
             rateLimit: RateLimits.friends,
         },
         handler : async (request, reply) => {
-        const { user_id, friend_id } = request.params;
-        const user = await getUserFromDb(Number(user_id));
+        const { token, friend_username } = request.params;
+        const user = await getUserFromDb({ token });
         if (user == null) {
             reply.code(404).send({error: "User not found"});
             return;
         }
-        const friend = await getUserFromDb(Number(friend_id));
+        const friend = await getUserFromDb({username: friend_username});
         if (friend == null) {
             reply.code(404).send({error: "Friend not found"});
             return;
@@ -261,15 +265,15 @@ export async function userRoutes(server : FastifyInstance) {
         }
 });
 
-    server.route <{ Params: { id: string } }>({
+    server.route <{ Params: { token: string} }>({
         method : 'GET',
         url : '/users/:id/pending_friends',
         config: {
             rateLimit: RateLimits.friends,
         },
         handler : async (request, reply) => {
-         const { id } = request.params;
-        const user = await getUserFromDb(Number(id));
+         const { token } = request.params;
+        const user = await getUserFromDb({ token });
         if (user == null) {
             reply.code(404).send({error: "User not found"});
             return;
@@ -282,21 +286,21 @@ export async function userRoutes(server : FastifyInstance) {
         }
 });
 
-    server.route <{ Params: { id: string } , Body: { friend_id: number } }>({
+    server.route <{ Params: { token: string} , Body: { friend_username : string } }>({
         method : 'POST',
         url : '/users/:id/pending_friends',
         config: {
             rateLimit: RateLimits.friends,
         },
         handler : async (request, reply) => {
-       const { id } = request.params;
-        const { friend_id } = request.body;
-        const user = await getUserFromDb(Number(id));
+        const { token } = request.params;
+        const { friend_username } = request.body;
+        const user = await getUserFromDb({ token });
         if (user == null) {
             reply.code(404).send({error: "User not found"});
             return;
         }
-        const friend = await getUserFromDb(friend_id);
+        const friend = await getUserFromDb({username : friend_username});
         if (friend == null) {
             reply.code(404).send({error: "Friend not found"});
             return;
@@ -318,20 +322,20 @@ export async function userRoutes(server : FastifyInstance) {
         }
 });
 
-    server.route <{ Params: { user_id: string, friend_id: string } }>({
+    server.route <{ Params: { token: string, friend_username: string } }>({
         method : 'DELETE',
-        url : '/users/:user_id/pending_friends/:friend_id',
+        url : '/users/:token/pending_friends/:friend_username',
         config: {
             rateLimit: RateLimits.friends,
         },
         handler : async (request, reply) => {
-        const { user_id, friend_id } = request.params;
-        const user = await getUserFromDb(Number(user_id));
+        const { token, friend_username } = request.params;
+        const user = await getUserFromDb({ token });
         if (user == null) {
             reply.code(404).send({error: "User not found"});
             return;
         }
-        const friend = await getUserFromDb(Number(friend_id));
+        const friend = await getUserFromDb({ username: friend_username });
         if (friend == null) {
             reply.code(404).send({error: "Friend not found"});
             return;

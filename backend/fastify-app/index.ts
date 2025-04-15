@@ -2,7 +2,6 @@ import fastify from "fastify";
 import database from "better-sqlite3";
 import metrics from "fastify-metrics"
 import { userRoutes } from "./routes/user";
-import { tournamentRoutes } from "./routes/tournaments";
 import { matchsRoutes } from "./routes/matchs";
 import rateLimit from '@fastify/rate-limit';
 import { keepAliveRoute } from "./routes/keep_alive";
@@ -29,7 +28,13 @@ server.addHook('preHandler', async (req, reply) => {
       return reply.code(401).send({ error: 'Unauthorized' });
 
     const token = authHeader.split(' ')[1];
-    const tokenExists = db.prepare('SELECT 1 FROM tokens WHERE token = ?').get(token);
+    let tokenExists;
+    try {
+        tokenExists = db.prepare('SELECT * FROM users WHERE token = ?').get(token);
+    } catch (error) {
+        server.log.error('Database query failed:', error);
+        return reply.code(500).send({ error: 'Internal Server Error' });
+    }
 
     if (!tokenExists) {
       return reply.code(401).send({ error: 'Unauthorized' });
@@ -54,7 +59,6 @@ const start = async () => {
     try {
         await server.register(rateLimit, {global: false});
         await server.register(metrics,{endpoint: '/metrics'});
-        await server.register(tournamentRoutes, { prefix: '/api' });
         await server.register(userRoutes, { prefix: '/api' });
         await server.register(matchsRoutes, { prefix: '/api' });
         await server.register(keepAliveRoute, { prefix: '/api' });
