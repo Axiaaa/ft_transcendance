@@ -454,7 +454,7 @@ export function loginUser(username, password) {
 }
 export function uploadFile(userId, file, fileType) {
     return __awaiter(this, void 0, void 0, function () {
-        var formData, credentials, response, result, error, error_9, errorMessage;
+        var formData, credentials, response, result, error, error_10, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -489,9 +489,9 @@ export function uploadFile(userId, file, fileType) {
                     _a.label = 6;
                 case 6: return [3 /*break*/, 8];
                 case 7:
-                    error_9 = _a.sent();
-                    console.error('Error uploading file:', error_9);
-                    errorMessage = error_9 instanceof Error ? error_9.message : String(error_9);
+                    error_10 = _a.sent();
+                    console.error('Error uploading file:', error_10);
+                    errorMessage = error_10 instanceof Error ? error_10.message : String(error_10);
                     sendNotification('Error', "Error uploading file: ".concat(errorMessage), "./img/Utils/error-icon.png");
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/, null];
@@ -501,7 +501,7 @@ export function uploadFile(userId, file, fileType) {
 }
 export function getUserAvatar(userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, filePath, error_10, errorMessage;
+        var response, filePath, error_11, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -520,13 +520,13 @@ export function getUserAvatar(userId) {
                     filePath = _a.sent();
                     return [2 /*return*/, filePath];
                 case 3:
-                    error_10 = _a.sent();
-                    console.error('Error fetching user avatar:', error_10);
-                    errorMessage = error_10 instanceof Error ? error_10.message : String(error_10);
+                    error_11 = _a.sent();
+                    console.error('Error fetching user avatar:', error_11);
+                    errorMessage = error_11 instanceof Error ? error_11.message : String(error_11);
                     if (typeof sendNotification === 'function') {
                         sendNotification('API Error', "Failed to fetch avatar: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_10;
+                    throw error_11;
                 case 4: return [2 /*return*/];
             }
         });
@@ -534,7 +534,7 @@ export function getUserAvatar(userId) {
 }
 export function getUserBackground(userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, filePath, error_11, errorMessage;
+        var response, filePath, error_12, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -551,13 +551,13 @@ export function getUserBackground(userId) {
                     filePath = _a.sent();
                     return [2 /*return*/, filePath];
                 case 3:
-                    error_11 = _a.sent();
-                    console.error('Error fetching user background:', error_11);
-                    errorMessage = error_11 instanceof Error ? error_11.message : String(error_11);
+                    error_12 = _a.sent();
+                    console.error('Error fetching user background:', error_12);
+                    errorMessage = error_12 instanceof Error ? error_12.message : String(error_12);
                     if (typeof sendNotification === 'function') {
                         sendNotification('API Error', "Failed to fetch background: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_11;
+                    throw error_12;
                 case 4: return [2 /*return*/];
             }
         });
