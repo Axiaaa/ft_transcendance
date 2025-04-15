@@ -1,5 +1,6 @@
 import { sys } from "../node_modules/typescript/lib/typescript.js";
 import { sendNotification } from "./notification.js";
+import { updateUser } from "./API.js";
 
 import { getUserAvatar, uploadFile } from "./API.js";
 
@@ -376,6 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			if (confirm(`Are you sure you want to change your username to "${nameInput.value}"?`)) {
 				sendNotification('Username Changed', `Username changed to ${nameInput.value}`, "./img/Utils/profile-icon.png");
+				updateUser(sessionStorage.getItem('wxp_token'), { username: nameInput.value })
 				nameInput.value = '';
 			}
 		};
@@ -466,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			if (confirm('Are you sure you want to change your password?')) {
 				sendNotification('Password Changed', 'Password successfully changed', "./img/Utils/profile-icon.png");
+				updateUser(sessionStorage.getItem('wxp_token'), { password: passwordInput.value })
 				passwordInput.value = '';
 				confirmPasswordInput.value = '';
 			}

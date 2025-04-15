@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { sendNotification } from "./notification.js";
-import { getUserAvatar, uploadFile } from "./API.js";
+import { updateUser } from "./API.js";
 document.addEventListener('DOMContentLoaded', function () {
     var _a;
     var categoryContainer = document.getElementById('settings-app-category-container');
@@ -350,6 +350,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (confirm("Are you sure you want to change your username to \"".concat(nameInput_1.value, "\"?"))) {
                 sendNotification('Username Changed', "Username changed to ".concat(nameInput_1.value), "./img/Utils/profile-icon.png");
+                updateUser(sessionStorage.getItem('wxp_token'), { username: nameInput_1.value });
                 nameInput_1.value = '';
             }
         };
@@ -428,6 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (confirm('Are you sure you want to change your password?')) {
                 sendNotification('Password Changed', 'Password successfully changed', "./img/Utils/profile-icon.png");
+                updateUser(sessionStorage.getItem('wxp_token'), { password: passwordInput_1.value });
                 passwordInput_1.value = '';
                 confirmPasswordInput_1.value = '';
             }

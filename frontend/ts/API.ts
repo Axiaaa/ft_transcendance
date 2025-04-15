@@ -58,6 +58,7 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
 	
 	const headers = {
 		'Content-Type': 'application/json',
+		'Authorization': `Bearer ${sessionStorage.getItem('wxp_token')}`,
 		...options.headers
 	};
 
@@ -236,14 +237,16 @@ export async function createUser(userData: Partial<User>): Promise<User> {
  * // Update a user's name
  * const updatedUser = await updateUser(123, { name: "John Doe" });
  */
-export async function updateUser(userId: number, userData: Partial<User>): Promise<User> {
+export async function updateUser(token: string | null, userData: Partial<User>) {
+	if (token === null) {
+		throw new Error('Token isn\'t valid, try to log in again');
+	}
 	try {
-		const response = await apiFetch(`/users/${userId}`, {
-			method: 'PUT',
+		const response = await apiFetch(`/users/${token}`, {
+			method: 'PATCH',
 			body: JSON.stringify(userData)
 		});
 		
-		return await response.json();
 	} catch (error) {
 		console.error('Error updating user:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);

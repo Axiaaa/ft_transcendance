@@ -79,7 +79,7 @@ function apiFetch(url_1) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    headers = __assign({ 'Content-Type': 'application/json' }, options.headers);
+                    headers = __assign({ 'Content-Type': 'application/json', 'Authorization': "Bearer ".concat(sessionStorage.getItem('wxp_token')) }, options.headers);
                     console.log('API Fetch:', "".concat(API_CONFIG.baseUrl).concat(url), options);
                     return [4 /*yield*/, fetch("".concat(API_CONFIG.baseUrl).concat(url), __assign(__assign({}, options), { headers: headers }))];
                 case 1:
@@ -298,21 +298,25 @@ export function createUser(userData) {
  * // Update a user's name
  * const updatedUser = await updateUser(123, { name: "John Doe" });
  */
-export function updateUser(userId, userData) {
+export function updateUser(token, userData) {
     return __awaiter(this, void 0, void 0, function () {
         var response, error_6, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, apiFetch("/users/".concat(userId), {
-                            method: 'PUT',
+                    if (token === null) {
+                        throw new Error('Token isn\'t valid, try to log in again');
+                    }
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, apiFetch("/users/".concat(token), {
+                            method: 'PATCH',
                             body: JSON.stringify(userData)
                         })];
-                case 1:
+                case 2:
                     response = _a.sent();
-                    return [4 /*yield*/, response.json()];
-                case 2: return [2 /*return*/, _a.sent()];
+                    return [3 /*break*/, 4];
                 case 3:
                     error_6 = _a.sent();
                     console.error('Error updating user:', error_6);
