@@ -9,6 +9,7 @@ exports.getFriendsFromDb = getFriendsFromDb;
 exports.getPendingFriendsListFromDb = getPendingFriendsListFromDb;
 exports.updateUserAvatar = updateUserAvatar;
 exports.updateUserBackground = updateUserBackground;
+exports.getUserFromHash = getUserFromHash;
 const _1 = require(".");
 const js_sha256_1 = require("js-sha256");
 const crypto_1 = __importDefault(require("crypto"));
@@ -234,4 +235,39 @@ async function updateUserBackground(user, filePath) {
     userFromDb.background = filePath;
     const req_message = await userFromDb.updateUserInDb();
     return req_message;
+}
+async function getUserFromHash(username, password) {
+    try {
+        const hash_password = js_sha256_1.sha256.hmac(_1.salt, password);
+        const existingUser = _1.db.prepare('SELECT * FROM users WHERE username = ? AND password = ?');
+        const userRow = existingUser.get(username, hash_password);
+        if (!userRow)
+            return null;
+        let user = new User(userRow.username, userRow.password);
+        user.id = userRow.id;
+        user.is_online = userRow.is_online === 1;
+        user.created_at = new Date(userRow.created_at);
+        user.win_nbr = userRow.win_nbr;
+        user.loss_nbr = userRow.loss_nbr;
+        user.avatar = userRow.avatar;
+        user.background = userRow.background;
+        user.last_login = new Date(userRow.last_login);
+        user.font_size = userRow.font_size;
+        user.token = userRow.token;
+        const friends = await getFriendsFromDb(user.id);
+        if (friends)
+            user.friend_list = friends.map(f => f.id);
+        const pending_friends = await getPendingFriendsListFromDb(user.id);
+        if (pending_friends)
+            user.pending_friend_list = pending_friends.map(f => f.id);
+        const userId = Number(user.id);
+        const matches = _1.db.prepare("SELECT * FROM matchs").all();
+        const userMatches = matches.filter(match => match.player1 === userId.toString() || match.player2 === userId.toString());
+        user.history = userMatches.map(match => match.id);
+        return user;
+    }
+    catch (error) {
+        _1.server.log.error(`Could not fetch user from DB ${error}`);
+        return null;
+    }
 }

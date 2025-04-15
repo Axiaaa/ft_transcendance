@@ -95,34 +95,6 @@ function apiFetch(url_1) {
     });
 }
 /**
- * Fetch function with authentication but without API base URL
- * @param url - Full URL endpoint
- * @param options - Fetch options
- * @returns Promise with response
- */
-function backFetch(url_1) {
-    return __awaiter(this, arguments, void 0, function (url, options) {
-        var credentials, headers, response, error;
-        if (options === void 0) { options = {}; }
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    credentials = btoa("".concat(API_CONFIG.credentials.username, ":").concat(API_CONFIG.credentials.password));
-                    headers = __assign({ 'Authorization': "Basic ".concat(credentials), 'Content-Type': 'application/json' }, options.headers);
-                    return [4 /*yield*/, fetch(url, __assign(__assign({}, options), { headers: headers }))];
-                case 1:
-                    response = _a.sent();
-                    if (!response.ok) {
-                        error = new Error("HTTP error! status: ".concat(response.status));
-                        error.status = response.status;
-                        throw error;
-                    }
-                    return [2 /*return*/, response];
-            }
-        });
-    });
-}
-/**
  * Fetches all users from the API.
  *
  * Makes a GET request to the '/users' endpoint and returns the parsed JSON response.
@@ -454,7 +426,7 @@ export function loginUser(username, password) {
 }
 export function uploadFile(userId, file, fileType) {
     return __awaiter(this, void 0, void 0, function () {
-        var formData, credentials, response, result, error, error_10, errorMessage;
+        var formData, response, result, error, error_10, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -463,14 +435,10 @@ export function uploadFile(userId, file, fileType) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 7, , 8]);
-                    credentials = btoa("".concat(API_CONFIG.credentials.username, ":").concat(API_CONFIG.credentials.password));
                     return [4 /*yield*/, fetch("".concat(API_CONFIG.baseUrl, "/user_images/").concat(fileType, "/").concat(userId), {
                             method: 'POST',
-                            body: formData,
-                            headers: {
-                                'Authorization': "Basic ".concat(credentials)
-                                // Note: Don't set Content-Type for FormData, browser will set it with boundary
-                            }
+                            body: formData
+                            // Note: Don't set Content-Type for FormData, browser will set it with boundary
                         })];
                 case 2:
                     response = _a.sent();
