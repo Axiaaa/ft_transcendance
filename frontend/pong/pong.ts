@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const allInputs = playerInputs.querySelectorAll('input');
                 allInputs.forEach(input => {
                     input.addEventListener('input', () => {
-                        const allFilled = Array.from(allInputs).every(input => input.value.trim() !== '');
+                        const allFilled = Array.from(allInputs).every(input => input.value.trim() !== ''); // Transform into array, check if all inputs are filled
                         continueButton.style.display = allFilled ? 'block' : 'none';
                     });
                 });
@@ -305,10 +305,6 @@ function startTournamentGame(rounds: string[][]) {
 
     function playNextMatch() {
         if (currentMatchIndex >= rounds.length) {
-            if (winners.length === 1) {
-                alert(`🏆 ${winners[0]} remporte le tournoi !`);
-                return;
-            }
             startTournamentGame(pairWinners(winners));
             return;
         }
@@ -848,7 +844,12 @@ function endGame(): void {
     countdownContainer.style.display = "block"; // Hide countdown
     overlay.style.display = "block"; // Show overlay
     setTimeout(() => {
-        if (isFinal) return;
+        if (isFinal) {
+            // Afficher une alerte avec le nom du gagnant
+            const winnerName = score1 > 9 ? currentPlayer1 : currentPlayer2;
+            alert(`Winner is ${winnerName}`);
+            return;
+        }
         const restartButton = document.createElement("button-endgame");
         if (isTournament === 1) {
             restartButton.textContent = "Next Match";
@@ -863,7 +864,7 @@ function endGame(): void {
                 });
             };
         } else {
-            restartButton.textContent = "Restart Game";
+            restartButton.textContent = "Restart";
             restartButton.onclick = () => restartGame(() => startGame());
         }
         document.body.appendChild(restartButton);
