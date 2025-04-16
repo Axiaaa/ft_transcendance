@@ -36,7 +36,27 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { sendNotification } from "./notification.js";
 import { getUserById } from "./API.js";
-import { createUser } from "./API.js";
+var userBackground = document.createElement('img');
+userBackground.id = 'user-background';
+userBackground.className = 'user-background';
+document.body.appendChild(userBackground);
+userBackground.src = './img/Desktop/linus-wallpaper.jpg';
+userBackground.style.position = 'absolute';
+userBackground.style.zIndex = '-1';
+userBackground.style.width = '100%';
+userBackground.style.height = '100%';
+userBackground.style.objectFit = 'cover';
+userBackground.style.objectPosition = 'center';
+userBackground.style.top = '0';
+userBackground.style.left = '0';
+userBackground.style.display = 'block';
+/**
+ * Sets the background image on the body element
+ * @param url The URL of the image to set as background
+ */
+export function setBodyBackgroundImage(url) {
+    document.body.style.backgroundImage = "url(".concat(url, ")");
+}
 document.addEventListener('DOMContentLoaded', function () { return __awaiter(void 0, void 0, void 0, function () {
     function animateLogo(Logo) {
         if (!Logo)
@@ -55,10 +75,15 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
         console.log("Logo dimensions - Height:", Logo.clientHeight, "Width:", Logo.clientWidth);
         var x = screenBorderLeft;
         var y = screenBorderTop;
-        var dx = Math.round((Math.random() * 2 - 1) * 10) / 10;
-        var dy = Math.round((Math.random() * 2 - 1) * 10) / 10;
+        var dx = (Math.floor(Math.random() * 9) + 1) / 10;
+        if (Math.random() < 0.5)
+            dx = -dx;
+        var dy = (Math.floor(Math.random() * 9) + 1) / 10;
+        if (Math.random() < 0.5)
+            dy = -dy;
         console.log("SleepScreen X/Y direction" + dx + "/" + dy);
-        var speed = 5;
+        var speed = Math.max(5, Math.sqrt(Math.pow(sleepScreen.clientWidth, 2) + Math.pow(sleepScreen.clientHeight, 2)) * 0.007);
+        console.log("Animation speed:", speed);
         var interval = 50;
         var animation = setInterval(function () {
             Logo.style.left = x + 'px';
@@ -114,81 +139,73 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
             });
         }); }, INACTIVE_TIMEOUT);
     }
-    var sleepScreen, sleepLogo, timeoutId, INACTIVE_TIMEOUT, CurrentUser, trashBinApp;
+    var sleepScreen, sleepLogo, timeoutId, INACTIVE_TIMEOUT, trashBinApp;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                sleepScreen = document.createElement('div');
-                document.body.appendChild(sleepScreen);
-                sleepScreen.id = 'sleep-screen';
-                sleepScreen.style.position = 'absolute';
-                sleepScreen.style.left = '0';
-                sleepScreen.style.top = '0';
-                sleepScreen.style.width = '100%';
-                sleepScreen.style.height = '100%';
-                sleepScreen.style.backgroundColor = 'rgb(0, 0, 0)';
-                sleepScreen.style.zIndex = '1000';
-                sleepScreen.style.justifyContent = 'center';
-                sleepScreen.style.alignItems = 'center';
-                sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
-                sleepLogo = document.createElement('img');
-                sleepScreen.appendChild(sleepLogo);
-                sleepLogo.src = './img/Utils/windows-xp-logo.png';
-                sleepLogo.style.width = '100px';
-                sleepLogo.style.height = '100px';
-                sleepLogo.style.position = 'absolute';
-                sleepLogo.style.padding = '0 10px';
-                animateLogo(sleepLogo);
-                INACTIVE_TIMEOUT = 20000;
-                // Reset timer on mouse movement
-                document.addEventListener('mousemove', resetTimer);
-                // Reset timer on mouse clicks
-                document.addEventListener('click', resetTimer);
-                // Reset timer on key press
-                document.addEventListener('keypress', resetTimer);
-                // Reset timer on scroll
-                document.addEventListener('scroll', resetTimer);
-                // Start the initial timer
-                resetTimer();
-                return [4 /*yield*/, getUserById(1)];
-            case 1:
-                CurrentUser = _a.sent();
-                if (!!CurrentUser) return [3 /*break*/, 3];
-                return [4 /*yield*/, createUser({ username: 'Guest', password: 'guest', email: 'guest@guest.com' })];
-            case 2:
-                CurrentUser = _a.sent();
-                _a.label = 3;
-            case 3:
-                trashBinApp = document.getElementById('trash-bin-app');
-                trashBinApp.addEventListener('dblclick', function (e) { return __awaiter(void 0, void 0, void 0, function () {
-                    var user1, error_2, errorMessage;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0:
-                                _a.trys.push([0, 2, , 3]);
-                                return [4 /*yield*/, getUserById(1)];
-                            case 1:
-                                user1 = _a.sent();
-                                if (user1) {
-                                    sendNotification('User Data', "User ID: ".concat(user1.id, ", Username: ").concat(user1.username, ", Email: ").concat(user1.email), './img/Utils/API-icon.png');
-                                    console.log("User ID: " + user1.id + " Username: " + user1.username);
-                                    console.log("User Data:", user1);
-                                }
-                                return [3 /*break*/, 3];
-                            case 2:
-                                error_2 = _a.sent();
-                                console.error('Error fetching user:', error_2);
-                                errorMessage = error_2 instanceof Error ? error_2.message : String(error_2);
-                                if (typeof sendNotification === 'function') {
-                                    sendNotification('Session Error', "Failed to get user: ".concat(errorMessage), './img/Utils/API-icon.png');
-                                }
-                                return [3 /*break*/, 3];
-                            case 3: return [2 /*return*/];
-                        }
-                    });
-                }); });
-                return [2 /*return*/];
+        sleepScreen = document.createElement('div');
+        document.body.appendChild(sleepScreen);
+        sleepScreen.id = 'sleep-screen';
+        sleepScreen.style.position = 'absolute';
+        sleepScreen.style.left = '0';
+        sleepScreen.style.top = '0';
+        sleepScreen.style.width = '100%';
+        sleepScreen.style.height = '100%';
+        sleepScreen.style.backgroundColor = 'rgb(0, 0, 0)';
+        sleepScreen.style.zIndex = '1000';
+        sleepScreen.style.justifyContent = 'center';
+        sleepScreen.style.alignItems = 'center';
+        sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
+        sleepLogo = document.createElement('img');
+        sleepScreen.appendChild(sleepLogo);
+        sleepLogo.src = './img/Utils/windows-xp-logo.png';
+        sleepLogo.style.width = '100px';
+        sleepLogo.style.height = '100px';
+        sleepLogo.style.position = 'absolute';
+        sleepLogo.style.padding = '0 10px';
+        animateLogo(sleepLogo);
+        INACTIVE_TIMEOUT = 20000;
+        // Reset timer on mouse movement
+        document.addEventListener('mousemove', resetTimer);
+        // Reset timer on mouse clicks
+        document.addEventListener('click', resetTimer);
+        // Reset timer on key press
+        document.addEventListener('keypress', resetTimer);
+        // Reset timer on scroll
+        document.addEventListener('scroll', resetTimer);
+        // Start the initial timer
+        resetTimer();
+        // SANDBOX AREA
+        {
+            trashBinApp = document.getElementById('trash-bin-app');
+            trashBinApp.addEventListener('dblclick', function (e) { return __awaiter(void 0, void 0, void 0, function () {
+                var userIdString, currentUser, error_2, errorMessage;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            userIdString = sessionStorage.getItem('wxp_user_id');
+                            return [4 /*yield*/, getUserById(userIdString ? parseInt(userIdString, 10) : 0)];
+                        case 1:
+                            currentUser = _a.sent();
+                            if (currentUser) {
+                                sendNotification('User Data', "User ID: ".concat(currentUser.id, ", Username: ").concat(currentUser.username, ", Email: ").concat(currentUser.email), './img/Utils/API-icon.png');
+                                console.log("User ID: " + currentUser.id + " Username: " + currentUser.username);
+                                console.log("User Data:", currentUser);
+                            }
+                            return [3 /*break*/, 3];
+                        case 2:
+                            error_2 = _a.sent();
+                            console.error('Error fetching user:', error_2);
+                            errorMessage = error_2 instanceof Error ? error_2.message : String(error_2);
+                            if (typeof sendNotification === 'function') {
+                                sendNotification('Session Error', "Failed to get user: ".concat(errorMessage), './img/Utils/API-icon.png');
+                            }
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            }); });
         }
+        return [2 /*return*/];
     });
 }); });
 export function initHistoryAPI() {

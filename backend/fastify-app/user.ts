@@ -300,6 +300,25 @@ export async function getPendingFriendsListFromDb(userId: number): Promise<Array
     }
 }
 
+export  async function updateUserAvatar(user: User, filePath: string) : Promise<string | null> {
+    const userFromDb = await getUserFromDb({ id: user.id });
+    if (userFromDb == null) {
+        return "User not found";
+    }
+    userFromDb.avatar = filePath;
+    const req_message = await userFromDb.updateUserInDb();
+    return req_message;
+}
+
+export async function updateUserBackground(user: User, filePath: string) : Promise<string | null> {
+    const userFromDb = await getUserFromDb({ id: user.id });
+    if (userFromDb == null) {
+        return "User not found";
+    }
+    userFromDb.background = filePath;
+    const req_message = await userFromDb.updateUserInDb();
+    return req_message;
+}
 export async function getUserFromHash(username: string, password: string): Promise<User | null> {
     try {
         const hash_password = sha256.hmac(salt, password);
@@ -324,6 +343,7 @@ export async function getUserFromHash(username: string, password: string): Promi
 
         let user: User = new User(userRow.username, userRow.password);
         user.id = userRow.id;
+        user.password = userRow.password;
         user.is_online = userRow.is_online === 1;
         user.created_at = new Date(userRow.created_at);
         user.win_nbr = userRow.win_nbr;

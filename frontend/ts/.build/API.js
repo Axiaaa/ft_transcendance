@@ -73,14 +73,21 @@ const API_CONFIG = {
  * @returns Promise with response
  */
 function apiFetch(url_1) {
-    return __awaiter(this, arguments, void 0, function (url, options) {
+    return __awaiter(this, arguments, void 0, function (url, options, useJsonContentType, nojson) {
         var headers, response;
         if (options === void 0) { options = {}; }
+        if (useJsonContentType === void 0) { useJsonContentType = true; }
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    headers = __assign({ 'Content-Type': 'application/json', 'Authorization': "Bearer ".concat(sessionStorage.getItem('wxp_token')) }, options.headers);
+                    headers = __assign({ 'Authorization': "Bearer ".concat(sessionStorage.getItem('wxp_token')) }, options.headers);
+                    // Only add Content-Type if specified (useful to exclude when using FormData)
+                    if (!nojson && useJsonContentType) {
+                        headers = __assign(__assign({}, headers), { 'Content-Type': 'application/json' });
+                    }
                     console.log('API Fetch:', "".concat(API_CONFIG.baseUrl).concat(url), options);
+                    console.log('Headers:', headers);
+                    console.log('Body:', options.body);
                     return [4 /*yield*/, fetch("".concat(API_CONFIG.baseUrl).concat(url), __assign(__assign({}, options), { headers: headers }))];
                 case 1:
                     response = _a.sent();
@@ -429,6 +436,115 @@ export function loginUser(username, password) {
                     }
                     throw error_9;
                 case 6: return [2 /*return*/];
+            }
+        });
+    });
+}
+export function uploadFile(userId, file, fileType) {
+    return __awaiter(this, void 0, void 0, function () {
+        var formData, response, result, error, error_10, errorMessage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    formData = new FormData();
+                    formData.append('file', file);
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 7, , 8]);
+                    return [4 /*yield*/, apiFetch("/user_images/".concat(fileType, "/").concat(userId), {
+                            method: 'POST',
+                            body: formData,
+                            // Note: When using FormData, browser will set the correct Content-Type with boundary
+                        }, false, true)];
+                case 2:
+                    response = _a.sent();
+                    if (!response.ok) return [3 /*break*/, 4];
+                    return [4 /*yield*/, response.json()];
+                case 3:
+                    result = _a.sent();
+                    console.log('File uploaded successfully:', result);
+                    sendNotification('File Uploaded', "File uploaded successfully: ".concat(result.message), "./img/Utils/API-icon.png");
+                    return [2 /*return*/, response];
+                case 4: return [4 /*yield*/, response.json()];
+                case 5:
+                    error = _a.sent();
+                    console.error('Error uploading file:', error);
+                    sendNotification('Error', "Error uploading file: ".concat(error.message || 'Unknown error'), "./img/Utils/error-icon.png");
+                    _a.label = 6;
+                case 6: return [3 /*break*/, 8];
+                case 7:
+                    error_10 = _a.sent();
+                    console.error('Error uploading file:', error_10);
+                    errorMessage = error_10 instanceof Error ? error_10.message : String(error_10);
+                    sendNotification('Error', "Error uploading file: ".concat(errorMessage), "./img/Utils/error-icon.png");
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/, null];
+            }
+        });
+    });
+}
+export function getUserAvatar(userId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, filePath, error_11, errorMessage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    return [4 /*yield*/, apiFetch("/user_images/avatar/".concat(userId), {
+                            method: 'GET'
+                        })];
+                case 1:
+                    response = _a.sent();
+                    console.log("Get user " + userId + " avatar");
+                    console.log("Response: ", response);
+                    // Check if response is successful
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch avatar: ".concat(response.status));
+                    }
+                    return [4 /*yield*/, response.text()];
+                case 2:
+                    filePath = _a.sent();
+                    return [2 /*return*/, filePath];
+                case 3:
+                    error_11 = _a.sent();
+                    console.error('Error fetching user avatar:', error_11);
+                    errorMessage = error_11 instanceof Error ? error_11.message : String(error_11);
+                    if (typeof sendNotification === 'function') {
+                        sendNotification('API Error', "Failed to fetch avatar: ".concat(errorMessage), './img/Utils/API-icon.png');
+                    }
+                    throw error_11;
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+export function getUserBackground(userId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, filePath, error_12, errorMessage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    return [4 /*yield*/, apiFetch("/user_images/wallpaper/".concat(userId))];
+                case 1:
+                    response = _a.sent();
+                    // Check if response is successful
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch background: ".concat(response.status));
+                    }
+                    return [4 /*yield*/, response.text()];
+                case 2:
+                    filePath = _a.sent();
+                    return [2 /*return*/, filePath];
+                case 3:
+                    error_12 = _a.sent();
+                    console.error('Error fetching user background:', error_12);
+                    errorMessage = error_12 instanceof Error ? error_12.message : String(error_12);
+                    if (typeof sendNotification === 'function') {
+                        sendNotification('API Error', "Failed to fetch background: ".concat(errorMessage), './img/Utils/API-icon.png');
+                    }
+                    throw error_12;
+                case 4: return [2 /*return*/];
             }
         });
     });

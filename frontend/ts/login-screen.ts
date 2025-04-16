@@ -1,4 +1,4 @@
-import { getCurrentUser, updateUser } from "./API.js";
+import { getCurrentUser, getUserAvatar, getUserBackground, updateUser } from "./API.js";
 import { Cookies, getCookie, setCookie } from 'typescript-cookie'
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
@@ -187,6 +187,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) {
+	const userID = Number(sessionStorage.getItem("wxp_user_id"));
+	if (userID == null)
+		return;
+	let avatarURL = null;
+	let wallpaperURL = null;
+	if (fileAvatar)
+		avatarURL = URL.createObjectURL(fileAvatar);
+	else
+		 avatarURL = await getUserAvatar(userID);
+	let userAvatars = document.getElementsByClassName("avatar-preview") as HTMLCollectionOf<HTMLImageElement>;
+	
+	console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
+	if (avatarURL == null || avatarURL == undefined)
+		avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+	for (let i = 0; i < userAvatars.length; i++) {
+		console.log(userAvatars[i] + " now = " + avatarURL);
+		userAvatars[i].src = avatarURL;
+	}
+	if (fileWallpaper)
+		wallpaperURL = URL.createObjectURL(fileWallpaper);
+	else
+		wallpaperURL = await getUserBackground(userID);
+	if (wallpaperURL == null || wallpaperURL == undefined)
+		wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
+	console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
+	userWallpapers[0].src = wallpaperURL;
+};
+
 // SANDBOX AREA
 {
 	let signUpForm = document.getElementById("sign-up-form") as HTMLFormElement;
@@ -209,6 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
 						signUpUsername.value = "";
 						signUpPassword.value = "";
 						signUpConfirmPassword.value = "";
+						updateUserImages();
 
 					} catch (error) {
 						console.error("Error creating user:", error);
@@ -240,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
 						goToDesktopPage();
 						signInUsername.value = "";
 						signInPassword.value = "";
+						updateUserImages();
 						} 
 					catch (error) {
 						console.error("Error signing in:", error);

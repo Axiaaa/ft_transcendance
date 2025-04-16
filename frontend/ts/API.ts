@@ -47,23 +47,31 @@ const API_CONFIG = {
 	}
 };
 */
-
 /**
  * Base fetch function with authentication
  * @param url - API endpoint
  * @param options - Fetch options
  * @returns Promise with response
  */
-async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
+async function apiFetch(url: string, options: RequestInit = {}, useJsonContentType = true, nojson?: boolean): Promise<Response> {
 	// const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
 	
-	const headers = {
-		'Content-Type': 'application/json',
+	let headers: HeadersInit = {
 		'Authorization': `Bearer ${sessionStorage.getItem('wxp_token')}`,
 		...options.headers
 	};
 
+	// Only add Content-Type if specified (useful to exclude when using FormData)
+	if (!nojson && useJsonContentType) {
+		headers = {
+			...headers,
+			'Content-Type': 'application/json'
+		};
+	}
+	
 	console.log('API Fetch:', `${API_CONFIG.baseUrl}${url}`, options);
+	console.log('Headers:', headers);
+	console.log('Body:', options.body);
 	const response = await fetch(`${API_CONFIG.baseUrl}${url}`, {
 		...options,
 		headers
@@ -77,7 +85,6 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
 	
 	return response;
 }
-
 
 
 /**
@@ -321,6 +328,81 @@ export async function loginUser(username: string, password: string): Promise<Use
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		if (typeof sendNotification === 'function') {
 			sendNotification('Login Error', `Failed to log in: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+}
+export async function uploadFile(userId: number, file: File, fileType: string): Promise<Response | null> {
+	const formData = new FormData();
+	formData.append('file', file);
+	try {
+		const response = await apiFetch(`/user_images/${fileType}/${userId}`, {
+			method: 'POST',
+			body: formData,
+			// Note: When using FormData, browser will set the correct Content-Type with boundary
+		}, false, true);
+		
+		if (response.ok) {
+			const result = await response.json();
+			console.log('File uploaded successfully:', result);
+			sendNotification('File Uploaded', `File uploaded successfully: ${result.message}`, "./img/Utils/API-icon.png");
+			return response;
+		} else {
+			const error = await response.json();
+			console.error('Error uploading file:', error);
+			sendNotification('Error', `Error uploading file: ${error.message || 'Unknown error'}`, "./img/Utils/error-icon.png");
+		}
+	} catch (error) {
+		console.error('Error uploading file:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		sendNotification('Error', `Error uploading file: ${errorMessage}`, "./img/Utils/error-icon.png");
+	}
+	
+	return null;
+}
+
+export async function getUserAvatar(userId: number): Promise<string> {
+	try {
+		const response = await apiFetch(`/user_images/avatar/${userId}`, {
+			method: 'GET'
+		});
+		console.log("Get user " + userId + " avatar");
+		console.log("Response: ", response);
+		// Check if response is successful
+		if (!response.ok) {
+			throw new Error(`Failed to fetch avatar: ${response.status}`);
+		}
+		
+		// The API returns a file path as text, not a blob
+		const filePath = await response.text();
+		return filePath;
+	} catch (error) {
+		console.error('Error fetching user avatar:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to fetch avatar: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+}
+
+export async function getUserBackground(userId: number): Promise<string> {
+	try {
+		const response = await apiFetch(`/user_images/wallpaper/${userId}`);
+		
+		// Check if response is successful
+		if (!response.ok) {
+			throw new Error(`Failed to fetch background: ${response.status}`);
+		}
+		
+		// The API returns a file path as text, not a blob
+		const filePath = await response.text();
+		return filePath;
+	} catch (error) {
+		console.error('Error fetching user background:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to fetch background: ${errorMessage}`, './img/Utils/API-icon.png');
 		}
 		throw error;
 	}

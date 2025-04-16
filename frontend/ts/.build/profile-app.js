@@ -336,6 +336,8 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                 avatarContainer.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.3)';
                 profileInfoContainer.appendChild(avatarContainer);
                 avatarImg = document.createElement('img');
+                avatarImg.alt = 'User Avatar';
+                avatarImg.classList.add('avatar-preview');
                 avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar - replace with user's actual avatar from API
                 avatarImg.style.width = '100%';
                 avatarImg.style.height = '100%';
