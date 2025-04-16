@@ -102,10 +102,6 @@ document.addEventListener('DOMContentLoaded', function () {
     loginScreen.appendChild(loginScreenMiddleBar);
     // DEFAULTS DISPLAY SETTINGS
     loginScreen.style.display = 'block';
-    var passwordErrorElement = document.getElementById('login-password-error');
-    if (passwordErrorElement) {
-        passwordErrorElement.style.display = 'none';
-    }
     var profiles = document.getElementsByClassName("login-screen-right-profile-box");
     var NewProfile = document.getElementById("new-profile");
     var _loop_1 = function (i) {
@@ -163,6 +159,10 @@ document.addEventListener('DOMContentLoaded', function () {
     backbutton.style.overflow = 'hidden';
     form.appendChild(backbutton);
     backbutton.addEventListener('click', function () {
+        var existingErrorBox = document.querySelector('.error-box');
+        if (existingErrorBox) {
+            existingErrorBox.remove();
+        }
         goToLoginPage();
         form.style.display = 'none';
         for (var i = 0; i < profiles.length; i++) {
@@ -229,6 +229,34 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
 }
 ;
 // SANDBOX AREA
+export function showError(message) {
+    return __awaiter(this, void 0, void 0, function () {
+        var errorBox, existingErrorBox;
+        return __generator(this, function (_a) {
+            errorBox = document.createElement('div');
+            errorBox.className = 'error-box';
+            errorBox.textContent = message;
+            errorBox.style.position = 'fixed';
+            errorBox.style.top = '10px';
+            errorBox.style.left = '50%';
+            errorBox.style.transform = 'translateX(-50%)';
+            errorBox.style.backgroundColor = 'red';
+            errorBox.style.color = 'white';
+            errorBox.style.padding = '10px 20px';
+            errorBox.style.borderRadius = '5px';
+            errorBox.style.zIndex = '1000';
+            errorBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            errorBox.style.fontSize = '14px';
+            errorBox.style.fontWeight = 'bold';
+            existingErrorBox = document.querySelector('.error-box');
+            if (existingErrorBox) {
+                existingErrorBox.remove();
+            }
+            document.body.appendChild(errorBox);
+            return [2 /*return*/];
+        });
+    });
+}
 {
     var signUpForm = document.getElementById("sign-up-form");
     var signUpButton = document.getElementById("sign-up-button");
@@ -237,7 +265,7 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
     var signUpPassword_1 = document.getElementById("sign-up-password");
     if (signUpButton) {
         signUpButton.addEventListener("click", function (event) { return __awaiter(void 0, void 0, void 0, function () {
-            var username, password, confirmPassword, newUser, error_1, passwordErrorElement, passwordErrorElement, passwordErrorElement, passwordErrorElement, passwordErrorElement;
+            var username, password, confirmPassword, existingErrorBox, newUser, error_1, existingErrorBox, existingErrorBox, existingErrorBox, existingErrorBox, existingErrorBox, existingErrorBox;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -255,6 +283,10 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
                         return [4 /*yield*/, createUser({ username: username, password: password })];
                     case 2:
                         newUser = _a.sent();
@@ -268,55 +300,69 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
                         return [3 /*break*/, 4];
                     case 3:
                         error_1 = _a.sent();
-                        console.error("Error creating user:", error_1);
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
+                        showError("User already exists.");
                         signUpUsername_1.value = "";
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
                         return [3 /*break*/, 4];
                     case 4: return [3 /*break*/, 6];
                     case 5:
-                        passwordErrorElement = document.getElementById('login-password-error');
-                        if (passwordErrorElement) {
-                            passwordErrorElement.style.display = 'block';
-                            passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
-                            passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
                         }
+                        showError("Password must contain at least one number.");
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
                         _a.label = 6;
                     case 6: return [3 /*break*/, 8];
                     case 7:
-                        passwordErrorElement = document.getElementById('login-password-error');
-                        if (passwordErrorElement) {
-                            passwordErrorElement.style.display = 'block';
-                            passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
-                            passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
                         }
+                        showError("Password must contain at least one lowercase letter.");
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
                         _a.label = 8;
                     case 8: return [3 /*break*/, 10];
                     case 9:
-                        passwordErrorElement = document.getElementById('login-password-error');
-                        if (passwordErrorElement) {
-                            passwordErrorElement.style.display = 'block';
-                            passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
-                            passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
                         }
+                        showError("Password must contain at least one uppercase letter.");
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
                         _a.label = 10;
                     case 10: return [3 /*break*/, 12];
                     case 11:
-                        passwordErrorElement = document.getElementById('login-password-error');
-                        if (passwordErrorElement) {
-                            passwordErrorElement.style.display = 'block';
-                            passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
-                            passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
                         }
+                        showError("Password must be at least 8 characters long.");
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
                         _a.label = 12;
                     case 12: return [3 /*break*/, 14];
                     case 13:
-                        passwordErrorElement = document.getElementById('login-password-error');
-                        if (passwordErrorElement) {
-                            passwordErrorElement.style.display = 'block';
-                            passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
-                            passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
                         }
+                        showError("Passwords do not match.");
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
                         _a.label = 14;
                     case 14: return [2 /*return*/];
                 }
@@ -329,7 +375,7 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
     var signInPassword_1 = document.getElementById("sign-in-password");
     if (signInButton) {
         signInButton.addEventListener("click", function (event) { return __awaiter(void 0, void 0, void 0, function () {
-            var username, password, user, error_2;
+            var username, password, existingErrorBox, user, error_2, existingErrorBox;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -341,6 +387,10 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
                         return [4 /*yield*/, getUser(username, password)];
                     case 2:
                         user = _a.sent();
@@ -353,7 +403,11 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
                         return [3 /*break*/, 4];
                     case 3:
                         error_2 = _a.sent();
-                        console.error("Error signing in:", error_2);
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
+                        showError("Username or password is incorrect.");
                         signInUsername_1.value = "";
                         signInPassword_1.value = "";
                         return [3 /*break*/, 4];
