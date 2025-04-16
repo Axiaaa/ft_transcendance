@@ -214,25 +214,30 @@ export function getUser(username, password) {
  * Get current user from the session
  * @returns Promise with the current User object
  */
-export function getCurrentUser() {
+export function getCurrentUser(token) {
     return __awaiter(this, void 0, void 0, function () {
         var response, user, error_4, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, apiFetch('/users/me')];
+                    if (token === null) {
+                        throw new Error('Token isn\'t valid, try to log in again');
+                    }
+                    _a.label = 1;
                 case 1:
+                    _a.trys.push([1, 4, , 5]);
+                    return [4 /*yield*/, apiFetch("/users/".concat(token))];
+                case 2:
                     response = _a.sent();
                     return [4 /*yield*/, response.json()];
-                case 2:
+                case 3:
                     user = _a.sent();
                     console.log("Current User:", user);
                     if (user && typeof sendNotification === 'function') {
                         sendNotification('User Session', "Logged in as: ".concat(user.username), './img/Utils/API-icon.png');
                     }
                     return [2 /*return*/, user];
-                case 3:
+                case 4:
                     error_4 = _a.sent();
                     console.error('Error fetching current user:', error_4);
                     errorMessage = error_4 instanceof Error ? error_4.message : String(error_4);
@@ -240,7 +245,7 @@ export function getCurrentUser() {
                         sendNotification('Session Error', "Failed to get current user: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
                     throw error_4;
-                case 4: return [2 /*return*/];
+                case 5: return [2 /*return*/];
             }
         });
     });

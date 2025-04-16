@@ -168,11 +168,13 @@ export async function getUser(username: string, password: string): Promise<User>
  * Get current user from the session
  * @returns Promise with the current User object
  */
-export async function getCurrentUser(): Promise<User> {
+export async function getCurrentUser(token : string | null): Promise<User> {
+	if (token === null) {
+		throw new Error('Token isn\'t valid, try to log in again');
+	}
 	try {
 		// This endpoint should be adjusted based on your actual API
-		// Typically APIs have a /me or /current-user endpoint
-		const response = await apiFetch('/users/me');
+		const response = await apiFetch(`/users/${token}`);
 		
 		const user = await response.json();
 		console.log("Current User:", user);
