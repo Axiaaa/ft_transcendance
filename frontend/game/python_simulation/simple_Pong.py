@@ -190,7 +190,7 @@ class Game:
 		self.score2 = 0
 		self.last_scorer = None
 		self.num_hit = 0
-		self.speed_increment = 0.025
+		self.speed_increment = 0.005
 
 		self.width = 12
 		self.height = 12
@@ -209,7 +209,7 @@ class Game:
 			self.root.bind("<KeyPress>", self.key_press)
 			self.root.bind("<KeyRelease>", self.key_release)
 
-		self.ball = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0.05, radius=0.2, color="yellow")
+		self.ball = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0.02, radius=0.2, color="yellow")
 		self.prediction = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0, radius=0.1, color="green")
 
 		self.paddle_bottom = Paddle(visual, self.canvas, width, height, 0, -5.5, color="green", width=1.5, height=0.5)
@@ -308,7 +308,7 @@ class Game:
 			self.ball.vy = abs(speed * math.cos(bounce_angle))
 
 			self.num_hit += 1
-			self.paddle_bottom.hit += 1
+			self.paddle_bottom.hit = True
 
 		if (self.ball.y > 5 and self.ball.y < 6 and
 			abs(self.ball.x - self.paddle_top.x) < self.paddle_top.width/2 + self.ball.radius):
@@ -324,7 +324,7 @@ class Game:
 			self.num_hit += 1
 			self.paddle_top.hit += 1
 
-		if self.num_hit >= 5:
+		if self.num_hit >= 2:
 			self.ball.vx += math.copysign(self.speed_increment, self.ball.vx)
 			self.ball.vy += math.copysign(self.speed_increment, self.ball.vy)
 

@@ -620,7 +620,6 @@ function checkCollision(): void {
 		ballSpeed.z = Math.abs(speed * Math.cos(bounceAngle)); // Ensure ball moves downward
 		numHit++;
 		console.log("REAL:", ball.position.x)
-		agent1
 	}
 	// Increase speed every 2 hits
 	if (numHit >= 2) {

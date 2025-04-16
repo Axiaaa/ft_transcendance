@@ -1,307 +1,240 @@
+from simple_Pong import *
+from utils import *
+
 import tensorflow as tf
 import random
-import numpy as np
-import time
-
-class SumTree:
-	def __init__(self, capacity):
-		self.capacity = capacity
-		self.tree = np.zeros(2 * capacity - 1)
-		self.data = np.zeros(capacity, dtype=object)
-		self.size = 0
-		self.ptr = 0
-		self.counter = 0
-
-	def add(self, priority, sample):
-		idx = self.ptr + self.capacity - 1
-		self.data[self.ptr] = sample
-		self.update(idx, priority)
-
-		self.ptr = (self.ptr + 1) % self.capacity
-		self.size = min(self.size + 1, self.capacity)
-		self.counter += 1
-
-	def update(self, idx, priority):
-		if hasattr(priority, "shape") and priority.shape:
-			priority = float(priority.item())
-
-		change = priority - self.tree[idx]
-		self.tree[idx] = priority
-
-		while idx != 0:
-			idx = (idx - 1) // 2
-			if hasattr(change, "shape") and change.shape:
-				change = float(change.item())
-			self.tree[idx] += change
-
-	def get_leaf(self, idx):
-		data_idx = idx - self.capacity + 1
-		return idx, self.tree[idx], self.data[data_idx]
-
-	def sample(self, s):
-		idx = 0
-		while idx < self.capacity - 1:
-			left, right = 2 * idx + 1, 2 * idx + 2
-
-			if self.tree[left] <= 0:
-				idx = right
-			elif self.tree[right] <= 0:
-				idx = left
-			elif s <= self.tree[left]:
-				idx = left
-			else:
-				s -= self.tree[left]
-				idx = right
-		return self.get_leaf(idx)
-
-	def total_priority(self):
-		return self.tree[0]
-
-	def __len__(self):
-		return self.size
-
-class PrioritizedReplayBuffer:
-	def __init__(self, capacity, batch_size, alpha=0.6, beta=0.4, beta_inc=0.001, epsilon=0.01):
-		self.tree = SumTree(capacity)
-		self.batch_size = batch_size
-		self.alpha = alpha
-		self.beta = beta
-		self.beta_inc = beta_inc
-		self.epsilon = epsilon
-		self.max_priority = 1.0
-		self.last_indices = None
-
-	def store(self, state, target):
-		priority = self.max_priority
-		if isinstance(state, tf.Tensor):
-			state = state.numpy()
-		if isinstance(target, tf.Tensor):
-			target = target.numpy()
-		self.tree.add(priority, (state, target))
-
-	def sample(self):
-		if len(self.tree) < self.batch_size:
-			return None
-
-		batch_indices, batch_states, batch_targets, batch_weights = [], [], [], []
-
-		total_priority = self.tree.total_priority()
-		if total_priority <= 0:
-			return None
-
-		self.beta = min(1.0, self.beta + self.beta_inc)
-		segment = total_priority / self.batch_size
-
-		for i in range(self.batch_size):
-			a, b = segment * i, segment * (i + 1)
-			s = random.uniform(a, b)
-
-			idx, priority, data = self.tree.sample(s)
-
-			sampling_probability = priority / total_priority
-			weight = (sampling_probability * len(self.tree)) ** -self.beta
-
-			batch_indices.append(idx)
-			state, target = data
-			batch_states.append(tf.convert_to_tensor(state, dtype=tf.float32))
-			if np.isscalar(target):
-				batch_targets.append(tf.convert_to_tensor([target], dtype=tf.float32))
-			else:
-				batch_targets.append(tf.convert_to_tensor(target, dtype=tf.float32))
-			batch_weights.append(weight)
-
-		batch_weights = np.array(batch_weights) / max(batch_weights)
-
-		states = tf.stack(batch_states)
-		targets = tf.stack(batch_targets)
-		weights = tf.convert_to_tensor(batch_weights, dtype=tf.float32)
-
-		self.last_indices = batch_indices
-
-		return states, targets, weights
-
-	def update_priorities(self, td_errors):
-		if self.last_indices is None:
-			return
-
-		if isinstance(td_errors, tf.Tensor):
-			td_errors = td_errors.numpy()
-
-		for idx, error in zip(self.last_indices, td_errors):
-			priority = (abs(error) + self.epsilon) ** self.alpha
-			self.tree.update(idx, priority)
-			self.max_priority = max(self.max_priority, priority)
-
-		self.last_indices = None
-
-	def __len__(self):
-		return len(self.tree)
 
 class Network(tf.keras.Model):
 	def __init__(self, input_dim, output_dim):
 		super(Network, self).__init__()
-		self.model = tf.keras.models.Sequential()
-		self.model.add(tf.keras.Input(shape=(input_dim,)))
-		self.model.add(tf.keras.layers.Dense(64, activation='relu'))
-		self.model.add(tf.keras.layers.Dense(128, activation='relu'))
-		self.model.add(tf.keras.layers.Dense(64, activation='relu'))
-		self.model.add(tf.keras.layers.Dense(output_dim))
+		self.brain = tf.keras.models.Sequential()
+		self.brain.add(tf.keras.Input(shape=(input_dim,)))
+		self.brain.add(tf.keras.layers.Dense(64, activation='relu'))
+		self.brain.add(tf.keras.layers.Dense(128, activation='relu'))
+		self.brain.add(tf.keras.layers.Dense(64, activation='relu'))
+		self.brain.add(tf.keras.layers.Dense(output_dim))
 
-		self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
-		self.loss = tf.keras.losses.MeanSquaredError(reduction='none')
-		self.model.compile(optimizer=self.optimizer, loss=self.loss)
+		self.brain.compile(optimizer='Adam', loss='mse', metrics=['mae'])
 
 	def call(self, input, training=False):
-		return self.model(input, training=training)
-
-	def save_model(self, path):
-		self.model.save(path)
-
-	def load_model(self, path):
-		self.model = tf.keras.models.load_model(path)
-
-	def train(self, data):
-		states, targets, weights = data
-
-		with tf.GradientTape() as tape:
-			predictions = self.model(states, training=True)
-			loss_values = self.loss(targets, predictions)
-			weighted_loss = loss_values * weights
-			total_loss = tf.reduce_mean(weighted_loss)
-
-		gradients = tape.gradient(total_loss, self.model.trainable_variables)
-		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
-		td_errors = tf.abs(predictions - targets)
-
-		return total_loss, td_errors
-
-	def save_model(self, path):
-		self.model.save(path)
-
-	def load_model(self, path):
-		self.model = tf.keras.models.load_model(path)
+		return self.brain(input, training=training)
 
 class PredictBall():
 	def __init__(self, input_dim, output_dim):
 		self.model = Network(input_dim, output_dim)
-
+		self.batch_size = 128
 		self.sequence = []
-		self.capacity = 100000
-		self.batch_size = 64
-		self.buffer = PrioritizedReplayBuffer(self.capacity, self.batch_size)
-
-	def normalize_state(self, state):
-		norm_state = []
-
-		norm_state.append(state[0] + 6)
-		norm_state.append(state[1] + 6)
-		norm_state.append(state[2] + 6)
-		norm_state.append(state[3] + 6)
-
-		norm_state.append((state[4] + 6))
-		norm_state.append((state[5] + 6))
-		norm_state.append(state[6])
-		norm_state.append(state[7])
-
-		return norm_state
-
-	def store(self, state):
-		state = self.normalize_state(state)
-		state = state[4:8]
-
-		if len(self.sequence) == 0:
-			self.sequence.append(state)
-			return
-
-		if self.sequence[-1][3] * state[3] > 0 :
-			self.sequence.append(state)
-		else:
-			target = state[0]
-			for i in self.sequence:
-				self.buffer.store(i, target)
-			self.sequence.clear()
-			self.sequence.append(state)
-
-	def learn(self):
-		if len(self.buffer) < self.batch_size:
-			return
-
-		batch = self.buffer.sample()
-		if batch is None:
-			return None
-
-		loss, error = self.model.train(batch)
-		self.buffer.update_priorities(error)
-
-		return loss.numpy()
-
-	def training(self, epoch):
-		state = env.get_state()
-		total_loss = []
-		for frame in range(epoch):
-			self.store(state)
-			state, done = env.step()
-			loss = self.learn()
-			if loss:
-				total_loss.append(loss)
-			if (frame+1) % 100 == 0:
-				print(f"Frame: {frame}, Loss: {np.mean(total_loss[-100:]):.4f}")
 
 	def predict(self, state):
-		state = self.normalize_state(state)
-		state = state[4:8]
 		tensor = tf.convert_to_tensor([state], dtype=tf.float32)
 		with tf.GradientTape(persistent=False) as tape:
 			tape.stop_recording()
 			predict = self.model(tensor, training=False)
-
 		return predict.numpy().item()
 
-	def test(self):
-		frame = 0
-		delay = 60
-		count = 0
+	def convert_raw_data(self, states, targets):
+		state_tensor = tf.convert_to_tensor(states, dtype=tf.float32)
+		target_tensor = tf.convert_to_tensor(targets, dtype=tf.float32)
+		dataset = tf.data.Dataset.from_tensor_slices((state_tensor, target_tensor))
+		dataset = dataset.shuffle(buffer_size=len(states))
+		train_size = int(0.8 * len(states))
 
-		state = env.get_state()
-		while (1):
-			if frame % delay == 0:
-				predict = round(self.predict(state), 2)
-				if env.ball.vy < 0:
-					y = -5
+		train_dataset = dataset.take(train_size).batch(self.batch_size).prefetch(tf.data.AUTOTUNE)
+		eval_dataset = dataset.skip(train_size).batch(self.batch_size).prefetch(tf.data.experimental.AUTOTUNE)
+		return train_dataset, eval_dataset
+
+	def create_dataset(self, sample):
+		states = []
+		targets = []
+		direct, one, two, three, more = 0, 0, 0, 0, 0
+
+		env = Game(600, 800, False)
+
+		for _ in range(sample):
+			angle = random.uniform(-math.pi/3, math.pi/3)
+			speed = random.uniform(0.03, 0.1)
+			env.ball.x = random.uniform(-4, 4)
+			env.ball.y = random.uniform(-4, 4)
+			env.ball.vx = speed * math.sin(angle)
+			env.ball.vy = speed * math.cos(angle) * random.choice([-1, 1])
+
+			self.sequence.append(env.get_state())
+			rebound = 0
+			while True:
+				state, done = env.step()
+
+				if self.sequence[-1][2] * state[2] < 0:
+					rebound += 1
+
+				if self.sequence[-1][3] * state[3] > 0:
+					self.sequence.append(state)
 				else:
-					y = 5
-				env.prediction.tp(predict, y)
+					target = self.sequence[-1][0]
+					for i in self.sequence:
+						states.append(i)
+						targets.append(target)
+					self.sequence.clear()
 
-			action = 2
-			if env.keys_pressed.get("Left", False):
-				action = 0
-			elif env.keys_pressed.get("Right", False):
-				action = 1
+				if done or len(self.sequence) == 0:
+					break
 
-			state, done = env.step(bottom_action=action)
-			frame += 1
+			if rebound == 0:
+				direct += 1
+			elif rebound == 1:
+				one += 1
+			elif rebound == 2:
+				two += 1
+			elif rebound == 3:
+				three += 1
+			else:
+				more += 1
+		print(f"Direct: {direct}, One: {one}, Two: {two}, Three: {three}, More: {more}")
 
-			if env.num_hit != count:
-				count = env.num_hit
+		state_tensor = tf.convert_to_tensor(states, dtype=tf.float32)
+		target_tensor = tf.convert_to_tensor(targets, dtype=tf.float32)
+		dataset = tf.data.Dataset.from_tensor_slices((state_tensor, target_tensor))
+		dataset = dataset.shuffle(buffer_size=len(states))
+		train_size = int(0.8 * len(states))
+		train_dataset = dataset.take(train_size).batch(self.batch_size).prefetch(tf.data.AUTOTUNE)
+		eval_dataset = dataset.skip(train_size).batch(self.batch_size).prefetch(tf.data.experimental.AUTOTUNE)
 
-			if done:
-				frame = 0
-				count = env.num_hit
+		return train_dataset, eval_dataset, (states, targets)
 
-			if env.visual:
-				env.root.update()
-			time.sleep(0.017)
+	def training(self, dataset, val_dataset, epochs=10):
+		callbacks = [
+			tf.keras.callbacks.EarlyStopping(patience=5, restore_best_weights=True),
+			tf.keras.callbacks.ReduceLROnPlateau(factor=0.5, patience=3)]
 
-from simple_Pong import Game
+		result = self.model.brain.fit(dataset, validation_data=val_dataset, epochs=epochs, callbacks=callbacks, verbose=1)
+		return result
+
+	def create_dataset_balanced(self, sample):
+		states = []
+		targets = []
+		direct, one, two, three, more = 0, 0, 0, 0, 0
+
+		target_direct = int(sample * 0.3)
+		target_one = int(sample * 0.3)
+		target_two = int(sample * 0.2)
+		target_three = int(sample * 0.1)
+		target_more = int(sample * 0.1)
+
+		env = Game(600, 800, False)
+
+		while direct < target_direct or one < target_one or two < target_two or three < target_three or more < target_more:
+			angle = random.uniform(-math.pi/3, math.pi/3)
+			speed = random.uniform(0.03, 0.1)
+			env.ball.x = random.uniform(-4, 4)
+			env.ball.y = random.uniform(-4, 4)
+			env.ball.vx = speed * math.sin(angle)
+			env.ball.vy = speed * math.cos(angle) * random.choice([-1, 1])
+
+			if (two < target_two or three < target_three or more < target_more) and random.random() < 0.7:
+				env.ball.vx *= random.uniform(1.2, 2.0)
+
+			self.sequence.append(env.get_state())
+			rebound = 0
+
+			states_temp = []
+			while True:
+				state, done = env.step()
+
+				if self.sequence[-1][2] * state[2] < 0:
+					rebound += 1
+
+				if self.sequence[-1][3] * state[3] > 0:
+					self.sequence.append(state)
+				else:
+					target = self.sequence[-1][0]
+					for i in self.sequence:
+						states_temp.append((i, target, rebound))
+					self.sequence.clear()
+
+				if done or len(self.sequence) == 0:
+					break
+
+			if rebound == 0 and direct < target_direct:
+				for state, target_val, _ in states_temp:
+					states.append(state)
+					targets.append(target_val)
+				direct += 1
+			elif rebound == 1 and one < target_one:
+				for state, target_val, _ in states_temp:
+					states.append(state)
+					targets.append(target_val)
+				one += 1
+			elif rebound == 2 and two < target_two:
+				for state, target_val, _ in states_temp:
+					states.append(state)
+					targets.append(target_val)
+				two += 1
+			elif rebound == 3 and three < target_three:
+				for state, target_val, _ in states_temp:
+					states.append(state)
+					targets.append(target_val)
+				three += 1
+			elif rebound > 3 and more < target_more:
+				for state, target_val, _ in states_temp:
+					states.append(state)
+					targets.append(target_val)
+				more += 1
+			print(f"Direct: {direct}, One: {one}, Two: {two}, Three: {three}, More: {more}")
+
+		state_tensor = tf.convert_to_tensor(states, dtype=tf.float32)
+		target_tensor = tf.convert_to_tensor(targets, dtype=tf.float32)
+		dataset = tf.data.Dataset.from_tensor_slices((state_tensor, target_tensor))
+		dataset = dataset.shuffle(buffer_size=len(states))
+		train_size = int(0.8 * len(states))
+		train_dataset = dataset.take(train_size).batch(self.batch_size).prefetch(tf.data.AUTOTUNE)
+		eval_dataset = dataset.skip(train_size).batch(self.batch_size).prefetch(tf.data.experimental.AUTOTUNE)
+
+		return train_dataset, eval_dataset, (states, targets)
+
+def test_model_in_game(model_path, num_games=5):
+	predict = PredictBall(4, 1)
+	predict.model.brain = tf.keras.models.load_model(model_path)
+
+	game = Game(600, 600, visual=True)
+	for _ in range(num_games):
+		game.reset()
+		game_over = False
+		max_steps = 1000
+		step_count = 0
+
+		state = game.get_state()
+		while not game_over and step_count < max_steps:
+			predicted_x = predict.predict(state)
+			game.prediction.tp(predicted_x, -5.5)
+
+			state, game_over = game.step()
+
+			game.root.update()
+			time.sleep(0.010)
+
+			step_count += 1
+		time.sleep(1)
+
+	game.root.mainloop()
 
 if __name__ == "__main__":
-	env = Game(600, 600, False)
 	predict = PredictBall(4, 1)
 
-	# predict.model.load_model()
-	# predict.test()
+	# ALREADY A DATASET
+	# states, targets = load_raw_dataset("datatset.pkl")
+	# train_dataset, val_dataset = predict.convert_raw_data(states, targets)
+	# result = (states, targets)
 
-	datat = env
-	predict.training(100000)
-	model = predict.model.model
-	model.save('final.h5')
+	# CREATING A DATASET
+	# train_dataset, val_dataset, result = predict.create_dataset_balanced(10000)
+	# state, target = result
+
+	# save_raw_dataset(state, target, 'dataset.pkl')
+	# history = predict.training(train_dataset, val_dataset, epochs=30)
+	# visualize_training(history)
+	# model_path = 'balanced.h5'
+	# predict.model.brain.save(model_path)
+
+	# test_in_game = input("Voulez-vous tester le modèle dans une partie? (o/n): ")
+	# if test_in_game.lower() == 'o':
+		# test_model_in_game(model_path)
+#
