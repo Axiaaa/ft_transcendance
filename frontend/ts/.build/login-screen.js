@@ -34,6 +34,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+import { getUserAvatar, getUserBackground } from "./API.js";
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
 import { initHistoryAPI } from "./system.js";
@@ -177,6 +178,52 @@ document.addEventListener('DOMContentLoaded', function () {
         form.style.display = 'block';
     });
 });
+export function updateUserImages(fileAvatar, fileWallpaper) {
+    return __awaiter(this, void 0, void 0, function () {
+        var userID, avatarURL, wallpaperURL, userAvatars, i, userWallpapers;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    userID = Number(sessionStorage.getItem("wxp_user_id"));
+                    if (userID == null)
+                        return [2 /*return*/];
+                    avatarURL = null;
+                    wallpaperURL = null;
+                    if (!fileAvatar) return [3 /*break*/, 1];
+                    avatarURL = URL.createObjectURL(fileAvatar);
+                    return [3 /*break*/, 3];
+                case 1: return [4 /*yield*/, getUserAvatar(userID)];
+                case 2:
+                    avatarURL = _a.sent();
+                    _a.label = 3;
+                case 3:
+                    userAvatars = document.getElementsByClassName("avatar-preview");
+                    console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
+                    if (avatarURL == null || avatarURL == undefined)
+                        avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+                    for (i = 0; i < userAvatars.length; i++) {
+                        console.log(userAvatars[i] + " now = " + avatarURL);
+                        userAvatars[i].src = avatarURL;
+                    }
+                    if (!fileWallpaper) return [3 /*break*/, 4];
+                    wallpaperURL = URL.createObjectURL(fileWallpaper);
+                    return [3 /*break*/, 6];
+                case 4: return [4 /*yield*/, getUserBackground(userID)];
+                case 5:
+                    wallpaperURL = _a.sent();
+                    _a.label = 6;
+                case 6:
+                    if (wallpaperURL == null || wallpaperURL == undefined)
+                        wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+                    userWallpapers = document.getElementsByClassName("user-background");
+                    console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
+                    userWallpapers[0].src = wallpaperURL;
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+;
 // SANDBOX AREA
 {
     var signUpForm = document.getElementById("sign-up-form");
@@ -207,6 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         signUpUsername_1.value = "";
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
+                        updateUserImages();
                         return [3 /*break*/, 4];
                     case 3:
                         error_1 = _a.sent();
@@ -246,6 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         goToDesktopPage();
                         signInUsername_1.value = "";
                         signInPassword_1.value = "";
+                        updateUserImages();
                         return [3 /*break*/, 4];
                     case 3:
                         error_2 = _a.sent();

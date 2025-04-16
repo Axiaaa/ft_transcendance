@@ -35,7 +35,7 @@ server.addHook('preHandler', async (req, reply) => {
         tokenExists = db.prepare('SELECT * FROM users WHERE token = ?').get(token);
     } catch (error) {
         server.log.error('Database query failed:', error);
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        return reply.code(409).send({ error: 'Internal Server Error' });
     }
 
     if (!tokenExists) {
@@ -43,13 +43,13 @@ server.addHook('preHandler', async (req, reply) => {
     }
   
   
-    if (req.method === 'POST' || req.method === 'PATCH') {
-      try {
-        JSON.parse(JSON.stringify(req.body));
-      } catch (error) {
-        return reply.code(400).send({ error: 'Invalid JSON body' });
-      }
-    }
+    // if (req.method === 'POST' || req.method === 'PATCH') {
+    //   try {
+    //     JSON.parse(JSON.stringify(req.body));
+    //   } catch (error) {
+    //     return reply.code(400).send({ error: 'Invalid JSON body' });
+    //   }
+    // }
 });
 
 
@@ -65,6 +65,7 @@ const start = async () => {
         await server.register(userRoutes, { prefix: '/api' });
         await server.register(matchsRoutes, { prefix: '/api' });
         await server.register(keepAliveRoute, { prefix: '/api' });
+        await server.register(uploadRoutes, { prefix: '/api' });
         await server.listen({ port: Number(Port) , host: '0.0.0.0'})
         console.log('Server started sucessfully')
     } catch (err) {

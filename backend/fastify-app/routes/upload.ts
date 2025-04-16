@@ -19,9 +19,9 @@ export async function createDirectory(path: string) {
 
 export async function uploadRoutes(server: FastifyInstance) {
 
-	server.post<{ Params: { id: string, type: string}, Body: { file: MultipartFile } }>('user_images/:type/:id', async (request, reply) => {
-		console.log("uploading file");
-		const { id, type } = request.params;
+	server.post<{ Params: { id: number, type: string}, Body: { file: MultipartFile } }>('/user_images/:type/:id', async (request, reply) => {
+		reply.log.info("upload user image");
+		const { type, id } = request.params;
 		const user = await getUserFromDb({ id: Number(id) });
 		if (user == null) {
 			reply.code(404).send({error: "User not found"});

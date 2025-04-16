@@ -6,6 +6,31 @@ import { createUser } from "./API.js";
 import { create } from "domain";
 import { get } from "http";
 
+
+
+let userBackground = document.createElement('img');
+userBackground.id = 'user-background';
+userBackground.className = 'user-background';
+document.body.appendChild(userBackground);
+userBackground.src = './img/Desktop/linus-wallpaper.jpg';
+userBackground.style.position = 'absolute';
+userBackground.style.zIndex = '-1';
+userBackground.style.width = '100%';
+userBackground.style.height = '100%';
+userBackground.style.objectFit = 'cover';
+userBackground.style.objectPosition = 'center';
+userBackground.style.top = '0';
+userBackground.style.left = '0';
+userBackground.style.display = 'block';
+
+/**
+ * Sets the background image on the body element
+ * @param url The URL of the image to set as background
+ */
+export function setBodyBackgroundImage(url: string): void {
+	document.body.style.backgroundImage = `url(${url})`;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
 
 	// window.addEventListener('beforeunload', (event) => {
@@ -124,19 +149,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// SANDBOX AREA
 	{
-		let CurrentUser = await getUserById(1);
-		if (!CurrentUser) {
-			CurrentUser = await createUser({username: 'Guest', password: 'guest', email: 'guest@guest.com'});
-		}
+		// let CurrentUser = await getUserById(1);
+		// if (!CurrentUser) {
+		// 	CurrentUser = await createUser({username: 'Guest', password: 'guest', email: 'guest@guest.com'});
+		// }
 		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
 			try {
 				
-			let user1 = await getUserById(1);
-			if (user1) {
-					sendNotification('User Data', `User ID: ${user1.id}, Username: ${user1.username}, Email: ${user1.email}`, './img/Utils/API-icon.png');
-					console.log("User ID: " + user1.id + " Username: " + user1.username);
-					console.log("User Data:", user1);
+			const userIdString = sessionStorage.getItem('wxp_user_id');
+			let currentUser = await getUserById(userIdString ? parseInt(userIdString, 10) : 0);
+			if (currentUser) {
+					sendNotification('User Data', `User ID: ${currentUser.id}, Username: ${currentUser.username}, Email: ${currentUser.email}`, './img/Utils/API-icon.png');
+					console.log("User ID: " + currentUser.id + " Username: " + currentUser.username);
+					console.log("User Data:", currentUser);
 			}
 			}
 			catch (error) {

@@ -73,14 +73,21 @@ const API_CONFIG = {
  * @returns Promise with response
  */
 function apiFetch(url_1) {
-    return __awaiter(this, arguments, void 0, function (url, options) {
+    return __awaiter(this, arguments, void 0, function (url, options, useJsonContentType, nojson) {
         var headers, response;
         if (options === void 0) { options = {}; }
+        if (useJsonContentType === void 0) { useJsonContentType = true; }
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    headers = __assign({ 'Content-Type': 'application/json', 'Authorization': "Bearer ".concat(sessionStorage.getItem('wxp_token')) }, options.headers);
+                    headers = __assign({ 'Authorization': "Bearer ".concat(sessionStorage.getItem('wxp_token')) }, options.headers);
+                    // Only add Content-Type if specified (useful to exclude when using FormData)
+                    if (!nojson && useJsonContentType) {
+                        headers = __assign(__assign({}, headers), { 'Content-Type': 'application/json' });
+                    }
                     console.log('API Fetch:', "".concat(API_CONFIG.baseUrl).concat(url), options);
+                    console.log('Headers:', headers);
+                    console.log('Body:', options.body);
                     return [4 /*yield*/, fetch("".concat(API_CONFIG.baseUrl).concat(url), __assign(__assign({}, options), { headers: headers }))];
                 case 1:
                     response = _a.sent();
@@ -441,10 +448,9 @@ export function uploadFile(userId, file, fileType) {
                     _a.trys.push([1, 7, , 8]);
                     return [4 /*yield*/, apiFetch("/user_images/".concat(fileType, "/").concat(userId), {
                             method: 'POST',
-                            body: formData
+                            body: formData,
                             // Note: When using FormData, browser will set the correct Content-Type with boundary
-                            // Even though apiFetch sets application/json, the browser should override it
-                        })];
+                        }, false, true)];
                 case 2:
                     response = _a.sent();
                     if (!response.ok) return [3 /*break*/, 4];
@@ -479,7 +485,9 @@ export function getUserAvatar(userId) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, apiFetch("/user_images/avatar/".concat(userId))];
+                    return [4 /*yield*/, apiFetch("/user_images/avatar/".concat(userId), {
+                            method: 'GET'
+                        })];
                 case 1:
                     response = _a.sent();
                     console.log("Get user " + userId + " avatar");

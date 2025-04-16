@@ -350,6 +350,8 @@ document.addEventListener('DOMContentLoaded', () => {
 					// User avatar image
 					// API CALL NEEDED: Fetch user's profile picture from the backend
 					let avatarImg = document.createElement('img');
+					avatarImg.alt = 'User Avatar';
+					avatarImg.classList.add('avatar-preview');
 					avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar - replace with user's actual avatar from API
 					avatarImg.style.width = '100%';
 					avatarImg.style.height = '100%';

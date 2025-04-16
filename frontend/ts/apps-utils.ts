@@ -88,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 
 		closeButton.addEventListener('click', () => {
-			console.log('close AAAAAAAAAAAA');
 			resetEasterEgg(CurrentContent, InternetExplorerWindow, InternetExplorerWindowBody, EasterEgg, windowTitle);
 		});
 		minimizeButton.addEventListener('click', () => {

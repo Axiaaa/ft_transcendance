@@ -76,6 +76,7 @@ export async function userRoutes(server : FastifyInstance) {
                 return;
             }
             user.token = crypto.randomBytes(32).toString('hex');
+            user.updateUserInDb();
             reply.code(200).send(user);
             }
         }
@@ -164,7 +165,7 @@ export async function userRoutes(server : FastifyInstance) {
         Params: { token: string}
       }>({
         method: 'DELETE',
-        url: '/users/:id',
+        url: '/users/:token',
         config: {
           rateLimit: RateLimits.delete_user,
         },
@@ -187,7 +188,7 @@ export async function userRoutes(server : FastifyInstance) {
     server.route <{ Params: { token: string} }>(
     {
         method : 'GET',
-        url : '/users/:id/friends',
+        url : '/users/:token/friends',
         config: {
             rateLimit: RateLimits.friends,
         },
@@ -241,7 +242,7 @@ export async function userRoutes(server : FastifyInstance) {
 
     server.route <{ Params: { token: string, friend_username: string } }>({
         method : 'DELETE',
-        url : '/users/:token/friends/:friend_id',
+        url : '/users/:token/friends/:friend_username',
         config: {
             rateLimit: RateLimits.friends,
         },
@@ -267,7 +268,7 @@ export async function userRoutes(server : FastifyInstance) {
 
     server.route <{ Params: { token: string} }>({
         method : 'GET',
-        url : '/users/:id/pending_friends',
+        url : '/users/:token/pending_friends',
         config: {
             rateLimit: RateLimits.friends,
         },
@@ -288,7 +289,7 @@ export async function userRoutes(server : FastifyInstance) {
 
     server.route <{ Params: { token: string} , Body: { friend_username : string } }>({
         method : 'POST',
-        url : '/users/:id/pending_friends',
+        url : '/users/:token/pending_friends',
         config: {
             rateLimit: RateLimits.friends,
         },

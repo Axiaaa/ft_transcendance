@@ -99,9 +99,10 @@ services:
       - ft_transcendence
     healthcheck:
         test: ['CMD-SHELL', '[ -f config/certs/elasticsearch/elasticsearch.crt ]']
-        interval: 1s
-        timeout: 5s
+        interval: 5s
+        timeout: 10s
         retries: 120
+    restart: "no"
 
 
   elasticsearch:
