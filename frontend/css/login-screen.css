@@ -7,6 +7,18 @@
 	background: #0029a4;
 }
 
+.login-password-error {
+	display: none; /* Hidden by default */
+	color: red; /* Text color for the error message */
+	font-size: 14px; /* Font size for readability */
+	margin-top: 10px; /* Space above the error box */
+	padding: 5px; /* Padding inside the error box */
+	background-color: #ffe6e6; /* Light red background for visibility */
+	border: 1px solid #ff4d4d; /* Border to emphasize the error box */
+	border-radius: 5px; /* Rounded corners for better aesthetics */
+	text-align: center; /* Center the text inside the box */
+}
+
 
 .login-screen-box {
 	/* position: relative; */

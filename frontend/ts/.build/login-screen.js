@@ -101,6 +101,10 @@ document.addEventListener('DOMContentLoaded', function () {
     loginScreen.appendChild(loginScreenMiddleBar);
     // DEFAULTS DISPLAY SETTINGS
     loginScreen.style.display = 'block';
+    var passwordErrorElement = document.getElementById('login-password-error');
+    if (passwordErrorElement) {
+        passwordErrorElement.style.display = 'none';
+    }
     var profiles = document.getElementsByClassName("login-screen-right-profile-box");
     var NewProfile = document.getElementById("new-profile");
     var _loop_1 = function (i) {
@@ -177,6 +181,24 @@ document.addEventListener('DOMContentLoaded', function () {
         form.style.display = 'block';
     });
 });
+var signInUsernameElement = document.getElementById('sign-in-username');
+if (signInUsernameElement) {
+    signInUsernameElement.addEventListener('input', function () {
+        var passwordErrorElement = document.getElementById('password-error');
+        if (passwordErrorElement) {
+            passwordErrorElement.style.display = 'none';
+        }
+    });
+}
+var signInPasswordElement = document.getElementById('sign-in-password');
+if (signInPasswordElement) {
+    signInPasswordElement.addEventListener('input', function () {
+        var passwordErrorElement = document.getElementById('password-error');
+        if (passwordErrorElement) {
+            passwordErrorElement.style.display = 'none';
+        }
+    });
+}
 // SANDBOX AREA
 {
     var signUpForm = document.getElementById("sign-up-form");
@@ -186,15 +208,21 @@ document.addEventListener('DOMContentLoaded', function () {
     var signUpPassword_1 = document.getElementById("sign-up-password");
     if (signUpButton) {
         signUpButton.addEventListener("click", function (event) { return __awaiter(void 0, void 0, void 0, function () {
-            var username, password, newUser, error_1;
+            var username, password, confirmPassword, newUser, error_1, passwordErrorElement, passwordErrorElement, passwordErrorElement, passwordErrorElement, passwordErrorElement;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         event.preventDefault();
-                        if (!(signUpUsername_1 && signUpPassword_1)) return [3 /*break*/, 4];
+                        if (!(signUpUsername_1 && signUpPassword_1)) return [3 /*break*/, 14];
                         username = signUpUsername_1.value;
                         password = signUpPassword_1.value;
-                        if (!(username && password)) return [3 /*break*/, 4];
+                        confirmPassword = signUpConfirmPassword_1.value;
+                        if (!(username && password)) return [3 /*break*/, 14];
+                        if (!(password == confirmPassword)) return [3 /*break*/, 13];
+                        if (!(password.length >= 8)) return [3 /*break*/, 11];
+                        if (!/[A-Z]/.test(password)) return [3 /*break*/, 9];
+                        if (!/[a-z]/.test(password)) return [3 /*break*/, 7];
+                        if (!/[0-9]/.test(password)) return [3 /*break*/, 5];
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
@@ -215,7 +243,52 @@ document.addEventListener('DOMContentLoaded', function () {
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
                         return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
+                    case 4: return [3 /*break*/, 6];
+                    case 5:
+                        passwordErrorElement = document.getElementById('login-password-error');
+                        if (passwordErrorElement) {
+                            passwordErrorElement.style.display = 'block';
+                            passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
+                            passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+                        }
+                        _a.label = 6;
+                    case 6: return [3 /*break*/, 8];
+                    case 7:
+                        passwordErrorElement = document.getElementById('login-password-error');
+                        if (passwordErrorElement) {
+                            passwordErrorElement.style.display = 'block';
+                            passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
+                            passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+                        }
+                        _a.label = 8;
+                    case 8: return [3 /*break*/, 10];
+                    case 9:
+                        passwordErrorElement = document.getElementById('login-password-error');
+                        if (passwordErrorElement) {
+                            passwordErrorElement.style.display = 'block';
+                            passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
+                            passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+                        }
+                        _a.label = 10;
+                    case 10: return [3 /*break*/, 12];
+                    case 11:
+                        passwordErrorElement = document.getElementById('login-password-error');
+                        if (passwordErrorElement) {
+                            passwordErrorElement.style.display = 'block';
+                            passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
+                            passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+                        }
+                        _a.label = 12;
+                    case 12: return [3 /*break*/, 14];
+                    case 13:
+                        passwordErrorElement = document.getElementById('login-password-error');
+                        if (passwordErrorElement) {
+                            passwordErrorElement.style.display = 'block';
+                            passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
+                            passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+                        }
+                        _a.label = 14;
+                    case 14: return [2 /*return*/];
                 }
             });
         }); });

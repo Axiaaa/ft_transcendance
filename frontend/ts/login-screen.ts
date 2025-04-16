@@ -104,6 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	// DEFAULTS DISPLAY SETTINGS
 	loginScreen.style.display = 'block';
+	const passwordErrorElement = document.getElementById('login-password-error');
+	if (passwordErrorElement) {
+		passwordErrorElement.style.display = 'none';
+	}
 
 	let profiles = document.getElementsByClassName("login-screen-right-profile-box") as HTMLCollectionOf<HTMLElement>;
 	let NewProfile = document.getElementById("new-profile") as HTMLElement;
@@ -187,6 +191,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+const signInUsernameElement = document.getElementById('sign-in-username');
+if (signInUsernameElement) {
+	signInUsernameElement.addEventListener('input', () => {
+		const passwordErrorElement = document.getElementById('password-error');
+		if (passwordErrorElement) {
+			passwordErrorElement.style.display = 'none';
+		}
+	});
+}
+
+const signInPasswordElement = document.getElementById('sign-in-password');
+if (signInPasswordElement) {
+	signInPasswordElement.addEventListener('input', () => {
+		const passwordErrorElement = document.getElementById('password-error');
+		if (passwordErrorElement) {
+			passwordErrorElement.style.display = 'none';
+		}
+	});
+}
+
 // SANDBOX AREA
 {
 	let signUpForm = document.getElementById("sign-up-form") as HTMLFormElement;
@@ -200,7 +224,19 @@ document.addEventListener('DOMContentLoaded', () => {
 			if (signUpUsername && signUpPassword) {
 				const username = signUpUsername.value;
 				const password = signUpPassword.value;
+				const confirmPassword = signUpConfirmPassword.value;
+
 				if (username && password) {
+					if (password == confirmPassword)
+					{
+					if (password.length >= 8)
+					{
+					if (/[A-Z]/.test(password))
+					{
+					if (/[a-z]/.test(password))
+					{
+					if (/[0-9]/.test(password))
+					{
 					try {
 						const newUser = await createUser({ username, password });
 						sessionStorage.setItem("wxp_token", newUser.token);
@@ -217,8 +253,54 @@ document.addEventListener('DOMContentLoaded', () => {
 						signUpConfirmPassword.value = "";
 					}
 				}
+					else {
+						const passwordErrorElement = document.getElementById('login-password-error');
+						if (passwordErrorElement) {
+							passwordErrorElement.style.display = 'block';
+							passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
+							passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+						}
+						}	
+						
+				}
+				else {const passwordErrorElement = document.getElementById('login-password-error');
+					if (passwordErrorElement) {
+						passwordErrorElement.style.display = 'block';
+						passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
+						passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+					}
+					}	
+					}
+					else
+					{
+						const passwordErrorElement = document.getElementById('login-password-error');
+									if (passwordErrorElement) {
+										passwordErrorElement.style.display = 'block';
+										passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
+										passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+									}
+					}	
 			}
-		});
+			else
+			{
+				const passwordErrorElement = document.getElementById('login-password-error');
+				if (passwordErrorElement) {
+										passwordErrorElement.style.display = 'block';
+										passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
+										passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+									}
+									}	
+					}
+					else
+					{
+						const passwordErrorElement = document.getElementById('login-password-error');
+						if (passwordErrorElement) {
+						passwordErrorElement.style.display = 'block';
+												passwordErrorElement.style.visibility = 'visible'; // Ensure visibility
+												passwordErrorElement.style.opacity = '1'; // Handle potential opacity issues
+											}
+											}	
+		}}});
 	}
 
 
