@@ -1,4 +1,41 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 import { openAppWindow } from "./app-icon.js";
+import { getCurrentUser } from "./API.js";
 function openProfile(AppLauncher, profileTab) {
     var AppId = 'profile-app-window';
     openAppWindow("", AppId);
@@ -206,353 +243,346 @@ function addTournamentHistory(Container, Player1, Player2, Score1, Score2) {
     winnerColumn.appendChild(winnerName);
     return tournamentHistoryEntry;
 }
-document.addEventListener('DOMContentLoaded', function () {
-    var App = document.getElementById('profile-app-window');
-    if (!App)
-        return;
-    App.style.width = '470px';
-    App.style.minWidth = '470px';
-    App.style.height = '370px';
-    var AppContent = App.children[1];
-    if (!AppContent) {
-        console.log('Profile App Content not found');
-        return;
-    }
-    var AppLauncherMain = document.getElementById('start-menu-profile-main');
-    if (AppLauncherMain) {
-        AppLauncherMain.addEventListener('click', function () {
-            openProfile('start-menu-profile-main', 'general');
-        });
-    }
-    var AppLauncherTournaments = document.getElementById('start-menu-profile-my-tournaments');
-    if (AppLauncherTournaments) {
-        AppLauncherTournaments.addEventListener('click', function () {
-            openProfile('start-menu-profile-my-tournaments', 'tournaments');
-        });
-    }
-    var AppLauncherStats = document.getElementById('start-menu-profile-my-stats');
-    if (AppLauncherStats) {
-        AppLauncherStats.addEventListener('click', function () {
-            openProfile('start-menu-profile-my-stats', 'stats');
-        });
-    }
-    // App Content
-    var AppContentMain = document.createElement('div');
-    AppContentMain.id = 'profile-app-content-main';
-    AppContentMain.style.width = '100%';
-    AppContentMain.style.height = '100%';
-    AppContentMain.style.display = 'flex';
-    AppContent.appendChild(AppContentMain);
-    {
-        var leftContainer = document.createElement('div');
-        AppContentMain.appendChild(leftContainer);
-        leftContainer.id = 'profile-app-content-main-left';
-        leftContainer.style.background = 'linear-gradient(rgb(117, 142, 219), rgb(109, 124, 218), rgb(104, 108, 213))';
-        leftContainer.style.width = '150px';
-        leftContainer.style.minWidth = '150px';
-        leftContainer.style.maxWidth = '150px';
-        leftContainer.style.height = '100%';
-        leftContainer.style.overflow = 'auto';
-        leftContainer.style.display = 'flex';
-        leftContainer.style.flexDirection = 'column';
-        leftContainer.style.alignItems = 'center';
-        {
-            // Categories tabs
-            var General = createCategorieTab('General', './img/Utils/infos-icon.png', leftContainer);
-            var Tournaments = createCategorieTab('Tournaments', './img/Start_Menu/cup-icon.png', leftContainer);
-            var Stats = createCategorieTab('Stats', './img/Start_Menu/stats-icon.png', leftContainer);
-        }
-    }
-    {
-        var rightContainer = document.createElement('div');
-        AppContentMain.appendChild(rightContainer);
-        rightContainer.id = 'profile-app-content-main-right';
-        rightContainer.style.backgroundColor = 'rgb(163, 177, 233)';
-        rightContainer.style.width = 'calc(100% - 150px)';
-        rightContainer.style.minWidth = 'calc(100% - 150px)';
-        rightContainer.style.maxWidth = 'calc(100% - 150px)';
-        rightContainer.style.height = '100%';
-        rightContainer.style.overflow = 'auto';
-        {
-            // Categories content
-            var GeneralCategorie = document.getElementById('profile-app-content-main-left-General');
-            var TournamentsCategorie = document.getElementById('profile-app-content-main-left-Tournaments');
-            var StatsCategorie = document.getElementById('profile-app-content-main-left-Stats');
-            var GeneralContent_1 = createCategorieContainer('General', rightContainer);
-            if (GeneralContent_1) {
-                {
-                    // Profile information container
-                    var profileInfoContainer = document.createElement('div');
-                    profileInfoContainer.style.display = 'flex';
-                    profileInfoContainer.style.flexDirection = 'column';
-                    profileInfoContainer.style.alignItems = 'center';
-                    profileInfoContainer.style.padding = '15px';
-                    profileInfoContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                    profileInfoContainer.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-                    profileInfoContainer.style.borderRadius = '5px';
-                    profileInfoContainer.style.boxShadow = '2px 2px 5px rgba(0, 0, 0, 0.2)';
-                    GeneralContent_1.appendChild(profileInfoContainer);
-                    // User avatar container
-                    var avatarContainer = document.createElement('div');
-                    avatarContainer.style.width = '100px';
-                    avatarContainer.style.height = '100px';
-                    avatarContainer.style.marginBottom = '10px';
-                    avatarContainer.style.border = '1px solid #7E7E7E';
-                    avatarContainer.style.padding = '3px';
-                    avatarContainer.style.backgroundColor = 'white';
-                    avatarContainer.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.3)';
-                    profileInfoContainer.appendChild(avatarContainer);
-                    // User avatar image
-                    // API CALL NEEDED: Fetch user's profile picture from the backend
-                    var avatarImg = document.createElement('img');
-                    avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar - replace with user's actual avatar from API
-                    avatarImg.style.width = '100%';
-                    avatarImg.style.height = '100%';
-                    avatarImg.style.objectFit = 'cover';
-                    avatarContainer.appendChild(avatarImg);
-                    // Username display
-                    // API CALL NEEDED: Fetch user's username from the backend
-                    var usernameDisplay = document.createElement('h3');
-                    usernameDisplay.innerText = 'Xxx_D4rkS4suke36_xxX'; // Default Username
-                    usernameDisplay.style.color = '#333';
-                    usernameDisplay.style.fontSize = '18px';
-                    usernameDisplay.style.fontWeight = 'bold';
-                    usernameDisplay.style.margin = '5px 0';
-                    usernameDisplay.style.textShadow = '1px 1px 1px rgba(255, 255, 255, 0.5)';
-                    profileInfoContainer.appendChild(usernameDisplay);
-                    // Status container
-                    var statusContainer = document.createElement('div');
-                    statusContainer.style.display = 'flex';
-                    statusContainer.style.alignItems = 'center';
-                    statusContainer.style.marginTop = '5px';
-                    profileInfoContainer.appendChild(statusContainer);
-                    // Online status indicator (circle)
-                    // API CALL NEEDED: Fetch user's online status from the backend
-                    var statusIndicator = document.createElement('div');
-                    statusIndicator.style.width = '12px';
-                    statusIndicator.style.height = '12px';
-                    statusIndicator.style.borderRadius = '50%';
-                    statusIndicator.style.backgroundColor = '#4CAF50'; // Green for online - should be dynamic based on API response
-                    statusIndicator.style.marginRight = '5px';
-                    statusIndicator.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-                    statusIndicator.style.boxShadow = '0 0 3px rgba(0, 0, 0, 0.2)';
-                    statusContainer.appendChild(statusIndicator);
-                    // Status text
-                    // Related to the same API CALL as status indicator
-                    var statusText = document.createElement('span');
-                    statusText.innerText = 'Online'; // Should be dynamic based on API response
-                    statusText.style.color = '#333';
-                    statusText.style.fontSize = '14px';
-                    statusContainer.appendChild(statusText);
-                    // Last login information
-                    // API CALL NEEDED: Fetch user's last login timestamp from the backend
-                    var lastLoginInfo = document.createElement('p');
-                    lastLoginInfo.innerText = 'Last login: Today at 9:45 AM'; // Should be dynamic based on API response
-                    lastLoginInfo.style.color = '#555';
-                    lastLoginInfo.style.fontSize = '12px';
-                    lastLoginInfo.style.margin = '10px 0 5px 0';
-                    lastLoginInfo.style.fontStyle = 'italic';
-                    profileInfoContainer.appendChild(lastLoginInfo);
-                    // Edit profile button
-                    var editProfileButton_1 = document.createElement('button');
-                    editProfileButton_1.innerText = 'Edit Profile';
-                    editProfileButton_1.style.padding = '5px 10px';
-                    editProfileButton_1.style.margin = '10px 0';
-                    editProfileButton_1.style.backgroundColor = '#ECE9D8';
-                    editProfileButton_1.style.border = '1px solid #ACA899';
-                    editProfileButton_1.style.borderRadius = '3px';
-                    editProfileButton_1.style.color = '#000';
-                    editProfileButton_1.style.fontSize = '12px';
-                    editProfileButton_1.style.cursor = 'pointer';
-                    editProfileButton_1.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
-                    profileInfoContainer.appendChild(editProfileButton_1);
-                    // Add hover effect for the button
-                    editProfileButton_1.addEventListener('mouseenter', function () {
-                        editProfileButton_1.style.backgroundColor = '#F0F0F0';
-                    });
-                    editProfileButton_1.addEventListener('mouseleave', function () {
-                        editProfileButton_1.style.backgroundColor = '#ECE9D8';
-                    });
-                    editProfileButton_1.addEventListener('mousedown', function () {
-                        editProfileButton_1.style.backgroundColor = '#DCDAC0';
-                        editProfileButton_1.style.boxShadow = 'inset 1px 1px 3px rgba(0, 0, 0, 0.2)';
-                    });
-                    editProfileButton_1.addEventListener('mouseup', function () {
-                        editProfileButton_1.style.backgroundColor = '#F0F0F0';
-                        editProfileButton_1.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
-                    });
-                    // API CALL NEEDED: On button click, open edit profile form and save changes to the backend
-                    editProfileButton_1.addEventListener('click', function () {
-                        // Open edit profile modal or navigate to edit profile page
-                        // Implement form to update user profile data
-                        var settingsApp = document.getElementById('settings-app-window');
-                        if (settingsApp) {
-                            openAppWindow('', 'settings-app-window');
-                            App.style.zIndex = '24';
-                            settingsApp.style.zIndex = '25';
-                            var UserAccountTab = document.getElementById('settings-app-User Account-category');
-                            if (UserAccountTab) {
-                                UserAccountTab.click();
-                            }
-                        }
+document.addEventListener('DOMContentLoaded', function () { return __awaiter(void 0, void 0, void 0, function () {
+    var App, AppContent, AppLauncherMain, AppLauncherTournaments, AppLauncherStats, AppContentMain, leftContainer, General, Tournaments, Stats, rightContainer, GeneralCategorie, TournamentsCategorie, StatsCategorie, GeneralContent_1, profileInfoContainer, avatarContainer, avatarImg, usernameDisplay, user, error_1, statusContainer, statusIndicator, statusText, lastLoginInfo, editProfileButton_1, TournamentsContent_1, TournamentHistoryTitle, TournamentHistory, tournament1, StatsContent_1, winLossSection, winLossTitle, winLossBar, wins, losses, winRate, winBar, ratioText, statsSection, statsTitle, statsTable_1, totalMatches, pointsScored, avgMatchDuration, highestScore, statsData, statsNote;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                App = document.getElementById('profile-app-window');
+                if (!App)
+                    return [2 /*return*/];
+                App.style.width = '470px';
+                App.style.minWidth = '470px';
+                App.style.height = '370px';
+                AppContent = App.children[1];
+                if (!AppContent) {
+                    console.log('Profile App Content not found');
+                    return [2 /*return*/];
+                }
+                AppLauncherMain = document.getElementById('start-menu-profile-main');
+                if (AppLauncherMain) {
+                    AppLauncherMain.addEventListener('click', function () {
+                        openProfile('start-menu-profile-main', 'general');
                     });
                 }
-            }
-            var TournamentsContent_1 = createCategorieContainer('Tournaments', rightContainer);
-            if (TournamentsContent_1) {
-                {
-                    var TournamentHistoryTitle = document.createElement('h3');
-                    TournamentsContent_1.appendChild(TournamentHistoryTitle);
-                    TournamentHistoryTitle.innerText = 'Tournament History';
-                    TournamentHistoryTitle.style.color = 'white';
-                    TournamentHistoryTitle.style.textAlign = 'left';
-                    TournamentHistoryTitle.style.margin = '10px 10px';
-                    TournamentHistoryTitle.style.fontSize = '20px';
-                    TournamentHistoryTitle.style.fontWeight = 'bold';
-                    TournamentHistoryTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
-                    var TournamentHistory = document.createElement('div');
-                    TournamentsContent_1.appendChild(TournamentHistory);
-                    TournamentHistory.style.width = '100%';
-                    TournamentHistory.style.height = '100%';
-                    TournamentHistory.style.display = 'flex';
-                    TournamentHistory.style.flexDirection = 'column';
-                    TournamentHistory.style.alignItems = 'left';
-                    TournamentHistory.style.justifyContent = 'left';
-                    TournamentHistory.style.overflow = 'auto';
-                    TournamentHistory.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
-                    // API Call to get the tournament history
-                    var tournament1 = addTournamentHistory(TournamentHistory, 'Michel', 'Francis', 0, 2);
+                AppLauncherTournaments = document.getElementById('start-menu-profile-my-tournaments');
+                if (AppLauncherTournaments) {
+                    AppLauncherTournaments.addEventListener('click', function () {
+                        openProfile('start-menu-profile-my-tournaments', 'tournaments');
+                    });
                 }
-            }
-            var StatsContent_1 = createCategorieContainer('Stats', rightContainer);
-            if (StatsContent_1) {
-                // Win/Loss section
-                var winLossSection = document.createElement('div');
-                StatsContent_1.appendChild(winLossSection);
-                winLossSection.style.margin = '10px 0';
-                winLossSection.style.padding = '10px';
-                winLossSection.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
-                winLossSection.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-                winLossSection.style.borderRadius = '3px';
-                var winLossTitle = document.createElement('h3');
-                winLossSection.appendChild(winLossTitle);
-                winLossTitle.innerText = 'Win/Loss Ratio';
-                winLossTitle.style.color = 'white';
-                winLossTitle.style.fontSize = '18px';
-                winLossTitle.style.marginBottom = '10px';
-                winLossTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
-                // Win/Loss visualization
-                var winLossBar = document.createElement('div');
-                winLossSection.appendChild(winLossBar);
-                winLossBar.style.width = '100%';
-                winLossBar.style.height = '25px';
-                winLossBar.style.backgroundColor = '#d3d3d3';
-                winLossBar.style.border = '1px solid #666';
-                winLossBar.style.position = 'relative';
-                winLossBar.style.borderRadius = '2px';
-                winLossBar.style.boxShadow = 'inset 0 0 5px rgba(0, 0, 0, 0.2)';
-                // API Call to get the win/loss ratio
-                // Dummy data - replace with API call
-                var wins = 15;
-                var losses = 7;
-                var winRate = Math.round((wins / (wins + losses)) * 100);
-                var winBar = document.createElement('div');
-                winLossBar.appendChild(winBar);
-                winBar.style.width = "".concat(winRate, "%");
-                winBar.style.height = '100%';
-                winBar.style.backgroundColor = 'rgb(75, 192, 75)';
-                winBar.style.display = 'inline-block';
-                winBar.style.borderRadius = '2px 0 0 2px';
-                var ratioText = document.createElement('div');
-                winLossSection.appendChild(ratioText);
-                ratioText.innerText = "Win Rate: ".concat(winRate, "% (").concat(wins, " wins, ").concat(losses, " losses)");
-                ratioText.style.color = 'white';
-                ratioText.style.fontSize = '14px';
-                ratioText.style.marginTop = '5px';
-                ratioText.style.textAlign = 'center';
-                // Game Statistics section
-                var statsSection = document.createElement('div');
-                StatsContent_1.appendChild(statsSection);
-                // statsSection.style.width = '100%';
-                statsSection.style.margin = '15px 0';
-                statsSection.style.padding = '10px';
-                statsSection.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
-                statsSection.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-                statsSection.style.borderRadius = '3px';
-                var statsTitle = document.createElement('h3');
-                statsSection.appendChild(statsTitle);
-                statsTitle.innerText = 'Game Statistics';
-                statsTitle.style.color = 'white';
-                statsTitle.style.fontSize = '18px';
-                statsTitle.style.marginBottom = '10px';
-                statsTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
-                // Stats table
-                var statsTable_1 = document.createElement('table');
-                statsSection.appendChild(statsTable_1);
-                statsTable_1.style.width = '100%';
-                statsTable_1.style.borderCollapse = 'collapse';
-                statsTable_1.style.color = 'white';
-                statsTable_1.style.fontSize = '14px';
-                // API Call to get the game statistics
-                // Dummy data - replace with API call
-                var totalMatches = wins + losses;
-                var pointsScored = 254;
-                var avgMatchDuration = '3m 42s';
-                var highestScore = 11;
-                var statsData = [
-                    { label: 'Total Matches', value: totalMatches },
-                    { label: 'Points Scored', value: pointsScored },
-                    { label: 'Average Match Duration', value: avgMatchDuration },
-                    { label: 'Highest Score', value: highestScore }
-                ];
-                statsData.forEach(function (stat) {
-                    var row = document.createElement('tr');
-                    statsTable_1.appendChild(row);
-                    row.style.borderBottom = '1px solid rgba(255, 255, 255, 0.2)';
-                    var labelCell = document.createElement('td');
-                    row.appendChild(labelCell);
-                    labelCell.innerText = stat.label;
-                    labelCell.style.padding = '8px';
-                    labelCell.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
-                    labelCell.style.fontWeight = 'bold';
-                    var valueCell = document.createElement('td');
-                    row.appendChild(valueCell);
-                    valueCell.innerText = stat.value.toString();
-                    valueCell.style.padding = '8px';
-                    valueCell.style.textAlign = 'right';
+                AppLauncherStats = document.getElementById('start-menu-profile-my-stats');
+                if (AppLauncherStats) {
+                    AppLauncherStats.addEventListener('click', function () {
+                        openProfile('start-menu-profile-my-stats', 'stats');
+                    });
+                }
+                AppContentMain = document.createElement('div');
+                AppContentMain.id = 'profile-app-content-main';
+                AppContentMain.style.width = '100%';
+                AppContentMain.style.height = '100%';
+                AppContentMain.style.display = 'flex';
+                AppContent.appendChild(AppContentMain);
+                {
+                    leftContainer = document.createElement('div');
+                    AppContentMain.appendChild(leftContainer);
+                    leftContainer.id = 'profile-app-content-main-left';
+                    leftContainer.style.background = 'linear-gradient(rgb(117, 142, 219), rgb(109, 124, 218), rgb(104, 108, 213))';
+                    leftContainer.style.width = '150px';
+                    leftContainer.style.minWidth = '150px';
+                    leftContainer.style.maxWidth = '150px';
+                    leftContainer.style.height = '100%';
+                    leftContainer.style.overflow = 'auto';
+                    leftContainer.style.display = 'flex';
+                    leftContainer.style.flexDirection = 'column';
+                    leftContainer.style.alignItems = 'center';
+                    {
+                        General = createCategorieTab('General', './img/Utils/infos-icon.png', leftContainer);
+                        Tournaments = createCategorieTab('Tournaments', './img/Start_Menu/cup-icon.png', leftContainer);
+                        Stats = createCategorieTab('Stats', './img/Start_Menu/stats-icon.png', leftContainer);
+                    }
+                }
+                rightContainer = document.createElement('div');
+                AppContentMain.appendChild(rightContainer);
+                rightContainer.id = 'profile-app-content-main-right';
+                rightContainer.style.backgroundColor = 'rgb(163, 177, 233)';
+                rightContainer.style.width = 'calc(100% - 150px)';
+                rightContainer.style.minWidth = 'calc(100% - 150px)';
+                rightContainer.style.maxWidth = 'calc(100% - 150px)';
+                rightContainer.style.height = '100%';
+                rightContainer.style.overflow = 'auto';
+                GeneralCategorie = document.getElementById('profile-app-content-main-left-General');
+                TournamentsCategorie = document.getElementById('profile-app-content-main-left-Tournaments');
+                StatsCategorie = document.getElementById('profile-app-content-main-left-Stats');
+                GeneralContent_1 = createCategorieContainer('General', rightContainer);
+                if (!GeneralContent_1) return [3 /*break*/, 5];
+                profileInfoContainer = document.createElement('div');
+                profileInfoContainer.style.display = 'flex';
+                profileInfoContainer.style.flexDirection = 'column';
+                profileInfoContainer.style.alignItems = 'center';
+                profileInfoContainer.style.padding = '15px';
+                profileInfoContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                profileInfoContainer.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+                profileInfoContainer.style.borderRadius = '5px';
+                profileInfoContainer.style.boxShadow = '2px 2px 5px rgba(0, 0, 0, 0.2)';
+                GeneralContent_1.appendChild(profileInfoContainer);
+                avatarContainer = document.createElement('div');
+                avatarContainer.style.width = '100px';
+                avatarContainer.style.height = '100px';
+                avatarContainer.style.marginBottom = '10px';
+                avatarContainer.style.border = '1px solid #7E7E7E';
+                avatarContainer.style.padding = '3px';
+                avatarContainer.style.backgroundColor = 'white';
+                avatarContainer.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.3)';
+                profileInfoContainer.appendChild(avatarContainer);
+                avatarImg = document.createElement('img');
+                avatarImg.alt = 'User Avatar';
+                avatarImg.classList.add('avatar-preview');
+                avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar - replace with user's actual avatar from API
+                avatarImg.style.width = '100%';
+                avatarImg.style.height = '100%';
+                avatarImg.style.objectFit = 'cover';
+                avatarContainer.appendChild(avatarImg);
+                usernameDisplay = document.createElement('h2');
+                usernameDisplay.innerText = 'Loading...'; // Placeholder text while fetching username
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                console.log('Fetching username...');
+                return [4 /*yield*/, getCurrentUser(sessionStorage.getItem('wxp_token'))];
+            case 2:
+                user = _a.sent();
+                if (user)
+                    usernameDisplay.innerText = user.username;
+                return [3 /*break*/, 4];
+            case 3:
+                error_1 = _a.sent();
+                console.error('Error fetching username:', error_1);
+                usernameDisplay.innerText = 'Unknown User, please log in';
+                return [3 /*break*/, 4];
+            case 4:
+                usernameDisplay.style.color = '#333';
+                usernameDisplay.style.fontSize = '18px';
+                usernameDisplay.style.fontWeight = 'bold';
+                usernameDisplay.style.margin = '5px 0';
+                usernameDisplay.style.textShadow = '1px 1px 1px rgba(255, 255, 255, 0.5)';
+                profileInfoContainer.appendChild(usernameDisplay);
+                statusContainer = document.createElement('div');
+                statusContainer.style.display = 'flex';
+                statusContainer.style.alignItems = 'center';
+                statusContainer.style.marginTop = '5px';
+                profileInfoContainer.appendChild(statusContainer);
+                statusIndicator = document.createElement('div');
+                statusIndicator.style.width = '12px';
+                statusIndicator.style.height = '12px';
+                statusIndicator.style.borderRadius = '50%';
+                statusIndicator.style.backgroundColor = '#4CAF50'; // Green for online - should be dynamic based on API response
+                statusIndicator.style.marginRight = '5px';
+                statusIndicator.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+                statusIndicator.style.boxShadow = '0 0 3px rgba(0, 0, 0, 0.2)';
+                statusContainer.appendChild(statusIndicator);
+                statusText = document.createElement('span');
+                statusText.innerText = 'Online'; // Should be dynamic based on API response
+                statusText.style.color = '#333';
+                statusText.style.fontSize = '14px';
+                statusContainer.appendChild(statusText);
+                lastLoginInfo = document.createElement('p');
+                lastLoginInfo.innerText = 'Last login: Today at 9:45 AM'; // Should be dynamic based on API response
+                lastLoginInfo.style.color = '#555';
+                lastLoginInfo.style.fontSize = '12px';
+                lastLoginInfo.style.margin = '10px 0 5px 0';
+                lastLoginInfo.style.fontStyle = 'italic';
+                profileInfoContainer.appendChild(lastLoginInfo);
+                editProfileButton_1 = document.createElement('button');
+                editProfileButton_1.innerText = 'Edit Profile';
+                editProfileButton_1.style.padding = '5px 10px';
+                editProfileButton_1.style.margin = '10px 0';
+                editProfileButton_1.style.backgroundColor = '#ECE9D8';
+                editProfileButton_1.style.border = '1px solid #ACA899';
+                editProfileButton_1.style.borderRadius = '3px';
+                editProfileButton_1.style.color = '#000';
+                editProfileButton_1.style.fontSize = '12px';
+                editProfileButton_1.style.cursor = 'pointer';
+                editProfileButton_1.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
+                profileInfoContainer.appendChild(editProfileButton_1);
+                // Add hover effect for the button
+                editProfileButton_1.addEventListener('mouseenter', function () {
+                    editProfileButton_1.style.backgroundColor = '#F0F0F0';
                 });
-                // Note about updating stats
-                var statsNote = document.createElement('p');
-                statsSection.appendChild(statsNote);
-                statsNote.innerText = 'Statistics are updated after each game';
-                statsNote.style.color = 'rgba(255, 255, 255, 0.7)';
-                statsNote.style.fontSize = '12px';
-                statsNote.style.marginTop = '10px';
-                statsNote.style.fontStyle = 'italic';
-            }
-            if (GeneralContent_1 && TournamentsContent_1 && StatsContent_1) {
-                if (GeneralCategorie) {
-                    GeneralCategorie.addEventListener('click', function () {
-                        GeneralContent_1.style.display = 'flex';
-                        TournamentsContent_1.style.display = 'none';
-                        StatsContent_1.style.display = 'none';
-                    });
+                editProfileButton_1.addEventListener('mouseleave', function () {
+                    editProfileButton_1.style.backgroundColor = '#ECE9D8';
+                });
+                editProfileButton_1.addEventListener('mousedown', function () {
+                    editProfileButton_1.style.backgroundColor = '#DCDAC0';
+                    editProfileButton_1.style.boxShadow = 'inset 1px 1px 3px rgba(0, 0, 0, 0.2)';
+                });
+                editProfileButton_1.addEventListener('mouseup', function () {
+                    editProfileButton_1.style.backgroundColor = '#F0F0F0';
+                    editProfileButton_1.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
+                });
+                // API CALL NEEDED: On button click, open edit profile form and save changes to the backend
+                editProfileButton_1.addEventListener('click', function () {
+                    // Open edit profile modal or navigate to edit profile page
+                    // Implement form to update user profile data
+                    var settingsApp = document.getElementById('settings-app-window');
+                    if (settingsApp) {
+                        openAppWindow('', 'settings-app-window');
+                        App.style.zIndex = '24';
+                        settingsApp.style.zIndex = '25';
+                        var UserAccountTab = document.getElementById('settings-app-User Account-category');
+                        if (UserAccountTab) {
+                            UserAccountTab.click();
+                        }
+                    }
+                });
+                _a.label = 5;
+            case 5:
+                TournamentsContent_1 = createCategorieContainer('Tournaments', rightContainer);
+                if (TournamentsContent_1) {
+                    {
+                        TournamentHistoryTitle = document.createElement('h3');
+                        TournamentsContent_1.appendChild(TournamentHistoryTitle);
+                        TournamentHistoryTitle.innerText = 'Tournament History';
+                        TournamentHistoryTitle.style.color = 'white';
+                        TournamentHistoryTitle.style.textAlign = 'left';
+                        TournamentHistoryTitle.style.margin = '10px 10px';
+                        TournamentHistoryTitle.style.fontSize = '20px';
+                        TournamentHistoryTitle.style.fontWeight = 'bold';
+                        TournamentHistoryTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
+                        TournamentHistory = document.createElement('div');
+                        TournamentsContent_1.appendChild(TournamentHistory);
+                        TournamentHistory.style.width = '100%';
+                        TournamentHistory.style.height = '100%';
+                        TournamentHistory.style.display = 'flex';
+                        TournamentHistory.style.flexDirection = 'column';
+                        TournamentHistory.style.alignItems = 'left';
+                        TournamentHistory.style.justifyContent = 'left';
+                        TournamentHistory.style.overflow = 'auto';
+                        TournamentHistory.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+                        tournament1 = addTournamentHistory(TournamentHistory, 'Michel', 'Francis', 0, 2);
+                    }
                 }
-                if (TournamentsCategorie) {
-                    TournamentsCategorie.addEventListener('click', function () {
-                        GeneralContent_1.style.display = 'none';
-                        TournamentsContent_1.style.display = 'flex';
-                        StatsContent_1.style.display = 'none';
+                StatsContent_1 = createCategorieContainer('Stats', rightContainer);
+                if (StatsContent_1) {
+                    winLossSection = document.createElement('div');
+                    StatsContent_1.appendChild(winLossSection);
+                    winLossSection.style.margin = '10px 0';
+                    winLossSection.style.padding = '10px';
+                    winLossSection.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+                    winLossSection.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+                    winLossSection.style.borderRadius = '3px';
+                    winLossTitle = document.createElement('h3');
+                    winLossSection.appendChild(winLossTitle);
+                    winLossTitle.innerText = 'Win/Loss Ratio';
+                    winLossTitle.style.color = 'white';
+                    winLossTitle.style.fontSize = '18px';
+                    winLossTitle.style.marginBottom = '10px';
+                    winLossTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
+                    winLossBar = document.createElement('div');
+                    winLossSection.appendChild(winLossBar);
+                    winLossBar.style.width = '100%';
+                    winLossBar.style.height = '25px';
+                    winLossBar.style.backgroundColor = '#d3d3d3';
+                    winLossBar.style.border = '1px solid #666';
+                    winLossBar.style.position = 'relative';
+                    winLossBar.style.borderRadius = '2px';
+                    winLossBar.style.boxShadow = 'inset 0 0 5px rgba(0, 0, 0, 0.2)';
+                    wins = 15;
+                    losses = 7;
+                    winRate = Math.round((wins / (wins + losses)) * 100);
+                    winBar = document.createElement('div');
+                    winLossBar.appendChild(winBar);
+                    winBar.style.width = "".concat(winRate, "%");
+                    winBar.style.height = '100%';
+                    winBar.style.backgroundColor = 'rgb(75, 192, 75)';
+                    winBar.style.display = 'inline-block';
+                    winBar.style.borderRadius = '2px 0 0 2px';
+                    ratioText = document.createElement('div');
+                    winLossSection.appendChild(ratioText);
+                    ratioText.innerText = "Win Rate: ".concat(winRate, "% (").concat(wins, " wins, ").concat(losses, " losses)");
+                    ratioText.style.color = 'white';
+                    ratioText.style.fontSize = '14px';
+                    ratioText.style.marginTop = '5px';
+                    ratioText.style.textAlign = 'center';
+                    statsSection = document.createElement('div');
+                    StatsContent_1.appendChild(statsSection);
+                    // statsSection.style.width = '100%';
+                    statsSection.style.margin = '15px 0';
+                    statsSection.style.padding = '10px';
+                    statsSection.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+                    statsSection.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+                    statsSection.style.borderRadius = '3px';
+                    statsTitle = document.createElement('h3');
+                    statsSection.appendChild(statsTitle);
+                    statsTitle.innerText = 'Game Statistics';
+                    statsTitle.style.color = 'white';
+                    statsTitle.style.fontSize = '18px';
+                    statsTitle.style.marginBottom = '10px';
+                    statsTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
+                    statsTable_1 = document.createElement('table');
+                    statsSection.appendChild(statsTable_1);
+                    statsTable_1.style.width = '100%';
+                    statsTable_1.style.borderCollapse = 'collapse';
+                    statsTable_1.style.color = 'white';
+                    statsTable_1.style.fontSize = '14px';
+                    totalMatches = wins + losses;
+                    pointsScored = 254;
+                    avgMatchDuration = '3m 42s';
+                    highestScore = 11;
+                    statsData = [
+                        { label: 'Total Matches', value: totalMatches },
+                        { label: 'Points Scored', value: pointsScored },
+                        { label: 'Average Match Duration', value: avgMatchDuration },
+                        { label: 'Highest Score', value: highestScore }
+                    ];
+                    statsData.forEach(function (stat) {
+                        var row = document.createElement('tr');
+                        statsTable_1.appendChild(row);
+                        row.style.borderBottom = '1px solid rgba(255, 255, 255, 0.2)';
+                        var labelCell = document.createElement('td');
+                        row.appendChild(labelCell);
+                        labelCell.innerText = stat.label;
+                        labelCell.style.padding = '8px';
+                        labelCell.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                        labelCell.style.fontWeight = 'bold';
+                        var valueCell = document.createElement('td');
+                        row.appendChild(valueCell);
+                        valueCell.innerText = stat.value.toString();
+                        valueCell.style.padding = '8px';
+                        valueCell.style.textAlign = 'right';
                     });
+                    statsNote = document.createElement('p');
+                    statsSection.appendChild(statsNote);
+                    statsNote.innerText = 'Statistics are updated after each game';
+                    statsNote.style.color = 'rgba(255, 255, 255, 0.7)';
+                    statsNote.style.fontSize = '12px';
+                    statsNote.style.marginTop = '10px';
+                    statsNote.style.fontStyle = 'italic';
                 }
-                if (StatsCategorie) {
-                    StatsCategorie.addEventListener('click', function () {
-                        GeneralContent_1.style.display = 'none';
-                        TournamentsContent_1.style.display = 'none';
-                        StatsContent_1.style.display = 'flex';
-                    });
+                if (GeneralContent_1 && TournamentsContent_1 && StatsContent_1) {
+                    if (GeneralCategorie) {
+                        GeneralCategorie.addEventListener('click', function () {
+                            GeneralContent_1.style.display = 'flex';
+                            TournamentsContent_1.style.display = 'none';
+                            StatsContent_1.style.display = 'none';
+                        });
+                    }
+                    if (TournamentsCategorie) {
+                        TournamentsCategorie.addEventListener('click', function () {
+                            GeneralContent_1.style.display = 'none';
+                            TournamentsContent_1.style.display = 'flex';
+                            StatsContent_1.style.display = 'none';
+                        });
+                    }
+                    if (StatsCategorie) {
+                        StatsCategorie.addEventListener('click', function () {
+                            GeneralContent_1.style.display = 'none';
+                            TournamentsContent_1.style.display = 'none';
+                            StatsContent_1.style.display = 'flex';
+                        });
+                    }
                 }
-            }
+                return [2 /*return*/];
         }
-    }
-});
+    });
+}); });

@@ -1,15 +1,17 @@
 import { sys } from "../node_modules/typescript/lib/typescript.js";
 import { sendNotification } from "./notification.js";
-import { updateUser } from "./API.js";
+import { getUserBackground, updateUser } from "./API.js";
 
+import { getUserAvatar, uploadFile } from "./API.js";
+import { updateUserImages } from "./login-screen.js";
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
 
 	let categoryContainer = document.getElementById('settings-app-category-container') as HTMLElement;
 
 	let appearanceCategory = document.getElementById('settings-app-appearance-container') as HTMLElement;
-	
+
 	
 	// Appearance Settings
 	
@@ -82,12 +84,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		importButton.onclick = () => fileInput.click();
 
-		fileInput.onchange = (e) => {
+		fileInput.onchange = async (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
+				await uploadFile(1, file, 'wallpaper')
+				.then(response => {
+					sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
+				}).catch(error => {
+					console.error('Error uploading wallpaper:', error);
+					sendNotification('Error', 'Failed to upload wallpaper', "./img/Utils/error-icon.png");
+				});
+				let wallpaperURL = document.getElementsByClassName('user-background')[0] as HTMLImageElement;
+				if (wallpaperURL)
+					wallpaperURL.src = URL.createObjectURL(file);
 				currentWallpaperName.textContent = file.name;
+				updateUserImages(undefined, file);
 				document.body.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
-				sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
 			}
 			else
 				sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
@@ -247,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		let currentAvatarPreview = document.createElement('img');
 		leftColumn.appendChild(currentAvatarPreview);
 		currentAvatarPreview.id = 'current-avatar-preview';
+		currentAvatarPreview.classList.add('avatar-preview');
 		currentAvatarPreview.src = './img/Login_Screen/demo-user-profile-icon.jpg';
 		currentAvatarPreview.style.width = '55px';
 		currentAvatarPreview.style.height = '55px';
@@ -289,12 +302,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		importButton.onclick = () => fileInput.click();
 
-		fileInput.onchange = (e) => {
+		fileInput.onchange = async (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
+				await uploadFile(Number(sessionStorage.getItem('wxp_user_id')), file, 'avatar');
+				let currentuserID = await sessionStorage.getItem('wxp_user_id');
+				let newAvatar = await getUserAvatar(Number(currentuserID));
+				if (newAvatar)
+				{
+					console.log("New avatar URL: ", newAvatar);
+				}
 				currentAvatarName.textContent = file.name;
 				currentAvatarPreview.src = URL.createObjectURL(file);
-				sendNotification('Avatar Changed', `Avatar changed to ${file.name}`, "./img/Utils/profile-icon.png");
+				updateUserImages(file);
+				sendNotification('Avatar Changed', `Avatar changed to ${newAvatar}`, "./img/Utils/profile-icon.png");
 			}
 			else {
 				sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
@@ -1300,3 +1321,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 });
+function getElementByClassName(arg0: string) {
+	throw new Error("Function not implemented.");
+}
+

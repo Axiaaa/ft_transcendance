@@ -35,7 +35,7 @@ services:
     volumes:
       - certs:/etc/nginx/certs
       - ./frontend/:/usr/share/nginx/html
-      - img_storage:/usr/share/nginx/html/img_storage
+      - img_storage:/server/img_storage
     networks:
       - ft_transcendence
     depends_on:
@@ -64,10 +64,12 @@ services:
     build:
       context: ./backend/fastify-app
       dockerfile: Dockerfile
-    ports:
-      - ${FASTIFY_PORT}:4321
+    # ports:
+    #   - ${FASTIFY_PORT}:4321
     volumes:
       - sqlite_data:/usr/src/app/db/
+      - ./IMAGES:/server/img_storage # Uncomment this line if you want to use a local directory for images
+      - img_storage:/server/img_storage # Uncomment this line if you want to use a named volume for images
     environment:
       - PORT=${FASTIFY_PORT}  
       - SALT=${SALT}
@@ -97,9 +99,10 @@ services:
       - ft_transcendence
     healthcheck:
         test: ['CMD-SHELL', '[ -f config/certs/elasticsearch/elasticsearch.crt ]']
-        interval: 1s
-        timeout: 5s
+        interval: 5s
+        timeout: 10s
         retries: 120
+    restart: "no"
 
 
   elasticsearch:

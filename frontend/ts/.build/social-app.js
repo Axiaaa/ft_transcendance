@@ -347,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 avatarImage.style.height = '100%';
                 avatarImage.style.backgroundColor = '#99ccff'; // Placeholder color
                 avatarImage.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar
+                avatarImage.classList.add('avatar-preview');
                 // API CALL NEEDED: Get user avatar
                 // User info
                 var userInfoContainer = document.createElement('div');

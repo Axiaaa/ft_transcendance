@@ -5,7 +5,9 @@ import { userRoutes } from "./routes/user";
 import { matchsRoutes } from "./routes/matchs";
 import rateLimit from '@fastify/rate-limit';
 import { keepAliveRoute } from "./routes/keep_alive";
-import { log } from "console";
+import { uploadRoutes } from "./routes/upload";
+import multipart from '@fastify/multipart';
+
 
 const Port = process.env.PORT || 4321
 const envUser = process.env.API_USERNAME || 'admin'
@@ -33,7 +35,7 @@ server.addHook('preHandler', async (req, reply) => {
         tokenExists = db.prepare('SELECT * FROM users WHERE token = ?').get(token);
     } catch (error) {
         server.log.error('Database query failed:', error);
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        return reply.code(409).send({ error: 'Internal Server Error' });
     }
 
     if (!tokenExists) {
@@ -41,13 +43,13 @@ server.addHook('preHandler', async (req, reply) => {
     }
   
   
-    if (req.method === 'POST' || req.method === 'PATCH') {
-      try {
-        JSON.parse(JSON.stringify(req.body));
-      } catch (error) {
-        return reply.code(400).send({ error: 'Invalid JSON body' });
-      }
-    }
+    // if (req.method === 'POST' || req.method === 'PATCH') {
+    //   try {
+    //     JSON.parse(JSON.stringify(req.body));
+    //   } catch (error) {
+    //     return reply.code(400).send({ error: 'Invalid JSON body' });
+    //   }
+    // }
 });
 
 
@@ -57,11 +59,13 @@ server.get('/ping', async (request, reply) => {
 
 const start = async () => {
     try {
+        await server.register(multipart);
         await server.register(rateLimit, {global: false});
         await server.register(metrics,{endpoint: '/metrics'});
         await server.register(userRoutes, { prefix: '/api' });
         await server.register(matchsRoutes, { prefix: '/api' });
         await server.register(keepAliveRoute, { prefix: '/api' });
+        await server.register(uploadRoutes, { prefix: '/api' });
         await server.listen({ port: Number(Port) , host: '0.0.0.0'})
         console.log('Server started sucessfully')
     } catch (err) {

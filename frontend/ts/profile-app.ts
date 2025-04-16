@@ -1,5 +1,6 @@
 import { openAppWindow } from "./app-icon.js";
 import { sendNotification } from "./notification.js";
+import { getCurrentUser } from "./API.js";
 
 function openProfile(AppLauncher: string, profileTab?: string): void
 {
@@ -240,7 +241,7 @@ function addTournamentHistory(Container: HTMLElement, Player1: string, Player2: 
 }
 
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
 	let App = document.getElementById('profile-app-window') as HTMLElement;
 	if (!App) return;
@@ -350,16 +351,27 @@ document.addEventListener('DOMContentLoaded', () => {
 					// User avatar image
 					// API CALL NEEDED: Fetch user's profile picture from the backend
 					let avatarImg = document.createElement('img');
+					avatarImg.alt = 'User Avatar';
+					avatarImg.classList.add('avatar-preview');
 					avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar - replace with user's actual avatar from API
 					avatarImg.style.width = '100%';
 					avatarImg.style.height = '100%';
 					avatarImg.style.objectFit = 'cover';
 					avatarContainer.appendChild(avatarImg);
 
-					// Username display
-					// API CALL NEEDED: Fetch user's username from the backend
-					let usernameDisplay = document.createElement('h3');
-					usernameDisplay.innerText = 'Xxx_D4rkS4suke36_xxX'; // Default Username
+					let usernameDisplay = document.createElement('h2');
+					usernameDisplay.innerText = 'Loading...'; // Placeholder text while fetching username
+					try {
+						console.log('Fetching username...');
+						const user = await getCurrentUser(sessionStorage.getItem('wxp_token'));
+						if (user)
+							usernameDisplay.innerText = user.username;
+					}
+					catch (error)
+					{
+						console.error('Error fetching username:', error);
+						usernameDisplay.innerText = 'Unknown User, please log in';
+					}
 					usernameDisplay.style.color = '#333';
 					usernameDisplay.style.fontSize = '18px';
 					usernameDisplay.style.fontWeight = 'bold';
