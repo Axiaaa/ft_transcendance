@@ -154,21 +154,24 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
             fileInput_1.style.display = 'none';
             importButton.onclick = function () { return fileInput_1.click(); };
             fileInput_1.onchange = function (e) { return __awaiter(void 0, void 0, void 0, function () {
-                var file, wallpaperURL;
+                var file, currentuserID, wallpaperURL;
                 var _a;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
                             file = (_a = e.target.files) === null || _a === void 0 ? void 0 : _a[0];
-                            if (!file) return [3 /*break*/, 2];
-                            return [4 /*yield*/, uploadFile(1, file, 'wallpaper')
+                            if (!file) return [3 /*break*/, 3];
+                            return [4 /*yield*/, Number(sessionStorage.getItem('wxp_user_id'))];
+                        case 1:
+                            currentuserID = _b.sent();
+                            return [4 /*yield*/, uploadFile(currentuserID, file, 'wallpaper')
                                     .then(function (response) {
                                     sendNotification('Wallpaper Changed', "Wallpaper changed to ".concat(file.name), "./img/Settings_app/picture-icon.png");
                                 }).catch(function (error) {
                                     console.error('Error uploading wallpaper:', error);
                                     sendNotification('Error', 'Failed to upload wallpaper', "./img/Utils/error-icon.png");
                                 })];
-                        case 1:
+                        case 2:
                             _b.sent();
                             wallpaperURL = document.getElementsByClassName('user-background')[0];
                             if (wallpaperURL)
@@ -176,11 +179,11 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                             currentWallpaperName_1.textContent = file.name;
                             updateUserImages(undefined, file);
                             document.body.style.backgroundImage = "url(".concat(URL.createObjectURL(file), ")");
-                            return [3 /*break*/, 3];
-                        case 2:
+                            return [3 /*break*/, 4];
+                        case 3:
                             sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
-                            _b.label = 3;
-                        case 3: return [2 /*return*/];
+                            _b.label = 4;
+                        case 4: return [2 /*return*/];
                     }
                 });
             }); };
@@ -346,13 +349,13 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                         case 0:
                             file = (_a = e.target.files) === null || _a === void 0 ? void 0 : _a[0];
                             if (!file) return [3 /*break*/, 4];
-                            return [4 /*yield*/, uploadFile(Number(sessionStorage.getItem('wxp_user_id')), file, 'avatar')];
+                            return [4 /*yield*/, Number(sessionStorage.getItem('wxp_user_id'))];
                         case 1:
-                            _b.sent();
-                            return [4 /*yield*/, sessionStorage.getItem('wxp_user_id')];
-                        case 2:
                             currentuserID = _b.sent();
-                            return [4 /*yield*/, getUserAvatar(Number(currentuserID))];
+                            return [4 /*yield*/, uploadFile(currentuserID, file, 'avatar')];
+                        case 2:
+                            _b.sent();
+                            return [4 /*yield*/, getUserAvatar(currentuserID)];
                         case 3:
                             newAvatar = _b.sent();
                             if (newAvatar) {

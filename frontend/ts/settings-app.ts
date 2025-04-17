@@ -497,6 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		let resetSettingsIcon = document.getElementById('start-menu-reset-settings') as HTMLElement;
 		resetSettingsIcon.addEventListener('click', () => {
 			openAppWindow('', 'settings-app-window');
+			let settingBackButton = document.getElementById('settings-app-back-button') as HTMLElement;
+			settingBackButton.click();
 			let systemSetting = document.getElementById('settings-app-System-category') as HTMLElement;
 			systemSetting.click();
 			let systemRestore = document.getElementById('restore-system-button') as HTMLElement;

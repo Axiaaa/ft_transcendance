@@ -180,41 +180,51 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 export function updateUserImages(fileAvatar, fileWallpaper) {
     return __awaiter(this, void 0, void 0, function () {
-        var userID, avatarURL, wallpaperURL, userAvatars, i, userWallpapers;
+        var userID, avatarURL, wallpaperURL, error_1, userAvatars, i, error_2, userWallpapers;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     userID = Number(sessionStorage.getItem("wxp_user_id"));
                     if (userID == null)
                         return [2 /*return*/];
-                    avatarURL = null;
-                    wallpaperURL = null;
+                    avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+                    wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
                     if (!fileAvatar) return [3 /*break*/, 1];
                     avatarURL = URL.createObjectURL(fileAvatar);
-                    return [3 /*break*/, 3];
-                case 1: return [4 /*yield*/, getUserAvatar(userID)];
+                    return [3 /*break*/, 4];
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, getUserAvatar(userID)];
                 case 2:
                     avatarURL = _a.sent();
-                    _a.label = 3;
+                    return [3 /*break*/, 4];
                 case 3:
+                    error_1 = _a.sent();
+                    console.error("Error fetching avatar:", error_1);
+                    avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+                    return [3 /*break*/, 4];
+                case 4:
                     userAvatars = document.getElementsByClassName("avatar-preview");
                     console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
-                    if (avatarURL == null || avatarURL == undefined)
-                        avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
                     for (i = 0; i < userAvatars.length; i++) {
                         console.log(userAvatars[i] + " now = " + avatarURL);
                         userAvatars[i].src = avatarURL;
                     }
-                    if (!fileWallpaper) return [3 /*break*/, 4];
+                    if (!fileWallpaper) return [3 /*break*/, 5];
                     wallpaperURL = URL.createObjectURL(fileWallpaper);
-                    return [3 /*break*/, 6];
-                case 4: return [4 /*yield*/, getUserBackground(userID)];
+                    return [3 /*break*/, 8];
                 case 5:
-                    wallpaperURL = _a.sent();
-                    _a.label = 6;
+                    _a.trys.push([5, 7, , 8]);
+                    return [4 /*yield*/, getUserBackground(userID)];
                 case 6:
-                    if (wallpaperURL == null || wallpaperURL == undefined)
-                        wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+                    wallpaperURL = _a.sent();
+                    return [3 /*break*/, 8];
+                case 7:
+                    error_2 = _a.sent();
+                    console.error("Error fetching wallpaper:", error_2);
+                    wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+                    return [3 /*break*/, 8];
+                case 8:
                     userWallpapers = document.getElementsByClassName("user-background");
                     console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
                     userWallpapers[0].src = wallpaperURL;
@@ -233,18 +243,18 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
     var signUpPassword_1 = document.getElementById("sign-up-password");
     if (signUpButton) {
         signUpButton.addEventListener("click", function (event) { return __awaiter(void 0, void 0, void 0, function () {
-            var username, password, newUser, error_1;
+            var username, password, newUser, error_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         event.preventDefault();
-                        if (!(signUpUsername_1 && signUpPassword_1)) return [3 /*break*/, 4];
+                        if (!(signUpUsername_1 && signUpPassword_1)) return [3 /*break*/, 5];
                         username = signUpUsername_1.value;
                         password = signUpPassword_1.value;
-                        if (!(username && password)) return [3 /*break*/, 4];
+                        if (!(username && password)) return [3 /*break*/, 5];
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
+                        _a.trys.push([1, 4, , 5]);
                         return [4 /*yield*/, createUser({ username: username, password: password })];
                     case 2:
                         newUser = _a.sent();
@@ -254,16 +264,20 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
                         signUpUsername_1.value = "";
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
-                        updateUserImages();
-                        return [3 /*break*/, 4];
+                        // await updateUserImages();
+                        return [4 /*yield*/, updateUserImages()];
                     case 3:
-                        error_1 = _a.sent();
-                        console.error("Error creating user:", error_1);
+                        // await updateUserImages();
+                        _a.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
+                        error_3 = _a.sent();
+                        console.error("Error creating user:", error_3);
                         signUpUsername_1.value = "";
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
                 }
             });
         }); });
@@ -274,7 +288,7 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
     var signInPassword_1 = document.getElementById("sign-in-password");
     if (signInButton) {
         signInButton.addEventListener("click", function (event) { return __awaiter(void 0, void 0, void 0, function () {
-            var username, password, user, error_2;
+            var username, password, user, error_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -297,8 +311,8 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
                         updateUserImages();
                         return [3 /*break*/, 4];
                     case 3:
-                        error_2 = _a.sent();
-                        console.error("Error signing in:", error_2);
+                        error_4 = _a.sent();
+                        console.error("Error signing in:", error_4);
                         signInUsername_1.value = "";
                         signInPassword_1.value = "";
                         return [3 /*break*/, 4];

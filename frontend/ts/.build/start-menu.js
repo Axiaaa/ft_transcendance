@@ -1,12 +1,27 @@
-"use strict";
+import { updateUser } from "./API.js";
+import { openAppWindow } from "./app-icon.js";
+export function disconnectUser() {
+    var userToken = sessionStorage.getItem('wxp_token');
+    if (!userToken) {
+        console.log('No user token found, skipping disconnect...');
+        return;
+    }
+    if (userToken) {
+        console.log('Disconnecting user...');
+        updateUser(userToken, { is_online: false })
+            .then(function () {
+            sessionStorage.removeItem('wxp_token');
+            sessionStorage.removeItem('wxp_user_id');
+        })
+            .catch(function (error) {
+            console.error('Error updating user status:', error);
+        });
+    }
+}
 document.addEventListener('DOMContentLoaded', function () {
     var startButton = document.getElementById('start-button');
     var startMenu = document.getElementById('start-menu');
     var loginScreen = document.getElementsByClassName("login-screen")[0];
-    var logoffButton = document.getElementById('log-off-button');
-    logoffButton.addEventListener('click', function (e) {
-        loginScreen.style.display = 'block';
-    });
     startMenu.style.display = 'none';
     var base = document.createElement('img');
     base.src = './img/Taskbar/start-button-1.png';
@@ -75,7 +90,34 @@ document.addEventListener('DOMContentLoaded', function () {
         var shutdownButton = document.getElementById('startmenu-shutdown-button');
         shutdownButton.addEventListener('click', function (e) {
             alert('Warning: System shutting down\n(It just reloads the page, because... you know, it\'s a web app)');
+            disconnectUser();
             window.location.reload();
+        });
+    }
+    {
+        var logoffButton = document.getElementById('log-off-button');
+        logoffButton.addEventListener('click', function (e) {
+            disconnectUser();
+            loginScreen.style.display = 'block';
+        });
+    }
+    {
+        var startMenuTop_1 = document.getElementsByClassName('start-menu-top')[0];
+        startMenuTop_1.style.height = '60px';
+        startMenuTop_1.style.width = '100%';
+        startMenuTop_1.addEventListener('mouseenter', function (e) {
+            startMenuTop_1.style.backgroundColor = 'rgba(69, 141, 255, 0.31)';
+        });
+        startMenuTop_1.addEventListener('mouseleave', function (e) {
+            startMenuTop_1.style.backgroundColor = 'transparent';
+        });
+        startMenuTop_1.addEventListener('click', function (e) {
+            startMenu.style.display = 'none';
+            openAppWindow('', "settings-app-window");
+            var settingBackButton = document.getElementById('settings-app-back-button');
+            settingBackButton.click();
+            var userAccountButton = document.getElementById('settings-app-User Account-category');
+            userAccountButton.click();
         });
     }
 });

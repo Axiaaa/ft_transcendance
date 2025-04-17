@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { sendNotification } from "./notification.js";
 import { getUserById } from "./API.js";
+import { disconnectUser } from "./start-menu.js";
 var userBackground = document.createElement('img');
 userBackground.id = 'user-background';
 userBackground.className = 'user-background';
@@ -112,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                     case 0:
                         _a.trys.push([0, 3, , 4]);
                         console.log('User is inactive');
-                        sendNotification('Inactivity Alert', 'You have been inactive for 20 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
+                        sendNotification('Inactivity Alert', 'You have been inactive for 30 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
                         sleepScreen.style.display = 'block';
                         return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 200); })];
                     case 1:
@@ -141,6 +142,11 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
     }
     var sleepScreen, sleepLogo, timeoutId, INACTIVE_TIMEOUT, trashBinApp;
     return __generator(this, function (_a) {
+        window.addEventListener('beforeunload', function (event) {
+            event.preventDefault();
+            disconnectUser();
+            return 'You will be disconnected if you reload or leave this page. Are you sure ?';
+        });
         sleepScreen = document.createElement('div');
         document.body.appendChild(sleepScreen);
         sleepScreen.id = 'sleep-screen';
@@ -162,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
         sleepLogo.style.position = 'absolute';
         sleepLogo.style.padding = '0 10px';
         animateLogo(sleepLogo);
-        INACTIVE_TIMEOUT = 20000;
+        INACTIVE_TIMEOUT = 30000;
         // Reset timer on mouse movement
         document.addEventListener('mousemove', resetTimer);
         // Reset timer on mouse clicks

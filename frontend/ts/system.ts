@@ -5,6 +5,7 @@ import { getUser } from "./API.js";
 import { createUser } from "./API.js";
 import { create } from "domain";
 import { get } from "http";
+import { disconnectUser } from "./start-menu.js";
 
 
 
@@ -33,10 +34,11 @@ export function setBodyBackgroundImage(url: string): void {
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-	// window.addEventListener('beforeunload', (event) => {
-	// 	event.preventDefault();
-	// 	return 'Your data will be lost if you reload or leave this page. Are you sure ?';
-	// });
+	window.addEventListener('beforeunload', (event) => {
+		event.preventDefault();
+		disconnectUser();
+		return 'You will be disconnected if you reload or leave this page. Are you sure ?';
+	});
 
 	let sleepScreen = document.createElement('div');
 	document.body.appendChild(sleepScreen);
@@ -103,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 	let timeoutId: NodeJS.Timeout;
-	const INACTIVE_TIMEOUT = 20000; // 10 seconds of inactivity
+	const INACTIVE_TIMEOUT = 30000; // 10 seconds of inactivity
 
 	function resetTimer() {
 		// Clear any existing timeout
@@ -118,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		timeoutId = setTimeout(async () => {
 			try {
 				console.log('User is inactive');
-				sendNotification('Inactivity Alert', 'You have been inactive for 20 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
+				sendNotification('Inactivity Alert', 'You have been inactive for 30 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
 				sleepScreen.style.display = 'block';
 				await new Promise(resolve => setTimeout(resolve, 200));
 				if (sleepScreen.style.display === 'none') return;

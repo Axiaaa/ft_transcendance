@@ -191,17 +191,24 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 	const userID = Number(sessionStorage.getItem("wxp_user_id"));
 	if (userID == null)
 		return;
-	let avatarURL = null;
-	let wallpaperURL = null;
+	let avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+	let wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
 	if (fileAvatar)
 		avatarURL = URL.createObjectURL(fileAvatar);
 	else
-		 avatarURL = await getUserAvatar(userID);
+	{
+		try{
+			avatarURL = await getUserAvatar(userID);
+		}
+		catch (error) {
+			console.error("Error fetching avatar:", error);
+			avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+		}
+	}
 	let userAvatars = document.getElementsByClassName("avatar-preview") as HTMLCollectionOf<HTMLImageElement>;
 	
 	console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
-	if (avatarURL == null || avatarURL == undefined)
-		avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+
 	for (let i = 0; i < userAvatars.length; i++) {
 		console.log(userAvatars[i] + " now = " + avatarURL);
 		userAvatars[i].src = avatarURL;
@@ -209,9 +216,16 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 	if (fileWallpaper)
 		wallpaperURL = URL.createObjectURL(fileWallpaper);
 	else
-		wallpaperURL = await getUserBackground(userID);
-	if (wallpaperURL == null || wallpaperURL == undefined)
-		wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+	{
+		try {
+			wallpaperURL = await getUserBackground(userID);
+		}
+		catch (error) {
+			console.error("Error fetching wallpaper:", error);
+			wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+		}
+	}
+		
 	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
 	console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
 	userWallpapers[0].src = wallpaperURL;
@@ -239,7 +253,8 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 						signUpUsername.value = "";
 						signUpPassword.value = "";
 						signUpConfirmPassword.value = "";
-						updateUserImages();
+						// await updateUserImages();
+						await updateUserImages();
 
 					} catch (error) {
 						console.error("Error creating user:", error);

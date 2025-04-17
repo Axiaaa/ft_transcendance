@@ -454,6 +454,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var resetSettingsIcon = document.getElementById('start-menu-reset-settings');
         resetSettingsIcon.addEventListener('click', function () {
             openAppWindow('', 'settings-app-window');
+            var settingBackButton = document.getElementById('settings-app-back-button');
+            settingBackButton.click();
             var systemSetting = document.getElementById('settings-app-System-category');
             systemSetting.click();
             var systemRestore = document.getElementById('restore-system-button');

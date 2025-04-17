@@ -87,7 +87,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 		fileInput.onchange = async (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
-				await uploadFile(1, file, 'wallpaper')
+				let currentuserID = await Number(sessionStorage.getItem('wxp_user_id'));
+				await uploadFile(currentuserID, file, 'wallpaper')
 				.then(response => {
 					sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
 				}).catch(error => {
@@ -305,9 +306,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 		fileInput.onchange = async (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
-				await uploadFile(Number(sessionStorage.getItem('wxp_user_id')), file, 'avatar');
-				let currentuserID = await sessionStorage.getItem('wxp_user_id');
-				let newAvatar = await getUserAvatar(Number(currentuserID));
+				let currentuserID = await Number(sessionStorage.getItem('wxp_user_id'));
+				await uploadFile(currentuserID, file, 'avatar');
+				let newAvatar = await getUserAvatar(currentuserID);
 				if (newAvatar)
 				{
 					console.log("New avatar URL: ", newAvatar);

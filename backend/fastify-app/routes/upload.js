@@ -19,9 +19,9 @@ async function createDirectory(path) {
 }
 ;
 async function uploadRoutes(server) {
-    server.post('user_images/:type/:id', async (request, reply) => {
-        console.log("uploading file");
-        const { id, type } = request.params;
+    server.post('/user_images/:type/:id', async (request, reply) => {
+        reply.log.info("upload user image");
+        const { type, id } = request.params;
         const user = await (0, user_1.getUserFromDb)({ id: Number(id) });
         if (user == null) {
             reply.code(404).send({ error: "User not found" });
