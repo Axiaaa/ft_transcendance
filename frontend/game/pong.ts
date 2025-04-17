@@ -460,23 +460,19 @@ function highlight_keys(action: number): void
 	const keyElements = document.querySelectorAll(".key-display");
 	keyElements.forEach((element: Element) => {
 		const htmlElement = element as HTMLElement;
-		htmlElement.classList.remove("key-pressed");})
-	if (action == 0)
-	{
-		keyElements.forEach((element: Element) => {
-			const htmlElement = element as HTMLElement;
-			if (htmlElement.textContent === "←")
-				htmlElement.classList.add("key-pressed");})
-	}
-	if (action == 1)
-	{
-		keyElements.forEach((element: Element) => {
-			const htmlElement = element as HTMLElement;
-			if (htmlElement.textContent === "→")
-				htmlElement.classList.add("key-pressed");})
-	}
-}
+		if (htmlElement.textContent === "←" || htmlElement.textContent === "→") {
+			htmlElement.classList.remove("key-pressed");
+		}
+	});
 
+	keyElements.forEach((element: Element) => {
+		const htmlElement = element as HTMLElement;
+		if ((action == 0 && htmlElement.textContent === "←") ||
+			(action == 1 && htmlElement.textContent === "→")) {
+			htmlElement.classList.add("key-pressed");
+		}
+	});
+}
 function movePaddles(): void
 {
 	if (agentIsActive)
@@ -492,7 +488,7 @@ function movePaddles(): void
 	{
 		if (keys.ArrowLeft && paddle2.position.x < 5)
 			paddle2.position.x += paddleSpeed;
-		if (keys.ArrowLeft && paddle2.position.x > -5)
+		if (keys.ArrowRight && paddle2.position.x > -5)
 			paddle2.position.x -= paddleSpeed;
 	}
 
