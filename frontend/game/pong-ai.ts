@@ -11,7 +11,7 @@ export class PongAI
 		this.loadModel();
 	}
 
-	private async loadModel(): promise<void>
+	private async loadModel(): Promise<void>
 	{
 		try
 		{
@@ -29,31 +29,34 @@ export class PongAI
 	{
 		try
 		{
+			const paddleX = state[0]
+			const paddleSpeed = state[2];
+			const opponentX = state[3];
+			const ballSpeedX = state[6];
+			const ballSpeedY = state[7];
+
 			let tensor = tf.tensor2d([state.slice(4)]);
 			let output = this.model.predict(tensor);
-
 			let predictionX = output.dataSync()[0];
 			tensor.dispose();
 			output.dispose();
 
 			this.actionArray = [];
-			if (state[7] > 0)
+			if (ballSpeedY > 0)
 				predictionX = 0
-			else if (state[6] < 0.03 && state[6] > -0.03)
+			else if (Math.abs(ballSpeedX) < 0.02 && Math.abs(predictionX) < 1)
 			{
-				console.log(predictionX)
-				if (state[3] < predictionX)
-					predictionX -= 1
+				if (opponentX < predictionX)
+					predictionX -= 0.7
 				else
-					predictionX += 1
+					predictionX += 0.7
 			}
 			let action = 2;
-			let distance = 0
-			if (predictionX > state[0])
+			if (predictionX > paddleX)
 				action = 0;
-			else
+			else if (predictionX < paddleX)
 				action = 1;
-			distance = Math.abs(predictionX - state[0]) / state[2]
+			let distance = Math.abs(predictionX - paddleX) / paddleSpeed
 			for (let i = 0; i < distance; i++)
 				this.actionArray.push(action)
 		} catch (error)

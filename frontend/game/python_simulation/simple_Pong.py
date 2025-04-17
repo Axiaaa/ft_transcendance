@@ -71,7 +71,7 @@ class Ball:
 		self.y = self.start[1]
 
 		angle = random.uniform(-math.pi/4, math.pi/4)
-		speed = 0.05
+		speed = 0.02
 
 		if last_scorer == 1:
 			self.vx = speed * math.sin(angle)
@@ -190,7 +190,7 @@ class Game:
 		self.score2 = 0
 		self.last_scorer = None
 		self.num_hit = 0
-		self.speed_increment = 0.005
+		self.speed_increment = 0.0025
 
 		self.width = 12
 		self.height = 12
@@ -209,11 +209,11 @@ class Game:
 			self.root.bind("<KeyPress>", self.key_press)
 			self.root.bind("<KeyRelease>", self.key_release)
 
-		self.ball = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0.03, radius=0.2, color="yellow")
+		self.ball = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0.02, radius=0.2, color="yellow")
 		self.prediction = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0, radius=0.1, color="green")
 
-		self.paddle_bottom = Paddle(visual, self.canvas, width, height, 0, -5.5, color="green", width=1.5, height=0.5)
-		self.paddle_top = Paddle(visual, self.canvas, width, height, 0, 5.5, color="purple", width=1.5, height=0.5)
+		self.paddle_bottom = Paddle(visual, self.canvas, width, height, 0, -6.5, color="green", width=1.5, height=0.5)
+		self.paddle_top = Paddle(visual, self.canvas, width, height, 0, 6.5, color="purple", width=1.5, height=0.5)
 
 	def key_press(self, event):
 		self.keys_pressed[event.keysym] = True

@@ -549,10 +549,10 @@ function reset(): void {
 	paddleSpeed = 0.1;
 	numHit = 0;
 	if (lastScorer === 1) {
-		ballSpeed = { x: 0, z: -0.05 }
+		ballSpeed = { x: 0, z: -0.02 }
 	}
 	else if (lastScorer === 2) {
-		ballSpeed = { x: 0, z: 0.05 }
+		ballSpeed = { x: 0, z: 0.02 }
 	}
 }
 
