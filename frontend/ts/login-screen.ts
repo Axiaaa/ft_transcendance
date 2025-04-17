@@ -243,7 +243,7 @@ export async function showError(message: string) {
 				const username = signUpUsername.value;
 				const password = signUpPassword.value;
 				const confirmPassword = signUpConfirmPassword.value;
-				if (username && password) {
+				if (username && password && confirmPassword) {
 					if (password == confirmPassword)
 					{
 						if (password.length >= 8)
