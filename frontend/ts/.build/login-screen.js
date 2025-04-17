@@ -158,6 +158,10 @@ document.addEventListener('DOMContentLoaded', function () {
     backbutton.style.overflow = 'hidden';
     form.appendChild(backbutton);
     backbutton.addEventListener('click', function () {
+        var existingErrorBox = document.querySelector('.error-box');
+        if (existingErrorBox) {
+            existingErrorBox.remove();
+        }
         goToLoginPage();
         form.style.display = 'none';
         for (var i = 0; i < profiles.length; i++) {
@@ -178,6 +182,45 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 // SANDBOX AREA
+export function showError(message) {
+    return __awaiter(this, void 0, void 0, function () {
+        var errorBox, existingErrorBox;
+        return __generator(this, function (_a) {
+            errorBox = document.createElement('div');
+            errorBox.className = 'error-box';
+            errorBox.textContent = message;
+            errorBox.style.position = 'fixed';
+            errorBox.style.top = '10px';
+            errorBox.style.left = '50%';
+            errorBox.style.transform = 'translateX(-50%)';
+            errorBox.style.backgroundColor = 'red';
+            errorBox.style.color = 'white';
+            errorBox.style.padding = '10px 20px';
+            errorBox.style.borderRadius = '5px';
+            errorBox.style.zIndex = '1000';
+            errorBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            errorBox.style.fontSize = '14px';
+            errorBox.style.fontWeight = 'bold';
+            existingErrorBox = document.querySelector('.error-box');
+            if (existingErrorBox) {
+                existingErrorBox.remove();
+            }
+            document.body.appendChild(errorBox);
+            errorBox.style.opacity = '0';
+            errorBox.style.transition = 'opacity 0.5s ease-in-out';
+            setTimeout(function () {
+                errorBox.style.opacity = '1';
+            }, 0);
+            setTimeout(function () {
+                errorBox.style.opacity = '0';
+                setTimeout(function () {
+                    errorBox.remove();
+                }, 500);
+            }, 5000);
+            return [2 /*return*/];
+        });
+    });
+}
 {
     var signUpForm = document.getElementById("sign-up-form");
     var signUpButton = document.getElementById("sign-up-button");
@@ -186,15 +229,16 @@ document.addEventListener('DOMContentLoaded', function () {
     var signUpPassword_1 = document.getElementById("sign-up-password");
     if (signUpButton) {
         signUpButton.addEventListener("click", function (event) { return __awaiter(void 0, void 0, void 0, function () {
-            var username, password, newUser, error_1;
+            var username, password, confirmPassword, newUser, error_1, existingErrorBox;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         event.preventDefault();
-                        if (!(signUpUsername_1 && signUpPassword_1)) return [3 /*break*/, 6];
+                        if (!(signUpUsername_1 && signUpPassword_1)) return [3 /*break*/, 7];
                         username = signUpUsername_1.value;
                         password = signUpPassword_1.value;
-                        if (!(username && password)) return [3 /*break*/, 6];
+                        confirmPassword = signUpConfirmPassword_1.value;
+                        if (!(username && password)) return [3 /*break*/, 7];
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 5, , 6]);
@@ -223,7 +267,19 @@ document.addEventListener('DOMContentLoaded', function () {
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
                         return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/];
+                    case 6:
+                        {
+                            existingErrorBox = document.querySelector('.error-box');
+                            if (existingErrorBox) {
+                                existingErrorBox.remove();
+                            }
+                            showError("Passwords do not match.");
+                            signUpUsername_1.value = "";
+                            signUpPassword_1.value = "";
+                            signUpConfirmPassword_1.value = "";
+                        }
+                        _a.label = 7;
+                    case 7: return [2 /*return*/];
                 }
             });
         }); });
@@ -234,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var signInPassword_1 = document.getElementById("sign-in-password");
     if (signInButton) {
         signInButton.addEventListener("click", function (event) { return __awaiter(void 0, void 0, void 0, function () {
-            var username, password, user, error_2;
+            var username, password, existingErrorBox, user, error_2, existingErrorBox;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -246,6 +302,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 6, , 7]);
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
                         return [4 /*yield*/, getUser(username, password)];
                     case 2:
                         user = _a.sent();
@@ -268,7 +328,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         return [3 /*break*/, 7];
                     case 6:
                         error_2 = _a.sent();
-                        console.error("Error signing in:", error_2);
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
+                        showError("Username or password is incorrect.");
                         signInUsername_1.value = "";
                         signInPassword_1.value = "";
                         return [3 /*break*/, 7];
