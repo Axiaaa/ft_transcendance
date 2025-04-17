@@ -240,12 +240,24 @@ export async function showError(message: string) {
 	errorBox.style.fontSize = '14px';
 	errorBox.style.fontWeight = 'bold';
 
+
 	const existingErrorBox = document.querySelector('.error-box');
 	if (existingErrorBox) {
 		existingErrorBox.remove();
 	}
 
 	document.body.appendChild(errorBox);
+	errorBox.style.opacity = '0';
+	errorBox.style.transition = 'opacity 0.5s ease-in-out';
+	setTimeout(() => {
+		errorBox.style.opacity = '1';
+	}, 0);
+	setTimeout(() => {
+		errorBox.style.opacity = '0';
+		setTimeout(() => {
+			errorBox.remove();
+		}, 500);
+	}, 5000);
 }
 
 {

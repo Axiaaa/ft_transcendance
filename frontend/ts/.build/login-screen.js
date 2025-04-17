@@ -253,6 +253,17 @@ export function showError(message) {
                 existingErrorBox.remove();
             }
             document.body.appendChild(errorBox);
+            errorBox.style.opacity = '0';
+            errorBox.style.transition = 'opacity 0.5s ease-in-out';
+            setTimeout(function () {
+                errorBox.style.opacity = '1';
+            }, 0);
+            setTimeout(function () {
+                errorBox.style.opacity = '0';
+                setTimeout(function () {
+                    errorBox.remove();
+                }, 500);
+            }, 5000);
             return [2 /*return*/];
         });
     });
