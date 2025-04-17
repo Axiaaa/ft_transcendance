@@ -113,19 +113,29 @@ window.addEventListener("keydown", (e) => {
     if (!isPlaying)
         return;
     if (e.code === "Escape") {
-        isPaused = !isPaused; // Alterne l'état de pause
-        if (isPaused) {
-            pauseMenu.style.display = "block"; // Affiche le menu de pause
-            countdownContainer.style.display = "block"; // Affiche le compte à rebours
-            overlay.style.display = "block"; // Affiche l'overlay
-        }
-        else {
-            pauseMenu.style.display = "none"; // Cache le menu de pause
-            countdownContainer.style.display = "none"; // Cache le compte à rebours
-            overlay.style.display = "none"; // Cache l'overlay
-        }
+        togglePause();
     }
 });
+window.addEventListener("blur", () => {
+    if (!isPlaying || gameIsFinished)
+        return;
+    if (!isPaused) {
+        togglePause();
+    }
+});
+function togglePause() {
+    isPaused = !isPaused;
+    if (isPaused) {
+        pauseMenu.style.display = "block";
+        countdownContainer.style.display = "block";
+        overlay.style.display = "block";
+    }
+    else {
+        pauseMenu.style.display = "none";
+        countdownContainer.style.display = "none";
+        overlay.style.display = "none";
+    }
+}
 ////////////////////////////// START PLAY //////////////////////////////
 let countdownComplete = false;
 let countdownElement = document.getElementById("countdown");
@@ -728,6 +738,8 @@ function zoomOutEffect(callback) {
     scene.onBeforeRenderObservable.add(zoomOutAnimation);
 }
 //////////////////////////////// RESET ////////////////////////////////
+let enterButton = null;
+let spaceButton = null;
 function reset() {
     paddle1.position.set(0, fieldHeight + 0.2, 6.5);
     paddle2.position.set(0, fieldHeight + 0.2, -6.5);
@@ -741,6 +753,41 @@ function reset() {
     }
     else if (lastScorer === 2) {
         ballSpeed = { x: 0, z: 0.05 };
+    }
+    if ((score1 !== 10 && score2 !== 10) || (score1 === 0 && score2 === 0)) {
+        createButton('Enter', 'key-enter');
+        createButton('Space', 'key-space');
+        window.addEventListener('keydown', handleKeyPress);
+    }
+}
+function createButton(text, className) {
+    const button = document.createElement('div');
+    button.classList.add('key-display', className);
+    button.textContent = text;
+    document.body.appendChild(button);
+    if (className === 'key-enter') {
+        enterButton = button;
+    }
+    else if (className === 'key-space') {
+        spaceButton = button;
+    }
+    button.style.position = 'absolute';
+    button.style.top = '20%';
+    if (className === 'key-enter') {
+        button.style.left = '40%';
+    }
+    else if (className === 'key-space') {
+        button.style.right = '40%';
+    }
+}
+function hideButtons() {
+    if (enterButton) {
+        enterButton.remove();
+        enterButton = null;
+    }
+    if (spaceButton) {
+        spaceButton.remove();
+        spaceButton = null;
     }
 }
 //////////////////////////////// ENDGAME & RESTART ////////////////////////////////
@@ -829,6 +876,7 @@ function handleKeyPress(event) {
     if (event.code == 'Space' || event.code == 'Enter') {
         if (gameIsFinished)
             return; // If the game is finished we stop the ball
+        hideButtons();
         isPaused = false; // If the game is not finished, we relaunch the ball
         window.removeEventListener('keydown', handleKeyPress);
     }
@@ -854,17 +902,6 @@ function restartGame(callback) {
             callback(); // Launch what we want after the countdown
     });
 }
-//////////////////////////////// MOUSE LEAVE ////////////////////////////////
-window.addEventListener("blur", () => {
-    isPaused = true;
-    // overlay.style.display = "block"; // Show overlay
-});
-window.addEventListener("focus", () => {
-    if (gameIsFinished)
-        return;
-    isPaused = false;
-    // overlay.style.display = "none"; // Hide overlay
-});
 //////////////////////////////// COLLISION ////////////////////////////////
 function checkCollision() {
     // Paddle1 (green)
