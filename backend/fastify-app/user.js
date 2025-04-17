@@ -250,6 +250,7 @@ async function getUserFromHash(username, password) {
             return null;
         let user = new User(userRow.username, userRow.password);
         user.id = userRow.id;
+        user.password = userRow.password;
         user.is_online = userRow.is_online === 1;
         user.created_at = new Date(userRow.created_at);
         user.win_nbr = userRow.win_nbr;

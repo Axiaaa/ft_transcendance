@@ -1,15 +1,35 @@
+import { getCurrentUser, updateUser } from "./API.js";
+import { openAppWindow } from "./app-icon.js";
+
+export function disconnectUser()
+{
+	let userToken = sessionStorage.getItem('wxp_token');
+	if (!userToken)
+	{
+		console.log('No user token found, skipping disconnect...');
+		return;
+	}
+	if (userToken)
+	{
+		console.log('Disconnecting user...');
+		updateUser(userToken, { is_online: false })
+			.then(() => {
+				sessionStorage.removeItem('wxp_token');
+				sessionStorage.removeItem('wxp_user_id');
+			})
+			.catch((error) => {
+				console.error('Error updating user status:', error);
+			});
+	}
+}
 
 document.addEventListener('DOMContentLoaded', () => {
 
 
 	var	startButton = document.getElementById('start-button') as HTMLElement;
-	var		startMenu = document.getElementById('start-menu') as HTMLElement;
-	let loginScreen = document.getElementsByClassName("login-screen")[0] as HTMLElement;
-	let logoffButton = document.getElementById('log-off-button') as HTMLElement;
-	
-	logoffButton.addEventListener('click', (e: MouseEvent) => {
-		loginScreen.style.display = 'block';
-	});
+	var	startMenu = document.getElementById('start-menu') as HTMLElement;
+	let	loginScreen = document.getElementsByClassName("login-screen")[0] as HTMLElement;
+
 
 	startMenu.style.display = 'none';
 	let base = document.createElement('img');
@@ -80,7 +100,35 @@ document.addEventListener('DOMContentLoaded', () => {
 		let shutdownButton = document.getElementById('startmenu-shutdown-button') as HTMLElement;
 		shutdownButton.addEventListener('click', (e: MouseEvent) => {
 			alert('Warning: System shutting down\n(It just reloads the page, because... you know, it\'s a web app)');
+			disconnectUser();
 			window.location.reload();
+		});
+	}
+	{
+		let	logoffButton = document.getElementById('log-off-button') as HTMLElement;
+	
+		logoffButton.addEventListener('click', (e: MouseEvent) => {
+			disconnectUser();
+			loginScreen.style.display = 'block';
+		});
+	}
+	{
+		let startMenuTop = document.getElementsByClassName('start-menu-top')[0] as HTMLElement;
+		startMenuTop.style.height = '60px';
+		startMenuTop.style.width = '100%';
+		startMenuTop.addEventListener('mouseenter', (e: MouseEvent) => {
+			startMenuTop.style.backgroundColor = 'rgba(69, 141, 255, 0.31)';
+		});
+		startMenuTop.addEventListener('mouseleave', (e: MouseEvent) => {
+			startMenuTop.style.backgroundColor = 'transparent';
+		});
+		startMenuTop.addEventListener('click', (e: MouseEvent) => {
+			startMenu.style.display = 'none';
+			openAppWindow('', "settings-app-window");
+			let settingBackButton = document.getElementById('settings-app-back-button') as HTMLElement;
+			settingBackButton.click();
+			let userAccountButton = document.getElementById('settings-app-User Account-category') as HTMLElement;
+			userAccountButton.click();
 		});
 	}
 });

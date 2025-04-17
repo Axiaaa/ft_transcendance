@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
     rightColumn.style.overflow = 'hidden';
     rightColumn.style.bottom = '3px';
     rightColumn.style.right = '3px';
-    rightColumn.style.backgroundColor = 'rgba(88, 93, 223, 0.78)';
+    rightColumn.style.backgroundColor = 'rgb(88, 93, 175)';
     var categoryContainer = document.createElement('div');
     categoryContainer.id = 'settings-app-category-container';
     rightColumn.appendChild(categoryContainer);
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
         settingsContainer.style.top = '0px';
         settingsContainer.style.left = '0px';
         settingsContainer.style.display = 'none';
-        settingsContainer.style.backgroundColor = 'rgba(255, 3, 3, 0.07)';
+        settingsContainer.style.backgroundColor = 'rgb(88, 93, 175)';
         var SettingTitle = document.createElement('h3');
         settingsContainer.appendChild(SettingTitle);
         SettingTitle.textContent = name.charAt(0).toUpperCase() + name.slice(1);
@@ -454,6 +454,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var resetSettingsIcon = document.getElementById('start-menu-reset-settings');
         resetSettingsIcon.addEventListener('click', function () {
             openAppWindow('', 'settings-app-window');
+            var settingBackButton = document.getElementById('settings-app-back-button');
+            settingBackButton.click();
             var systemSetting = document.getElementById('settings-app-System-category');
             systemSetting.click();
             var systemRestore = document.getElementById('restore-system-button');

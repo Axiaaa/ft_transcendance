@@ -34,10 +34,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import { getUserAvatar, getUserBackground } from "./API.js";
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
-import { initHistoryAPI } from "./system.js";
+import { initHistoryAPI, resetUserImages, updateUserImages } from "./system.js";
 import { goToDesktopPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
 var titleScreenBackground = document.createElement('div');
@@ -182,52 +181,6 @@ document.addEventListener('DOMContentLoaded', function () {
         form.style.display = 'block';
     });
 });
-export function updateUserImages(fileAvatar, fileWallpaper) {
-    return __awaiter(this, void 0, void 0, function () {
-        var userID, avatarURL, wallpaperURL, userAvatars, i, userWallpapers;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    userID = Number(sessionStorage.getItem("wxp_user_id"));
-                    if (userID == null)
-                        return [2 /*return*/];
-                    avatarURL = null;
-                    wallpaperURL = null;
-                    if (!fileAvatar) return [3 /*break*/, 1];
-                    avatarURL = URL.createObjectURL(fileAvatar);
-                    return [3 /*break*/, 3];
-                case 1: return [4 /*yield*/, getUserAvatar(userID)];
-                case 2:
-                    avatarURL = _a.sent();
-                    _a.label = 3;
-                case 3:
-                    userAvatars = document.getElementsByClassName("avatar-preview");
-                    console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
-                    if (avatarURL == null || avatarURL == undefined)
-                        avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
-                    for (i = 0; i < userAvatars.length; i++) {
-                        console.log(userAvatars[i] + " now = " + avatarURL);
-                        userAvatars[i].src = avatarURL;
-                    }
-                    if (!fileWallpaper) return [3 /*break*/, 4];
-                    wallpaperURL = URL.createObjectURL(fileWallpaper);
-                    return [3 /*break*/, 6];
-                case 4: return [4 /*yield*/, getUserBackground(userID)];
-                case 5:
-                    wallpaperURL = _a.sent();
-                    _a.label = 6;
-                case 6:
-                    if (wallpaperURL == null || wallpaperURL == undefined)
-                        wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
-                    userWallpapers = document.getElementsByClassName("user-background");
-                    console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
-                    userWallpapers[0].src = wallpaperURL;
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
-;
 // SANDBOX AREA
 export function showError(message) {
     return __awaiter(this, void 0, void 0, function () {
@@ -281,35 +234,22 @@ export function showError(message) {
                 switch (_a.label) {
                     case 0:
                         event.preventDefault();
-                        if (!(signUpUsername_1 && signUpPassword_1)) return [3 /*break*/, 14];
-                        username = signUpUsername_1.value;
-                        password = signUpPassword_1.value;
-                        confirmPassword = signUpConfirmPassword_1.value;
-                        if (!(username && password)) return [3 /*break*/, 14];
-                        if (!(password == confirmPassword)) return [3 /*break*/, 13];
-                        if (!(password.length >= 8)) return [3 /*break*/, 11];
-                        if (!/[A-Z]/.test(password)) return [3 /*break*/, 9];
-                        if (!/[a-z]/.test(password)) return [3 /*break*/, 7];
-                        if (!/[0-9]/.test(password)) return [3 /*break*/, 5];
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        existingErrorBox = document.querySelector('.error-box');
-                        if (existingErrorBox) {
-                            existingErrorBox.remove();
-                        }
                         return [4 /*yield*/, createUser({ username: username, password: password })];
                     case 2:
                         newUser = _a.sent();
                         sessionStorage.setItem("wxp_token", newUser.token);
                         sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
-                        goToDesktopPage();
                         signUpUsername_1.value = "";
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
-                        updateUserImages();
-                        return [3 /*break*/, 4];
+                        return [4 /*yield*/, resetUserImages()];
                     case 3:
+                        _a.sent();
+                        setTimeout(function () {
+                            goToDesktopPage();
+                        }, 200);
+                        return [3 /*break*/, 5];
+                    case 4:
                         error_1 = _a.sent();
                         existingErrorBox = document.querySelector('.error-box');
                         if (existingErrorBox) {
@@ -319,64 +259,7 @@ export function showError(message) {
                         signUpUsername_1.value = "";
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
-                        return [3 /*break*/, 4];
-                    case 4: return [3 /*break*/, 6];
-                    case 5:
-                        existingErrorBox = document.querySelector('.error-box');
-                        if (existingErrorBox) {
-                            existingErrorBox.remove();
-                        }
-                        showError("Password must contain at least one number.");
-                        signUpUsername_1.value = "";
-                        signUpPassword_1.value = "";
-                        signUpConfirmPassword_1.value = "";
-                        _a.label = 6;
-                    case 6: return [3 /*break*/, 8];
-                    case 7:
-                        existingErrorBox = document.querySelector('.error-box');
-                        if (existingErrorBox) {
-                            existingErrorBox.remove();
-                        }
-                        showError("Password must contain at least one lowercase letter.");
-                        signUpUsername_1.value = "";
-                        signUpPassword_1.value = "";
-                        signUpConfirmPassword_1.value = "";
-                        _a.label = 8;
-                    case 8: return [3 /*break*/, 10];
-                    case 9:
-                        existingErrorBox = document.querySelector('.error-box');
-                        if (existingErrorBox) {
-                            existingErrorBox.remove();
-                        }
-                        showError("Password must contain at least one uppercase letter.");
-                        signUpUsername_1.value = "";
-                        signUpPassword_1.value = "";
-                        signUpConfirmPassword_1.value = "";
-                        _a.label = 10;
-                    case 10: return [3 /*break*/, 12];
-                    case 11:
-                        existingErrorBox = document.querySelector('.error-box');
-                        if (existingErrorBox) {
-                            existingErrorBox.remove();
-                        }
-                        showError("Password must be at least 8 characters long.");
-                        signUpUsername_1.value = "";
-                        signUpPassword_1.value = "";
-                        signUpConfirmPassword_1.value = "";
-                        _a.label = 12;
-                    case 12: return [3 /*break*/, 14];
-                    case 13:
-                        existingErrorBox = document.querySelector('.error-box');
-                        if (existingErrorBox) {
-                            existingErrorBox.remove();
-                        }
-                        showError("Passwords do not match.");
-                        signUpUsername_1.value = "";
-                        signUpPassword_1.value = "";
-                        signUpConfirmPassword_1.value = "";
-                        _a.label = 14;
-                    case 14: return [2 /*return*/];
-                }
+              }
             });
         }); });
     }
@@ -391,28 +274,30 @@ export function showError(message) {
                 switch (_a.label) {
                     case 0:
                         event.preventDefault();
-                        if (!(signInUsername_1 && signInPassword_1)) return [3 /*break*/, 4];
+                        if (!(signInUsername_1 && signInPassword_1)) return [3 /*break*/, 6];
                         username = signInUsername_1.value;
                         password = signInPassword_1.value;
-                        if (!(username && password)) return [3 /*break*/, 4];
+                        if (!(username && password)) return [3 /*break*/, 6];
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        existingErrorBox = document.querySelector('.error-box');
-                        if (existingErrorBox) {
-                            existingErrorBox.remove();
-                        }
                         return [4 /*yield*/, getUser(username, password)];
                     case 2:
                         user = _a.sent();
                         sessionStorage.setItem("wxp_token", user.token);
                         sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
-                        goToDesktopPage();
                         signInUsername_1.value = "";
                         signInPassword_1.value = "";
-                        updateUserImages();
-                        return [3 /*break*/, 4];
+                        return [4 /*yield*/, resetUserImages()];
                     case 3:
+                        _a.sent();
+                        return [4 /*yield*/, updateUserImages()];
+                    case 4:
+                        _a.sent();
+                        setTimeout(function () {
+                            goToDesktopPage();
+                        }, 200);
+                        return [3 /*break*/, 6];
+                    case 5:
                         error_2 = _a.sent();
                         existingErrorBox = document.querySelector('.error-box');
                         if (existingErrorBox) {
@@ -421,10 +306,11 @@ export function showError(message) {
                         showError("Username or password is incorrect.");
                         signInUsername_1.value = "";
                         signInPassword_1.value = "";
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         }); });
     }
 }
+export { updateUserImages, resetUserImages };

@@ -2,7 +2,7 @@ import { getCurrentUser, getUserAvatar, getUserBackground, updateUser } from "./
 import { Cookies, getCookie, setCookie } from 'typescript-cookie'
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
-import { initHistoryAPI } from "./system.js";
+import { initHistoryAPI, resetUserImages, updateUserImages } from "./system.js";
 import { goToDesktopPage } from "./system.js";
 import { goToFormsPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
@@ -191,36 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) {
-	const userID = Number(sessionStorage.getItem("wxp_user_id"));
-	if (userID == null)
-		return;
-	let avatarURL = null;
-	let wallpaperURL = null;
-	if (fileAvatar)
-		avatarURL = URL.createObjectURL(fileAvatar);
-	else
-		 avatarURL = await getUserAvatar(userID);
-	let userAvatars = document.getElementsByClassName("avatar-preview") as HTMLCollectionOf<HTMLImageElement>;
-	
-	console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
-	if (avatarURL == null || avatarURL == undefined)
-		avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
-	for (let i = 0; i < userAvatars.length; i++) {
-		console.log(userAvatars[i] + " now = " + avatarURL);
-		userAvatars[i].src = avatarURL;
-	}
-	if (fileWallpaper)
-		wallpaperURL = URL.createObjectURL(fileWallpaper);
-	else
-		wallpaperURL = await getUserBackground(userID);
-	if (wallpaperURL == null || wallpaperURL == undefined)
-		wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
-	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
-	console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
-	userWallpapers[0].src = wallpaperURL;
-};
-
 // SANDBOX AREA
 
 export async function showError(message: string) {
@@ -273,7 +243,6 @@ export async function showError(message: string) {
 				const username = signUpUsername.value;
 				const password = signUpPassword.value;
 				const confirmPassword = signUpConfirmPassword.value;
-
 				if (username && password) {
 					if (password == confirmPassword)
 					{
@@ -291,14 +260,16 @@ export async function showError(message: string) {
 											if (existingErrorBox) {
 												existingErrorBox.remove();
 											}
-											const newUser = await createUser({ username, password });
-											sessionStorage.setItem("wxp_token", newUser.token);
-											sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
-											goToDesktopPage();
-											signUpUsername.value = "";
-											signUpPassword.value = "";
-											signUpConfirmPassword.value = "";
-											updateUserImages();
+                      const newUser = await createUser({ username, password });
+                      sessionStorage.setItem("wxp_token", newUser.token);
+                      sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
+                      signUpUsername.value = "";
+                      signUpPassword.value = "";
+                      signUpConfirmPassword.value = "";
+                      await resetUserImages();
+                      setTimeout(() => {
+                        goToDesktopPage();
+                      }, 200);
 										}
 										catch (error)
 										{
@@ -389,11 +360,14 @@ export async function showError(message: string) {
 						const user = await getUser(username, password );
 						sessionStorage.setItem("wxp_token", user.token);
 						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
-						goToDesktopPage();
 						signInUsername.value = "";
 						signInPassword.value = "";
-						updateUserImages();
-						} 
+						await resetUserImages();
+						await updateUserImages();
+						setTimeout(() => {
+							goToDesktopPage();
+						}, 200);
+					} 
 					catch (error) {
 						const existingErrorBox = document.querySelector('.error-box');
 							if (existingErrorBox) {
@@ -408,3 +382,5 @@ export async function showError(message: string) {
 		});
 	}
 }
+
+export { updateUserImages, resetUserImages };
