@@ -78,7 +78,7 @@ const player1Color4: BABYLON.Color4 = new BABYLON.Color4(player1Color.r, player1
 const player2Color4: BABYLON.Color4 = new BABYLON.Color4(player2Color.r, player2Color.g, player2Color.b, 1);
 // Game Variables
 let numHit: number = 0; // Number of time the ball has been hit (0 to 5)
-let speedIncrement: number = 0.0025; // Speed increase every 2 hits
+let speedIncrement: number = 0.005; // Speed increase every 2 hits
 let ballSpeedReachedMax: boolean = false; // Check if maxSpeed has been reached
 let isPaused: boolean = false; // Pause the game after scoring
 
@@ -314,9 +314,9 @@ ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0); // Yellow
 ballMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
 ball.material = ballMaterial;
 ball.position = new BABYLON.Vector3(0, fieldHeight + 0.2, 0);
-let ballSpeed: {x: number, z: number} = { x: 0, z: 0.02 };
+let ballSpeed: {x: number, z: number} = { x: 0, z: 0.3 };
 let lastScorer: 1 | 2 | null = null;
-const MAX_BALL_SPEED: number = 0.06;
+const MAX_BALL_SPEED: number = 0.5;
 
 //////////////////////////////// SCORE ////////////////////////////////
 let score1: number = 0, score2: number = 0;
@@ -450,22 +450,33 @@ window.addEventListener('keydown', (e: KeyboardEvent) => { if (keys.hasOwnProper
 window.addEventListener('keyup', (e: KeyboardEvent) => { if (keys.hasOwnProperty(e.code)) keys[e.code as keyof KeyState] = false; });
 
 // Paddle movement
-let paddleSpeed: number = 0.04;
-const MAX_PADDLE_SPEED = 0.1;
+let paddleSpeed: number = 0.25;
+const MAX_PADDLE_SPEED = 1;
+let agentIsActive: Boolean = true
 const agent = new PongAI()
 
 function movePaddles(): void
 {
+	if (agentIsActive)
+	{
+		let action = agent.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x)
+		if (action == 0 && paddle2.position.x < 5)
+			paddle2.position.x += paddleSpeed;
+		if (action == 1 && paddle2.position.x > -5)
+			paddle2.position.x -= paddleSpeed;
+	}
+	else
+	{
+		if (keys.ArrowLeft && paddle2.position.x < 5)
+			paddle2.position.x += paddleSpeed;
+		if (keys.ArrowLeft && paddle2.position.x > -5)
+			paddle2.position.x -= paddleSpeed;
+	}
+
 	if (keys.KeyA && paddle1.position.x < 5)
 		paddle1.position.x += paddleSpeed;
 	if (keys.KeyD && paddle1.position.x > -5)
 		paddle1.position.x -= paddleSpeed;
-
-	let action = agent.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x)
-	if (action == 0 && paddle2.position.x < 5)
-		paddle2.position.x += paddleSpeed;
-	if (action == 1 && paddle2.position.x > -5)
-		paddle2.position.x -= paddleSpeed;
 }
 
 ////////////////////////////// GOAL EFFECT //////////////////////////////
@@ -549,10 +560,10 @@ function reset(): void {
 	paddleSpeed = 0.1;
 	numHit = 0;
 	if (lastScorer === 1) {
-		ballSpeed = { x: 0, z: -0.02 }
+		ballSpeed = { x: 0, z: -0.3 }
 	}
 	else if (lastScorer === 2) {
-		ballSpeed = { x: 0, z: 0.02 }
+		ballSpeed = { x: 0, z: 0.3 }
 	}
 }
 
