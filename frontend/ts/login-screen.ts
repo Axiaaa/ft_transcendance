@@ -243,7 +243,7 @@ export async function showError(message: string) {
 				const username = signUpUsername.value;
 				const password = signUpPassword.value;
 				const confirmPassword = signUpConfirmPassword.value;
-				if (username && password) {
+				if (username && password && confirmPassword) {
 					if (password == confirmPassword)
 					{
 						if (password.length >= 8)
@@ -260,16 +260,16 @@ export async function showError(message: string) {
 											if (existingErrorBox) {
 												existingErrorBox.remove();
 											}
-                      const newUser = await createUser({ username, password });
-                      sessionStorage.setItem("wxp_token", newUser.token);
-                      sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
-                      signUpUsername.value = "";
-                      signUpPassword.value = "";
-                      signUpConfirmPassword.value = "";
-                      await resetUserImages();
-                      setTimeout(() => {
-                        goToDesktopPage();
-                      }, 200);
+											const newUser = await createUser({ username, password });
+											sessionStorage.setItem("wxp_token", newUser.token);
+											sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
+											signUpUsername.value = "";
+											signUpPassword.value = "";
+											signUpConfirmPassword.value = "";
+											await resetUserImages();
+											setTimeout(() => {
+												goToDesktopPage();
+											}, 200);
 										}
 										catch (error)
 										{

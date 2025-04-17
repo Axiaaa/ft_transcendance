@@ -234,6 +234,23 @@ export function showError(message) {
                 switch (_a.label) {
                     case 0:
                         event.preventDefault();
+                        if (!(signUpUsername_1 && signUpPassword_1)) return [3 /*break*/, 15];
+                        username = signUpUsername_1.value;
+                        password = signUpPassword_1.value;
+                        confirmPassword = signUpConfirmPassword_1.value;
+                        if (!(username && password && confirmPassword)) return [3 /*break*/, 15];
+                        if (!(password == confirmPassword)) return [3 /*break*/, 14];
+                        if (!(password.length >= 8)) return [3 /*break*/, 12];
+                        if (!/[A-Z]/.test(password)) return [3 /*break*/, 10];
+                        if (!/[a-z]/.test(password)) return [3 /*break*/, 8];
+                        if (!/[0-9]/.test(password)) return [3 /*break*/, 6];
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 4, , 5]);
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
                         return [4 /*yield*/, createUser({ username: username, password: password })];
                     case 2:
                         newUser = _a.sent();
@@ -259,7 +276,64 @@ export function showError(message) {
                         signUpUsername_1.value = "";
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
-              }
+                        return [3 /*break*/, 5];
+                    case 5: return [3 /*break*/, 7];
+                    case 6:
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
+                        showError("Password must contain at least one number.");
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
+                        _a.label = 7;
+                    case 7: return [3 /*break*/, 9];
+                    case 8:
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
+                        showError("Password must contain at least one lowercase letter.");
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
+                        _a.label = 9;
+                    case 9: return [3 /*break*/, 11];
+                    case 10:
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
+                        showError("Password must contain at least one uppercase letter.");
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
+                        _a.label = 11;
+                    case 11: return [3 /*break*/, 13];
+                    case 12:
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
+                        showError("Password must be at least 8 characters long.");
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
+                        _a.label = 13;
+                    case 13: return [3 /*break*/, 15];
+                    case 14:
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
+                        showError("Passwords do not match.");
+                        signUpUsername_1.value = "";
+                        signUpPassword_1.value = "";
+                        signUpConfirmPassword_1.value = "";
+                        _a.label = 15;
+                    case 15: return [2 /*return*/];
+                }
             });
         }); });
     }
@@ -280,6 +354,11 @@ export function showError(message) {
                         if (!(username && password)) return [3 /*break*/, 6];
                         _a.label = 1;
                     case 1:
+                        _a.trys.push([1, 5, , 6]);
+                        existingErrorBox = document.querySelector('.error-box');
+                        if (existingErrorBox) {
+                            existingErrorBox.remove();
+                        }
                         return [4 /*yield*/, getUser(username, password)];
                     case 2:
                         user = _a.sent();
