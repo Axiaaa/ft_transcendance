@@ -4,7 +4,7 @@ import random
 import time
 
 class Ball:
-	def __init__(self, visual, canvas, canvas_width, canvas_height, x, y, vx=0, vy=0.05, radius=0.2, color="yellow"):
+	def __init__(self, visual, canvas, canvas_width, canvas_height, x, y, vx=0, vy=0.03, radius=0.2, color="yellow"):
 		self.start = [x, y]
 		self.x = x
 		self.y = y
@@ -12,7 +12,7 @@ class Ball:
 		self.vy = vy
 		self.radius = radius
 		self.visual = visual
-		self.MAX_SPEED = 0.2
+		self.MAX_SPEED = 0.06
 		self.canvas_width = canvas_width
 		self.canvas_height = canvas_height
 
@@ -95,7 +95,7 @@ class Paddle:
 	def __init__(self, visual, canvas, canvas_width, canvas_height, x, y, color, width=1.5, height=0.5):
 		self.x = x
 		self.y = y
-		self.hit = 0
+		self.hit = False
 		self.start = [x, y]
 		self.width = width
 		self.height = height
@@ -156,7 +156,7 @@ class Paddle:
 				self.canvas.move(self.paddle, dx, 0)
 
 	def reset(self):
-		self.hit = 0
+		self.hit = False
 		self.x = self.start[0]
 		self.y = self.start[1]
 		self.speed = 0.1
@@ -209,7 +209,7 @@ class Game:
 			self.root.bind("<KeyPress>", self.key_press)
 			self.root.bind("<KeyRelease>", self.key_release)
 
-		self.ball = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0.02, radius=0.2, color="yellow")
+		self.ball = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0.03, radius=0.2, color="yellow")
 		self.prediction = Ball(visual, self.canvas, width, height, x=0, y=0, vx=0, vy=0, radius=0.1, color="green")
 
 		self.paddle_bottom = Paddle(visual, self.canvas, width, height, 0, -5.5, color="green", width=1.5, height=0.5)
@@ -308,7 +308,7 @@ class Game:
 			self.ball.vy = abs(speed * math.cos(bounce_angle))
 
 			self.num_hit += 1
-			self.paddle_bottom.hit = True
+			self.paddle_top.hit = True
 
 		if (self.ball.y > 5 and self.ball.y < 6 and
 			abs(self.ball.x - self.paddle_top.x) < self.paddle_top.width/2 + self.ball.radius):
@@ -322,7 +322,7 @@ class Game:
 			self.ball.vy = -abs(speed * math.cos(bounce_angle))
 
 			self.num_hit += 1
-			self.paddle_top.hit += 1
+			self.paddle_top.hit = True
 
 		if self.num_hit >= 2:
 			self.ball.vx += math.copysign(self.speed_increment, self.ball.vx)

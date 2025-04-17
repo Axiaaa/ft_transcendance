@@ -78,7 +78,7 @@ const player1Color4: BABYLON.Color4 = new BABYLON.Color4(player1Color.r, player1
 const player2Color4: BABYLON.Color4 = new BABYLON.Color4(player2Color.r, player2Color.g, player2Color.b, 1);
 // Game Variables
 let numHit: number = 0; // Number of time the ball has been hit (0 to 5)
-let speedIncrement: number = 0.005; // Speed increase every 2 hits
+let speedIncrement: number = 0.0025; // Speed increase every 2 hits
 let ballSpeedReachedMax: boolean = false; // Check if maxSpeed has been reached
 let isPaused: boolean = false; // Pause the game after scoring
 
@@ -316,7 +316,7 @@ ball.material = ballMaterial;
 ball.position = new BABYLON.Vector3(0, fieldHeight + 0.2, 0);
 let ballSpeed: {x: number, z: number} = { x: 0, z: 0.02 };
 let lastScorer: 1 | 2 | null = null;
-const MAX_BALL_SPEED: number = 0.2;
+const MAX_BALL_SPEED: number = 0.06;
 
 //////////////////////////////// SCORE ////////////////////////////////
 let score1: number = 0, score2: number = 0;
@@ -450,23 +450,21 @@ window.addEventListener('keydown', (e: KeyboardEvent) => { if (keys.hasOwnProper
 window.addEventListener('keyup', (e: KeyboardEvent) => { if (keys.hasOwnProperty(e.code)) keys[e.code as keyof KeyState] = false; });
 
 // Paddle movement
-let paddleSpeed: number = 0.1;
-const MAX_PADDLE_SPEED = 0.15;
-const agent1 = new PongAI()
-const agent2 = new PongAI()
+let paddleSpeed: number = 0.04;
+const MAX_PADDLE_SPEED = 0.1;
+const agent = new PongAI()
 
 function movePaddles(): void
 {
-	let action1 = agent1.getAction(ball, ballSpeed, paddle1, paddleSpeed)
-	if (action1 == 0 && paddle1.position.x < 5)
+	if (keys.KeyA && paddle1.position.x < 5)
 		paddle1.position.x += paddleSpeed;
-	if (action1 == 1 && paddle1.position.x > -5)
+	if (keys.KeyD && paddle1.position.x > -5)
 		paddle1.position.x -= paddleSpeed;
 
-	let action2 = agent2.getAction(ball, ballSpeed, paddle2, paddleSpeed)
-	if (action2 == 0 && paddle2.position.x < 5)
+	let action = agent.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x)
+	if (action == 0 && paddle2.position.x < 5)
 		paddle2.position.x += paddleSpeed;
-	if (action2 == 1 && paddle2.position.x > -5)
+	if (action == 1 && paddle2.position.x > -5)
 		paddle2.position.x -= paddleSpeed;
 }
 
@@ -607,7 +605,6 @@ function checkCollision(): void {
 		ballSpeed.x = speed * Math.sin(bounceAngle);
 		ballSpeed.z = -Math.abs(speed * Math.cos(bounceAngle)); // Ensure ball moves upward
 		numHit++;
-		console.log("REAL:", ball.position.x)
 	}
 	// Paddle2 (purple)
 	if (ball.position.z < -6 && ball.position.z > -7 && Math.abs(ball.position.x - paddle2.position.x) < 1.5) {
@@ -619,22 +616,24 @@ function checkCollision(): void {
 		ballSpeed.x = speed * Math.sin(bounceAngle);
 		ballSpeed.z = Math.abs(speed * Math.cos(bounceAngle)); // Ensure ball moves downward
 		numHit++;
-		console.log("REAL:", ball.position.x)
 	}
+
 	// Increase speed every 2 hits
-	if (numHit >= 2) {
+	if (numHit >= 2 && !ballSpeedReachedMax)
+	{
 		ballSpeed.x += Math.sign(ballSpeed.x) * speedIncrement; // Horizontaly
 		ballSpeed.z += Math.sign(ballSpeed.z) * speedIncrement; // Verticaly
 		ballSpeed.x = Math.min(Math.abs(ballSpeed.x), MAX_BALL_SPEED) * Math.sign(ballSpeed.x);
 		ballSpeed.z = Math.min(Math.abs(ballSpeed.z), MAX_BALL_SPEED) * Math.sign(ballSpeed.z);
-		if (Math.abs(ballSpeed.x) === MAX_BALL_SPEED && !ballSpeedReachedMax) { ballSpeedReachedMax = true; }
+		if (Math.abs(ballSpeed.x) >= MAX_BALL_SPEED)
+			ballSpeedReachedMax = true;
 		paddleSpeed = Math.min(paddleSpeed + speedIncrement, MAX_PADDLE_SPEED);
 		numHit = 0;
 	}
 	// Walls collision
-	if (ball.position.x < -6 || ball.position.x > 6) {
+	if (ball.position.x < -6 || ball.position.x > 6)
 		ballSpeed.x *= -1;
-	}
+
 	// Score
 	if (ball.position.z > 6.5) {
 		score2++;
@@ -659,7 +658,6 @@ function checkCollision(): void {
 }
 
 ////////////////////////////// LOOP //////////////////////////////
-
 // Render loop
 engine.runRenderLoop(() => {
 	if (!isPaused && countdownComplete)

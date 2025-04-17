@@ -1,6 +1,4 @@
 from simple_Pong import *
-from utils import *
-
 import tensorflow as tf
 import random
 
@@ -46,9 +44,7 @@ class PredictBall():
 	def create_dataset(self, sample):
 		states = []
 		targets = []
-		direct, one, two, three, more = 0, 0, 0, 0, 0
-
-		env = Game(600, 800, False)
+		env = Game(600, 600, False)
 
 		for _ in range(sample):
 			angle = random.uniform(-math.pi/3, math.pi/3)
@@ -59,12 +55,8 @@ class PredictBall():
 			env.ball.vy = speed * math.cos(angle) * random.choice([-1, 1])
 
 			self.sequence.append(env.get_state())
-			rebound = 0
 			while True:
 				state, done = env.step()
-
-				if self.sequence[-1][2] * state[2] < 0:
-					rebound += 1
 
 				if self.sequence[-1][3] * state[3] > 0:
 					self.sequence.append(state)
@@ -77,18 +69,6 @@ class PredictBall():
 
 				if done or len(self.sequence) == 0:
 					break
-
-			if rebound == 0:
-				direct += 1
-			elif rebound == 1:
-				one += 1
-			elif rebound == 2:
-				two += 1
-			elif rebound == 3:
-				three += 1
-			else:
-				more += 1
-		print(f"Direct: {direct}, One: {one}, Two: {two}, Three: {three}, More: {more}")
 
 		state_tensor = tf.convert_to_tensor(states, dtype=tf.float32)
 		target_tensor = tf.convert_to_tensor(targets, dtype=tf.float32)
@@ -204,7 +184,7 @@ def test_model_in_game(model_path, num_games=5):
 		state = game.get_state()
 		while not game_over and step_count < max_steps:
 			predicted_x = predict.predict(state)
-			game.prediction.tp(predicted_x, -5.5)
+			game.prediction.tp(predicted_x, -5)
 
 			state, game_over = game.step()
 
@@ -219,22 +199,9 @@ def test_model_in_game(model_path, num_games=5):
 if __name__ == "__main__":
 	predict = PredictBall(4, 1)
 
-	# ALREADY A DATASET
-	# states, targets = load_raw_dataset("datatset.pkl")
-	# train_dataset, val_dataset = predict.convert_raw_data(states, targets)
-	# result = (states, targets)
-
-	# CREATING A DATASET
-	# train_dataset, val_dataset, result = predict.create_dataset_balanced(10000)
-	# state, target = result
-
-	# save_raw_dataset(state, target, 'dataset.pkl')
-	# history = predict.training(train_dataset, val_dataset, epochs=30)
-	# visualize_training(history)
-	# model_path = 'balanced.h5'
-	# predict.model.brain.save(model_path)
-
-	# test_in_game = input("Voulez-vous tester le modèle dans une partie? (o/n): ")
-	# if test_in_game.lower() == 'o':
-		# test_model_in_game(model_path)
-#
+	train_dataset, val_dataset, result = predict.create_dataset(100000)
+	state, target = result
+	history = predict.training(train_dataset, val_dataset, epochs=30)
+	model_path = 'final.h5'
+	predict.model.brain.save(model_path)
+	test_model_in_game(model_path)

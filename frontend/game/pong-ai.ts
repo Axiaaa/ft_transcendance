@@ -1,5 +1,3 @@
-import { Tuple } from "@babylonjs/core";
-
 export class PongAI
 {
 	private model: tf.LayersModel;
@@ -7,19 +5,17 @@ export class PongAI
 	private delay: number = 1000;
 	private lastUpdate: number = 0;
 	private actionArray: number[] = [];
-	private buffer: [number[], number][] = []
-	private tmp: [number[]][] = []
 
 	constructor()
 	{
 		this.loadModel();
 	}
 
-	private async loadModel(): Promise<void>
+	private async loadModel(): promise<void>
 	{
 		try
 		{
-			const modelPath = './python_simulation/model/model.json';
+			let modelPath = './model/model.json';
 			this.model = await tf.loadLayersModel(modelPath);
 			this.isLoaded = true;
 		} catch (error)
@@ -33,33 +29,42 @@ export class PongAI
 	{
 		try
 		{
-			const tensor = tf.tensor2d([state.slice(3)]);
-			const output = this.model.predict(tensor);
+			let tensor = tf.tensor2d([state.slice(4)]);
+			let output = this.model.predict(tensor);
 
-			const predictionX = output.dataSync()[0];
-			console.log("predictX:", predictionX);
+			let predictionX = output.dataSync()[0];
 			tensor.dispose();
 			output.dispose();
 
+			this.actionArray = [];
+			if (state[7] > 0)
+				predictionX = 0
+			else if (state[6] < 0.03 && state[6] > -0.03)
+			{
+				console.log(predictionX)
+				if (state[3] < predictionX)
+					predictionX -= 1
+				else
+					predictionX += 1
+			}
 			let action = 2;
+			let distance = 0
 			if (predictionX > state[0])
 				action = 0;
 			else
 				action = 1;
-
-			const distance = Math.abs(predictionX - state[0]) / state[2]
-			this.actionArray = [];
+			distance = Math.abs(predictionX - state[0]) / state[2]
 			for (let i = 0; i < distance; i++)
 				this.actionArray.push(action)
 		} catch (error)
 		{
-			console.error("Error: The prediction with the model is wrong: ", error);
+			console.error("Error: The model prediction went wrong:", error);
 		}
 	}
 
-	public getAction(ball: any, ballSpeed: any, paddle: any, paddleSpeed: number): number
+	public getAction(ball: any, ballSpeed: any, paddle: any, paddleSpeed: number, opponent: number): number
 	{
-		const currentTime = Date.now();
+		let currentTime = Date.now();
 		if (currentTime - this.lastUpdate >= this.delay)
 		{
 			if (!this.isLoaded)
@@ -68,10 +73,11 @@ export class PongAI
 				return 2;
 			}
 			this.lastUpdate = currentTime;
-			const state: number[] = [
+			let state: number[] = [
 				paddle.position.x,
 				paddle.position.z,
 				paddleSpeed,
+				opponent,
 				ball.position.x,
 				ball.position.z,
 				ballSpeed.x,
