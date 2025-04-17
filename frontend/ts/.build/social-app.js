@@ -400,6 +400,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     var settingsWindow = document.getElementById('settings-app-window');
                     if (settingsWindow) {
                         openAppWindow('', 'settings-app-window');
+                        var settingBackButton = document.getElementById('settings-app-back-button');
+                        settingBackButton.click();
                         Appwindow.style.zIndex = '24';
                         settingsWindow.style.zIndex = '25';
                         var UserAccountTab = document.getElementById('settings-app-User Account-category');

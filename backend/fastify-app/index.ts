@@ -53,7 +53,7 @@ server.addHook('preHandler', async (req, reply) => {
 });
 
 
-server.get('/ping', async (request, reply) => {
+server.get('/ping', async (request, replyX) => {
     return 'pong\n'
 })
 

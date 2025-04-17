@@ -49,7 +49,7 @@ exports.server.addHook('preHandler', async (req, reply) => {
     //   }
     // }
 });
-exports.server.get('/ping', async (request, reply) => {
+exports.server.get('/ping', async (request, replyX) => {
     return 'pong\n';
 });
 const start = async () => {

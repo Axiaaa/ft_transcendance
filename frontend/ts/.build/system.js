@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { sendNotification } from "./notification.js";
-import { getUserById } from "./API.js";
+import { getCurrentUser, getUserAvatar, getUserBackground, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
 import { disconnectUser } from "./start-menu.js";
 var userBackground = document.createElement('img');
 userBackground.id = 'user-background';
@@ -183,13 +183,13 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
         {
             trashBinApp = document.getElementById('trash-bin-app');
             trashBinApp.addEventListener('dblclick', function (e) { return __awaiter(void 0, void 0, void 0, function () {
-                var userIdString, currentUser, error_2, errorMessage;
+                var currentUserToken, currentUser, error_2, errorMessage;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             _a.trys.push([0, 2, , 3]);
-                            userIdString = sessionStorage.getItem('wxp_user_id');
-                            return [4 /*yield*/, getUserById(userIdString ? parseInt(userIdString, 10) : 0)];
+                            currentUserToken = sessionStorage.getItem('wxp_token');
+                            return [4 /*yield*/, getCurrentUser(currentUserToken)];
                         case 1:
                             currentUser = _a.sent();
                             if (currentUser) {
@@ -319,4 +319,93 @@ export function goToFormsPage(pushState) {
     if (forms)
         forms.style.display = 'block';
     console.log('Navigated to forms page');
+}
+export function updateUserImages(fileAvatar, fileWallpaper) {
+    return __awaiter(this, void 0, void 0, function () {
+        var userID, avatarURL, wallpaperURL, error_3, userAvatars, i, error_4, userWallpapers;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    userID = Number(sessionStorage.getItem("wxp_user_id"));
+                    if (userID == null)
+                        return [2 /*return*/];
+                    avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+                    wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+                    if (!fileAvatar) return [3 /*break*/, 1];
+                    avatarURL = URL.createObjectURL(fileAvatar);
+                    return [3 /*break*/, 7];
+                case 1:
+                    _a.trys.push([1, 6, , 7]);
+                    return [4 /*yield*/, isAvatarUserExists(userID)];
+                case 2:
+                    if (!_a.sent()) return [3 /*break*/, 4];
+                    return [4 /*yield*/, getUserAvatar(userID)];
+                case 3:
+                    avatarURL = _a.sent();
+                    return [3 /*break*/, 5];
+                case 4:
+                    avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+                    _a.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
+                    error_3 = _a.sent();
+                    console.error("Error fetching avatar:", error_3);
+                    avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+                    return [3 /*break*/, 7];
+                case 7:
+                    userAvatars = document.getElementsByClassName("avatar-preview");
+                    console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
+                    for (i = 0; i < userAvatars.length; i++) {
+                        console.log(userAvatars[i] + " now = " + avatarURL);
+                        userAvatars[i].src = avatarURL;
+                    }
+                    if (!fileWallpaper) return [3 /*break*/, 8];
+                    wallpaperURL = URL.createObjectURL(fileWallpaper);
+                    return [3 /*break*/, 14];
+                case 8:
+                    _a.trys.push([8, 13, , 14]);
+                    return [4 /*yield*/, isBackgroundUserExists(userID)];
+                case 9:
+                    if (!_a.sent()) return [3 /*break*/, 11];
+                    return [4 /*yield*/, getUserBackground(userID)];
+                case 10:
+                    wallpaperURL = _a.sent();
+                    return [3 /*break*/, 12];
+                case 11:
+                    wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+                    _a.label = 12;
+                case 12: return [3 /*break*/, 14];
+                case 13:
+                    error_4 = _a.sent();
+                    console.error("Error fetching wallpaper:", error_4);
+                    wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+                    return [3 /*break*/, 14];
+                case 14:
+                    userWallpapers = document.getElementsByClassName("user-background");
+                    console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
+                    userWallpapers[0].src = wallpaperURL;
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+;
+export function resetUserImages() {
+    return __awaiter(this, void 0, void 0, function () {
+        var userID, avatarURL, wallpaperURL, userAvatars, i, userWallpapers;
+        return __generator(this, function (_a) {
+            userID = Number(sessionStorage.getItem("wxp_user_id"));
+            if (userID == null)
+                return [2 /*return*/];
+            avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+            wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+            userAvatars = document.getElementsByClassName("avatar-preview");
+            for (i = 0; i < userAvatars.length; i++) {
+                userAvatars[i].src = avatarURL;
+            }
+            userWallpapers = document.getElementsByClassName("user-background");
+            userWallpapers[0].src = wallpaperURL;
+            return [2 /*return*/];
+        });
+    });
 }

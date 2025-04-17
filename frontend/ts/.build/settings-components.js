@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { sendNotification } from "./notification.js";
-import { updateUser } from "./API.js";
+import { deleteUserAvatar, deleteUserBackground, updateUser } from "./API.js";
 import { getUserAvatar, uploadFile } from "./API.js";
 import { updateUserImages } from "./login-screen.js";
 document.addEventListener('DOMContentLoaded', function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
         Span.style.marginBottom = '0';
         return Span;
     }
-    var categoryContainer, appearanceCategory, wallpaperSettings, documentBody, actualWallpaper, wallpaperSettingsContainer, wallpaperInfo, leftColumn, currentWallpaperTitle, currentWallpaperName_1, rightColumn, importButton, fileInput_1, resolutionText, fontSizeSettings, fontSizeSettingsContainer, fontSizeValue, fontSizeValueNumber, fontSizeInfo, exampleText, fontSizeSlider, minSize, range, maxSize, applyButton, previousSize, userAccountContainer, UserAccountAvatar, avatarSettings, avatarInfo, leftColumn, currentAvatarTitle, currentAvatarPreview_1, currentAvatarName_1, rightColumn, importButton, fileInput_2, resolutionText, userAccountName, nameSettings, nameInfo, leftColumn, currentNameTitle, nameInput_1, rightColumn, applyButton_1, usernameText, userAccountPassword, passwordSettings, passwordInfo, leftColumn, newPasswordTitle, passwordInput_1, confirmPasswordTitle, confirmPasswordInput_1, rightColumn, applyButton_2, passwordText, systemSettingsContainer, systemInformationsBox, systemInformationsContainer, sysInfo1, sysInfo2, sysInfo3, sysInfo4, sysInfo5, sysInfo6, sysInfo7, systemName, systemVersion, creators, creationDate, lastUpdate_1, lastUpdateText_1, githubRepoURL, githubRepo, license_1, licensePromise, systemUpdatesBox, systemUpdatesContainer, updateInfo1, updateInfo2, currentVersion_1, systemCategoryButton, latestVersionStatus_1, latestVersionStatusText_1, latestVersionStatusCheckButton_1, systemRestoreBox, systemRestoreContainer, restoreInfo1, restoreSystemButton_1, regionCategory, regionSettings, regionContainer, regionInfo, regionSelectContainer, regionLabel, regionSelect_1, regions, unavailableMessage, warningIcon, messageText, comingSoonLabel, languageSettings, languageContainer, languageInfo, languageSelectContainer, languageLabel, languageSelect_1, languages, unavailableMessage, warningIcon, messageText, comingSoonLabel, timezoneSettings, timezoneContainer, timezoneInfo, timezoneSelectContainer, timezoneLabel, timezoneSelect_1, timezones, currentTimeContainer, currentTimeLabel, currentTimeDisplay_1, unavailableMessage, warningIcon, messageText, comingSoonLabel, accessibilityCategory, wipMessage, accessibilityContainer, accessibilityInfo, featureDescription, unavailableMessage, warningIcon, messageText, comingSoonLabel, privacyCategory, privacyPolicySettings, privacyContainer, policyInfo, policyTextArea, gdprInfo, gdprContent, gdprText, gdprShield, shieldIcon, shieldText, gdprLinks_1, linksTitle, createXpLink, dataInfo, dataContent_1, createToggleOption, dataIntro, dataNote, applyButton_3;
+    var categoryContainer, appearanceCategory, wallpaperSettings, documentBody, actualWallpaper, wallpaperSettingsContainer, wallpaperInfo, leftColumn, currentWallpaperTitle, currentWallpaperName_1, rightColumn, importButton, fileInput_1, resolutionText, fontSizeSettings, fontSizeSettingsContainer, fontSizeValue, fontSizeValueNumber, fontSizeInfo, exampleText, fontSizeSlider, minSize, range, maxSize, applyButton, previousSize, userAccountContainer, UserAccountAvatar, avatarSettings, avatarInfo, leftColumn, currentAvatarTitle, currentAvatarPreview_1, currentAvatarName_1, rightColumn, importButton, fileInput_2, resolutionText, userAccountName, nameSettings, nameInfo, leftColumn, currentNameTitle, nameInput_1, rightColumn, applyButton_1, usernameText, userAccountPassword, passwordSettings, passwordInfo, leftColumn, newPasswordTitle, passwordInput_1, confirmPasswordTitle, confirmPasswordInput_1, rightColumn, applyButton_2, passwordText, systemSettingsContainer, systemInformationsBox, systemInformationsContainer, sysInfo1, sysInfo2, sysInfo3, sysInfo4, sysInfo5, sysInfo6, sysInfo7, systemName, systemVersion, creators, creationDate, lastUpdate_1, lastUpdateText_1, githubRepoURL, githubRepo, license_1, licensePromise, systemUpdatesBox, systemUpdatesContainer, updateInfo1, updateInfo2, currentVersion_1, systemCategoryButton, latestVersionStatus, latestVersionStatusText, latestVersionStatusCheckButton_1, systemRestoreBox, systemRestoreContainer, restoreInfo1, restoreSystemButton_1, regionCategory, regionSettings, regionContainer, regionInfo, regionSelectContainer, regionLabel, regionSelect_1, regions, unavailableMessage, warningIcon, messageText, comingSoonLabel, languageSettings, languageContainer, languageInfo, languageSelectContainer, languageLabel, languageSelect_1, languages, unavailableMessage, warningIcon, messageText, comingSoonLabel, timezoneSettings, timezoneContainer, timezoneInfo, timezoneSelectContainer, timezoneLabel, timezoneSelect_1, timezones, currentTimeContainer, currentTimeLabel, currentTimeDisplay_1, unavailableMessage, warningIcon, messageText, comingSoonLabel, accessibilityCategory, wipMessage, accessibilityContainer, accessibilityInfo, featureDescription, unavailableMessage, warningIcon, messageText, comingSoonLabel, privacyCategory, privacyPolicySettings, privacyContainer, policyInfo, policyTextArea, gdprInfo, gdprContent, gdprText, gdprShield, shieldIcon, shieldText, gdprLinks_1, linksTitle, createXpLink, dataInfo, dataContent_1, createToggleOption, dataIntro, dataNote, applyButton_3;
     var _a;
     return __generator(this, function (_b) {
         categoryContainer = document.getElementById('settings-app-category-container');
@@ -614,38 +614,37 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                         return fallbackVersion;
                     });
                 };
-                latestVersionStatus_1 = createFormatedSpan(updateInfo2);
-                latestVersionStatusText_1 = "";
+                latestVersionStatus = createFormatedSpan(updateInfo2);
+                latestVersionStatusText = "";
                 latestVersionStatusCheckButton_1 = document.createElement('button');
                 updateInfo2.appendChild(latestVersionStatusCheckButton_1);
                 latestVersionStatusCheckButton_1.onclick = function () {
                     latestVersionStatusCheckButton_1.textContent = 'Checking...';
                     latestVersionStatusCheckButton_1.disabled = true;
-                    fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
-                        .then(function (response) { return response.json(); })
-                        .then(function (data) {
-                        latestVersionStatusText_1 = data.tag_name;
-                        console.log('Latest version:', latestVersionStatusText_1);
-                        latestVersionStatus_1.textContent = latestVersionStatusText_1;
-                        if (!latestVersionStatusText_1 || latestVersionStatusText_1.includes('API rate limit exceeded')) {
-                            sendNotification('Error', 'Failed to check version', "./img/Utils/error-icon.png");
-                        }
-                        else if (latestVersionStatusText_1 === currentVersion_1.textContent) {
-                            sendNotification('System Update', 'System is up to date', "./img/Utils/update-icon.png");
-                        }
-                        else {
-                            sendNotification('System Update', 'New version available', "./img/Utils/update-icon.png");
-                        }
-                        latestVersionStatusCheckButton_1.textContent = 'Check for Updates';
-                    })
-                        .catch(function (error) {
-                        console.error('Error fetching latest version:', error);
-                        latestVersionStatusText_1 = "Beta 0.7"; // Fallback version if fetch fails
-                        latestVersionStatus_1.textContent = latestVersionStatusText_1;
-                        sendNotification('Error', 'Failed to check for updates', "./img/Utils/error-icon.png");
-                        latestVersionStatusCheckButton_1.textContent = 'Check for Updates';
-                    });
+                    // fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
+                    // .then(response => response.json())
+                    // .then(data => {
+                    // 	latestVersionStatusText = data.tag_name;
+                    // 	console.log('Latest version:', latestVersionStatusText);
+                    // 	latestVersionStatus.textContent = latestVersionStatusText;
+                    // 	if (!latestVersionStatusText || latestVersionStatusText.includes('API rate limit exceeded')) {
+                    // 		sendNotification('Error', 'Failed to check version', "./img/Utils/error-icon.png");
+                    // 	} else if (latestVersionStatusText === currentVersion.textContent) {
+                    // 		sendNotification('System Update', 'System is up to date', "./img/Utils/update-icon.png");
+                    // 	} else {
+                    // 		sendNotification('System Update', 'New version available', "./img/Utils/update-icon.png");
+                    // 	}
+                    // 	latestVersionStatusCheckButton.textContent = 'Check for Updates';
+                    // })
+                    // .catch(error => {
+                    // 	console.error('Error fetching latest version:', error);
+                    // 	latestVersionStatusText = "Beta 0.7"; // Fallback version if fetch fails
+                    // 	latestVersionStatus.textContent = latestVersionStatusText;
+                    // 	sendNotification('Error', 'Failed to check for updates', "./img/Utils/error-icon.png");
+                    // 	latestVersionStatusCheckButton.textContent = 'Check for Updates';
+                    // });
                     setTimeout(function () { return latestVersionStatusCheckButton_1.disabled = false; }, 3000);
+                    latestVersionStatusCheckButton_1.textContent = 'Check for Updates';
                 };
                 latestVersionStatusCheckButton_1.textContent = 'Check for Updates';
                 latestVersionStatusCheckButton_1.style.padding = '5px 10px';
@@ -653,7 +652,7 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                 latestVersionStatusCheckButton_1.style.marginTop = '0';
                 latestVersionStatusCheckButton_1.style.marginBottom = '0';
                 updateInfo1.appendChild(currentVersion_1);
-                updateInfo2.appendChild(latestVersionStatus_1);
+                updateInfo2.appendChild(latestVersionStatus);
             }
             systemRestoreBox = document.getElementById('settings-app-System Restore-setting');
             {
@@ -674,9 +673,15 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                 restoreSystemButton_1.style.marginBottom = '0';
                 restoreSystemButton_1.onclick = function () {
                     restoreSystemButton_1.disabled = true;
-                    restoreSystemButton_1.textContent = 'Restoring...';
                     if (confirm('Are you sure you want to restore the system ?')) {
-                        sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
+                        restoreSystemButton_1.textContent = 'Restoring...';
+                        setTimeout(function () {
+                            // API call needs to be made here
+                            // For now, we will just simulate the restore process
+                            deleteUserAvatar(Number(sessionStorage.getItem('wxp_user_id')));
+                            deleteUserBackground(Number(sessionStorage.getItem('wxp_user_id')));
+                            sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
+                        });
                     }
                     setTimeout(function () {
                         restoreSystemButton_1.disabled = false;

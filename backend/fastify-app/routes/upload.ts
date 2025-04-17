@@ -68,7 +68,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 	});
 
 	server.get<{ Params: { id: string, type: string } }>('/user_images/:type/:id', async (request, reply) => {
-		console.log("get user image");
+		reply.log.info("get user image");
 		const { id, type } = request.params;
 		const user = await getUserFromDb({ id: Number(id) });
 		if (user == null) {
@@ -85,11 +85,14 @@ export async function uploadRoutes(server: FastifyInstance) {
 	});
 
 	server.delete<{ Params: { id: string, type: string } }>('/user_images/:type/:id', async (request, reply) => {
-		console.log("delete user image");
 		const { id, type } = request.params;
 		const user = await getUserFromDb({ id: Number(id) });
 		if (user == null) {
 			reply.code(404).send({error: "User not found"});
+			return;
+		}
+		if (type !== "avatar" && type !== "wallpaper") {
+			reply.code(400).send({error: "Invalid type"});
 			return;
 		}
 		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
@@ -98,12 +101,29 @@ export async function uploadRoutes(server: FastifyInstance) {
 			reply.code(404).send({error: "File not found"});
 			return;
 		}
-		fs.unlink(filePath, (err) => {
-			if (err) {
-				reply.code(500).send({error: "Failed to delete file"});
-				return;
+
+		try {
+			// Convert fs.unlink to Promise-based to work properly with async/await
+			await new Promise<void>((resolve, reject) => {
+				fs.unlink(filePath, (err) => {
+					if (err) reject(err);
+					else resolve();
+				});
+			});
+			
+			// Update user record if necessary
+			if (type === "avatar") {
+				user.avatar = "";
+				await updateUserAvatar(user, "");
+			} else if (type === "wallpaper") {
+				user.background = "";
+				await updateUserBackground(user, "");
 			}
+			
 			reply.code(200).send({message: "File deleted successfully"});
-		});
+		} catch (err) {
+			reply.log.error(err);
+			reply.code(500).send({error: "Failed to delete file"});
+		}
 	});
 }

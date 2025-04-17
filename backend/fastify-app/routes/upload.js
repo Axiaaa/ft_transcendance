@@ -67,7 +67,7 @@ async function uploadRoutes(server) {
         reply.code(200).send({ message: "File uploaded successfully" });
     });
     server.get('/user_images/:type/:id', async (request, reply) => {
-        console.log("get user image");
+        reply.log.info("get user image");
         const { id, type } = request.params;
         const user = await (0, user_1.getUserFromDb)({ id: Number(id) });
         if (user == null) {
@@ -83,11 +83,14 @@ async function uploadRoutes(server) {
         reply.code(200).send(fileFrontPath);
     });
     server.delete('/user_images/:type/:id', async (request, reply) => {
-        console.log("delete user image");
         const { id, type } = request.params;
         const user = await (0, user_1.getUserFromDb)({ id: Number(id) });
         if (user == null) {
             reply.code(404).send({ error: "User not found" });
+            return;
+        }
+        if (type !== "avatar" && type !== "wallpaper") {
+            reply.code(400).send({ error: "Invalid type" });
             return;
         }
         const filePath = (0, path_1.join)(BACK_VOLUME_DIR, `${id}_${type}.png`);
@@ -96,12 +99,30 @@ async function uploadRoutes(server) {
             reply.code(404).send({ error: "File not found" });
             return;
         }
-        fs_1.default.unlink(filePath, (err) => {
-            if (err) {
-                reply.code(500).send({ error: "Failed to delete file" });
-                return;
+        try {
+            // Convert fs.unlink to Promise-based to work properly with async/await
+            await new Promise((resolve, reject) => {
+                fs_1.default.unlink(filePath, (err) => {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve();
+                });
+            });
+            // Update user record if necessary
+            if (type === "avatar") {
+                user.avatar = "";
+                await (0, user_2.updateUserAvatar)(user, "");
+            }
+            else if (type === "wallpaper") {
+                user.background = "";
+                await (0, user_3.updateUserBackground)(user, "");
             }
             reply.code(200).send({ message: "File deleted successfully" });
-        });
+        }
+        catch (err) {
+            reply.log.error(err);
+            reply.code(500).send({ error: "Failed to delete file" });
+        }
     });
 }

@@ -45,6 +45,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+import { resetUserImages } from "./login-screen.js";
 import { sendNotification } from "./notification.js";
 /**
  * API configuration
@@ -359,6 +360,7 @@ export function deleteUser(userId) {
                         })];
                 case 1:
                     response = _a.sent();
+                    sendNotification('User Deleted', "User with ID ".concat(userId, " deleted successfully"), './img/Utils/API-icon.png');
                     return [4 /*yield*/, response.json()];
                 case 2: return [2 /*return*/, _a.sent()];
                 case 3:
@@ -448,14 +450,16 @@ export function uploadFile(userId, file, fileType) {
                 case 0:
                     formData = new FormData();
                     formData.append('file', file);
+                    // Add a JSON string that can be parsed by the backend
+                    formData.append('metadata', JSON.stringify({ userId: userId, fileType: fileType }));
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 7, , 8]);
                     return [4 /*yield*/, apiFetch("/user_images/".concat(fileType, "/").concat(userId), {
                             method: 'POST',
                             body: formData,
-                            // Note: When using FormData, browser will set the correct Content-Type with boundary
-                        }, false, true)];
+                            // Keep multipart/form-data content type that browser will set
+                        }, false)];
                 case 2:
                     response = _a.sent();
                     if (!response.ok) return [3 /*break*/, 4];
@@ -483,9 +487,130 @@ export function uploadFile(userId, file, fileType) {
         });
     });
 }
+export function deleteUserAvatar(userId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, result, error, error_11;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 6, , 7]);
+                    console.log("Attempting to delete avatar for user ".concat(userId));
+                    return [4 /*yield*/, apiFetch("/user_images/avatar/".concat(userId), {
+                            method: 'DELETE'
+                        }, false, true)];
+                case 1:
+                    response = _a.sent();
+                    if (!response.ok) return [3 /*break*/, 3];
+                    return [4 /*yield*/, response.json()];
+                case 2:
+                    result = _a.sent();
+                    console.log('Avatar deleted successfully');
+                    sendNotification('Avatar Deleted', "Avatar deleted successfully: ".concat(result.message), "./img/Utils/API-icon.png");
+                    resetUserImages();
+                    return [2 /*return*/];
+                case 3: return [4 /*yield*/, response.json()];
+                case 4:
+                    error = _a.sent();
+                    console.error('Error deleting avatar:', error);
+                    sendNotification('Error', "Error deleting avatar: ".concat(error.message || 'Unknown error'), "./img/Utils/error-icon.png");
+                    _a.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
+                    error_11 = _a.sent();
+                    throw error_11;
+                case 7: return [2 /*return*/];
+            }
+        });
+    });
+}
+export function isAvatarUserExists(userId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, error_12;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, apiFetch("/user_images/avatar/".concat(userId), {
+                            method: 'GET'
+                        })];
+                case 1:
+                    response = _a.sent();
+                    // If we get a successful response, the avatar exists
+                    return [2 /*return*/, response.ok];
+                case 2:
+                    error_12 = _a.sent();
+                    console.error('Error checking avatar existence:', error_12);
+                    return [2 /*return*/, false];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+export function isBackgroundUserExists(userId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, error_13;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, apiFetch("/user_images/wallpaper/".concat(userId), {
+                            method: 'GET'
+                        })];
+                case 1:
+                    response = _a.sent();
+                    // If we get a successful response, the background exists
+                    return [2 /*return*/, response.ok];
+                case 2:
+                    error_13 = _a.sent();
+                    console.error('Error checking background existence:', error_13);
+                    return [2 /*return*/, false];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+export function deleteUserBackground(userId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, result, error, error_14, errorMessage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 6, , 7]);
+                    console.log("Attempting to delete background for user ".concat(userId));
+                    return [4 /*yield*/, apiFetch("/user_images/wallpaper/".concat(userId), {
+                            method: 'DELETE'
+                        }, false, true)];
+                case 1:
+                    response = _a.sent();
+                    if (!response.ok) return [3 /*break*/, 3];
+                    return [4 /*yield*/, response.json()];
+                case 2:
+                    result = _a.sent();
+                    console.log('Background deleted successfully');
+                    sendNotification('Background Deleted', "Background deleted successfully: ".concat(result.message), "./img/Utils/API-icon.png");
+                    resetUserImages();
+                    return [2 /*return*/];
+                case 3: return [4 /*yield*/, response.json()];
+                case 4:
+                    error = _a.sent();
+                    console.error('Error deleting background:', error);
+                    sendNotification('Error', "Error deleting background: ".concat(error.message || 'Unknown error'), "./img/Utils/error-icon.png");
+                    _a.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
+                    error_14 = _a.sent();
+                    console.error('Error deleting background:', error_14);
+                    errorMessage = error_14 instanceof Error ? error_14.message : String(error_14);
+                    sendNotification('Error', "Error deleting background: ".concat(errorMessage), "./img/Utils/error-icon.png");
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
+            }
+        });
+    });
+}
 export function getUserAvatar(userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, filePath, error_11, errorMessage;
+        var response, filePath, error_15, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -506,13 +631,13 @@ export function getUserAvatar(userId) {
                     filePath = _a.sent();
                     return [2 /*return*/, filePath];
                 case 3:
-                    error_11 = _a.sent();
-                    console.error('Error fetching user avatar:', error_11);
-                    errorMessage = error_11 instanceof Error ? error_11.message : String(error_11);
+                    error_15 = _a.sent();
+                    console.error('Error fetching user avatar:', error_15);
+                    errorMessage = error_15 instanceof Error ? error_15.message : String(error_15);
                     if (typeof sendNotification === 'function') {
                         sendNotification('API Error', "Failed to fetch avatar: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_11;
+                    throw error_15;
                 case 4: return [2 /*return*/];
             }
         });
@@ -520,7 +645,7 @@ export function getUserAvatar(userId) {
 }
 export function getUserBackground(userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, filePath, error_12, errorMessage;
+        var response, filePath, error_16, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -537,13 +662,13 @@ export function getUserBackground(userId) {
                     filePath = _a.sent();
                     return [2 /*return*/, filePath];
                 case 3:
-                    error_12 = _a.sent();
-                    console.error('Error fetching user background:', error_12);
-                    errorMessage = error_12 instanceof Error ? error_12.message : String(error_12);
+                    error_16 = _a.sent();
+                    console.error('Error fetching user background:', error_16);
+                    errorMessage = error_16 instanceof Error ? error_16.message : String(error_16);
                     if (typeof sendNotification === 'function') {
                         sendNotification('API Error', "Failed to fetch background: ".concat(errorMessage), './img/Utils/API-icon.png');
                     }
-                    throw error_12;
+                    throw error_16;
                 case 4: return [2 /*return*/];
             }
         });

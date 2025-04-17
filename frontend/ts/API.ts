@@ -1,3 +1,4 @@
+import { resetUserImages } from "./login-screen.js";
 import {sendNotification} from "./notification.js";
 import { getCookie, setCookie } from 'typescript-cookie'
 
@@ -278,7 +279,7 @@ export async function deleteUser(userId: number): Promise<User> {
 		const response = await apiFetch(`/users/${userId}`, {
 			method: 'DELETE'
 		});
-		
+		sendNotification('User Deleted', `User with ID ${userId} deleted successfully`, './img/Utils/API-icon.png');
 		return await response.json();
 	} catch (error) {
 		console.error('Error deleting user:', error);
@@ -332,15 +333,19 @@ export async function loginUser(username: string, password: string): Promise<Use
 		throw error;
 	}
 }
+
 export async function uploadFile(userId: number, file: File, fileType: string): Promise<Response | null> {
 	const formData = new FormData();
 	formData.append('file', file);
+	// Add a JSON string that can be parsed by the backend
+	formData.append('metadata', JSON.stringify({ userId, fileType }));
+	
 	try {
 		const response = await apiFetch(`/user_images/${fileType}/${userId}`, {
 			method: 'POST',
 			body: formData,
-			// Note: When using FormData, browser will set the correct Content-Type with boundary
-		}, false, true);
+			// Keep multipart/form-data content type that browser will set
+		}, false); // Set useJsonContentType=false, nojson=true to prevent setting Content-Type
 		
 		if (response.ok) {
 			const result = await response.json();
@@ -359,6 +364,86 @@ export async function uploadFile(userId: number, file: File, fileType: string): 
 	}
 	
 	return null;
+}
+
+export async function deleteUserAvatar(userId: number): Promise<void> {
+	try {
+		console.log(`Attempting to delete avatar for user ${userId}`);
+		
+		const response = await apiFetch(`/user_images/avatar/${userId}`, {
+			method: 'DELETE'
+		}, false, true);
+		
+		if (response.ok) {
+			const result = await response.json();
+			console.log('Avatar deleted successfully');
+			sendNotification('Avatar Deleted', `Avatar deleted successfully: ${result.message}`, "./img/Utils/API-icon.png");
+			resetUserImages();
+			return;
+		}
+		else {
+			const error = await response.json();
+			console.error('Error deleting avatar:', error);
+			sendNotification('Error', `Error deleting avatar: ${error.message || 'Unknown error'}`, "./img/Utils/error-icon.png");
+		}
+		
+	}
+	catch (error) {
+		throw error;
+	}
+}
+
+export async function isAvatarUserExists(userId: number): Promise<boolean> {
+	try {
+		const response = await apiFetch(`/user_images/avatar/${userId}`, {
+			method: 'GET'
+		});
+		
+		// If we get a successful response, the avatar exists
+		return response.ok;
+	} catch (error) {
+		console.error('Error checking avatar existence:', error);
+		return false;
+	}
+}
+
+export async function isBackgroundUserExists(userId: number): Promise<boolean> {
+	try {
+		const response = await apiFetch(`/user_images/wallpaper/${userId}`, {
+			method: 'GET'
+		});
+		// If we get a successful response, the background exists
+		return response.ok;
+	} catch (error) {
+		console.error('Error checking background existence:', error);
+		return false;
+	}
+}
+
+export async function deleteUserBackground(userId: number): Promise<void> {
+	try {
+		console.log(`Attempting to delete background for user ${userId}`);
+		const response = await apiFetch(`/user_images/wallpaper/${userId}`, {
+			method: 'DELETE'
+		}, false, true);
+		if (response.ok) {
+			const result = await response.json();
+			console.log('Background deleted successfully');
+			sendNotification('Background Deleted', `Background deleted successfully: ${result.message}`, "./img/Utils/API-icon.png");
+			resetUserImages();
+			return;
+		}
+		else {
+			const error = await response.json();
+			console.error('Error deleting background:', error);
+			sendNotification('Error', `Error deleting background: ${error.message || 'Unknown error'}`, "./img/Utils/error-icon.png");
+		}
+	}
+	catch (error) {
+		console.error('Error deleting background:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		sendNotification('Error', `Error deleting background: ${errorMessage}`, "./img/Utils/error-icon.png");
+	}
 }
 
 export async function getUserAvatar(userId: number): Promise<string> {

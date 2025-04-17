@@ -1,6 +1,6 @@
 import { sys } from "../node_modules/typescript/lib/typescript.js";
 import { sendNotification } from "./notification.js";
-import { getUserBackground, updateUser } from "./API.js";
+import { deleteUserAvatar, deleteUserBackground, getUserBackground, updateUser } from "./API.js";
 
 import { getUserAvatar, uploadFile } from "./API.js";
 import { updateUserImages } from "./login-screen.js";
@@ -666,29 +666,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 			latestVersionStatusCheckButton.onclick = () => {
 				latestVersionStatusCheckButton.textContent = 'Checking...';
 				latestVersionStatusCheckButton.disabled = true;
-				fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
-				.then(response => response.json())
-				.then(data => {
-					latestVersionStatusText = data.tag_name;
-					console.log('Latest version:', latestVersionStatusText);
-					latestVersionStatus.textContent = latestVersionStatusText;
-					if (!latestVersionStatusText || latestVersionStatusText.includes('API rate limit exceeded')) {
-						sendNotification('Error', 'Failed to check version', "./img/Utils/error-icon.png");
-					} else if (latestVersionStatusText === currentVersion.textContent) {
-						sendNotification('System Update', 'System is up to date', "./img/Utils/update-icon.png");
-					} else {
-						sendNotification('System Update', 'New version available', "./img/Utils/update-icon.png");
-					}
-					latestVersionStatusCheckButton.textContent = 'Check for Updates';
-				})
-				.catch(error => {
-					console.error('Error fetching latest version:', error);
-					latestVersionStatusText = "Beta 0.7"; // Fallback version if fetch fails
-					latestVersionStatus.textContent = latestVersionStatusText;
-					sendNotification('Error', 'Failed to check for updates', "./img/Utils/error-icon.png");
-					latestVersionStatusCheckButton.textContent = 'Check for Updates';
-				});
+				// fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
+				// .then(response => response.json())
+				// .then(data => {
+				// 	latestVersionStatusText = data.tag_name;
+				// 	console.log('Latest version:', latestVersionStatusText);
+				// 	latestVersionStatus.textContent = latestVersionStatusText;
+				// 	if (!latestVersionStatusText || latestVersionStatusText.includes('API rate limit exceeded')) {
+				// 		sendNotification('Error', 'Failed to check version', "./img/Utils/error-icon.png");
+				// 	} else if (latestVersionStatusText === currentVersion.textContent) {
+				// 		sendNotification('System Update', 'System is up to date', "./img/Utils/update-icon.png");
+				// 	} else {
+				// 		sendNotification('System Update', 'New version available', "./img/Utils/update-icon.png");
+				// 	}
+				// 	latestVersionStatusCheckButton.textContent = 'Check for Updates';
+				// })
+				// .catch(error => {
+				// 	console.error('Error fetching latest version:', error);
+				// 	latestVersionStatusText = "Beta 0.7"; // Fallback version if fetch fails
+				// 	latestVersionStatus.textContent = latestVersionStatusText;
+				// 	sendNotification('Error', 'Failed to check for updates', "./img/Utils/error-icon.png");
+				// 	latestVersionStatusCheckButton.textContent = 'Check for Updates';
+				// });
 				setTimeout(() => latestVersionStatusCheckButton.disabled = false, 3000);
+				latestVersionStatusCheckButton.textContent = 'Check for Updates';
 			};
 			latestVersionStatusCheckButton.textContent = 'Check for Updates';
 			latestVersionStatusCheckButton.style.padding = '5px 10px';
@@ -721,9 +722,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 			restoreSystemButton.style.marginBottom = '0';
 			restoreSystemButton.onclick = () => {
 				restoreSystemButton.disabled = true;
-				restoreSystemButton.textContent = 'Restoring...';
 				if (confirm('Are you sure you want to restore the system ?')) {
-					sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
+					restoreSystemButton.textContent = 'Restoring...';
+					setTimeout(() => {
+						// API call needs to be made here
+						// For now, we will just simulate the restore process
+						deleteUserAvatar(Number(sessionStorage.getItem('wxp_user_id')));
+						deleteUserBackground(Number(sessionStorage.getItem('wxp_user_id')));
+						sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
+					});
+					
 				}
 				setTimeout(() => {
 					restoreSystemButton.disabled = false;
