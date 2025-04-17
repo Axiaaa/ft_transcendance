@@ -4,13 +4,7 @@ start : up
 
 stop : down
 
-ts : 
-	npx tsc -p frontend/tsconfig.json
-
-gamets : 
-	npx tsc -p frontend/game/tsconfig.json
-
-build : ts gamets
+build :
 	docker-compose build 
 
 up :
@@ -26,8 +20,6 @@ destroy:
 	docker-compose down -v --remove-orphans
 
 clean : destroy
-	rm -rf ./frontend/game/.build
-	rm -rf ./frontend/ts/.build
 	docker system prune -af
 		
 re : destroy all

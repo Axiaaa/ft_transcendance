@@ -13,8 +13,7 @@
 		"strict": true,
 		// "composite": true    // Décommentez cette ligne
 	},
-	"include": ["ts/API.ts", "ts/app-icon.ts", "ts/apps-utils.ts", "ts/login-screen.ts", "ts/notification.ts", "ts/pong.ts", "ts/profile-app.ts", "ts/settings-app.ts", "ts/settings-components.ts", "ts/social-app.ts", "ts/start-menu.ts", "ts/system.ts", "ts/taskbar.ts", "ts/terminal-app.ts", "ts/window.ts"]
-,
+	"include": ["ts/*.ts"],
 	"exclude": ["node_modules"],
 	// "references": [
 	// 	{ "path": "./game" }
