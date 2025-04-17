@@ -21,6 +21,7 @@ destroy:
 
 clean : destroy
 	docker system prune -af
+	docker volume prune -f
 		
 re : destroy all
 

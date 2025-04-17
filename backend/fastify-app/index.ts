@@ -20,7 +20,7 @@ export const server = fastify({
 });
 
 server.addHook('preHandler', async (req, reply) => {
-  if (req.url.startsWith('/api/users/login')) {
+  if (req.url.startsWith('/api/users/login') || req.url.startsWith('/metrics')) {
     return;
   }
  
