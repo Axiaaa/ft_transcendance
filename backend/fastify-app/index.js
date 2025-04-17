@@ -11,6 +11,7 @@ const user_1 = require("./routes/user");
 const matchs_1 = require("./routes/matchs");
 const rate_limit_1 = __importDefault(require("@fastify/rate-limit"));
 const keep_alive_1 = require("./routes/keep_alive");
+const upload_1 = require("./routes/upload");
 const multipart_1 = __importDefault(require("@fastify/multipart"));
 const Port = process.env.PORT || 4321;
 const envUser = process.env.API_USERNAME || 'admin';
@@ -35,21 +36,20 @@ exports.server.addHook('preHandler', async (req, reply) => {
     }
     catch (error) {
         exports.server.log.error('Database query failed:', error);
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        return reply.code(409).send({ error: 'Internal Server Error' });
     }
     if (!tokenExists) {
         return reply.code(401).send({ error: 'Unauthorized' });
     }
-    if (req.method === 'POST' || req.method === 'PATCH') {
-        try {
-            JSON.parse(JSON.stringify(req.body));
-        }
-        catch (error) {
-            return reply.code(400).send({ error: 'Invalid JSON body' });
-        }
-    }
+    // if (req.method === 'POST' || req.method === 'PATCH') {
+    //   try {
+    //     JSON.parse(JSON.stringify(req.body));
+    //   } catch (error) {
+    //     return reply.code(400).send({ error: 'Invalid JSON body' });
+    //   }
+    // }
 });
-exports.server.get('/ping', async (request, reply) => {
+exports.server.get('/ping', async (request, replyX) => {
     return 'pong\n';
 });
 const start = async () => {
@@ -60,6 +60,7 @@ const start = async () => {
         await exports.server.register(user_1.userRoutes, { prefix: '/api' });
         await exports.server.register(matchs_1.matchsRoutes, { prefix: '/api' });
         await exports.server.register(keep_alive_1.keepAliveRoute, { prefix: '/api' });
+        await exports.server.register(upload_1.uploadRoutes, { prefix: '/api' });
         await exports.server.listen({ port: Number(Port), host: '0.0.0.0' });
         console.log('Server started sucessfully');
     }

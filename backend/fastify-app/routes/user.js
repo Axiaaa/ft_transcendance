@@ -64,6 +64,7 @@ async function userRoutes(server) {
                 return;
             }
             user.token = crypto_1.default.randomBytes(32).toString('hex');
+            user.updateUserInDb();
             reply.code(200).send(user);
         }
     });
@@ -139,7 +140,7 @@ async function userRoutes(server) {
     });
     server.route({
         method: 'DELETE',
-        url: '/users/:id',
+        url: '/users/:token',
         config: {
             rateLimit: limit_rate_1.RateLimits.delete_user,
         },
@@ -158,7 +159,7 @@ async function userRoutes(server) {
     });
     server.route({
         method: 'GET',
-        url: '/users/:id/friends',
+        url: '/users/:token/friends',
         config: {
             rateLimit: limit_rate_1.RateLimits.friends,
         },
@@ -210,7 +211,7 @@ async function userRoutes(server) {
     });
     server.route({
         method: 'DELETE',
-        url: '/users/:token/friends/:friend_id',
+        url: '/users/:token/friends/:friend_username',
         config: {
             rateLimit: limit_rate_1.RateLimits.friends,
         },
@@ -236,7 +237,7 @@ async function userRoutes(server) {
     });
     server.route({
         method: 'GET',
-        url: '/users/:id/pending_friends',
+        url: '/users/:token/pending_friends',
         config: {
             rateLimit: limit_rate_1.RateLimits.friends,
         },
@@ -256,7 +257,7 @@ async function userRoutes(server) {
     });
     server.route({
         method: 'POST',
-        url: '/users/:id/pending_friends',
+        url: '/users/:token/pending_friends',
         config: {
             rateLimit: limit_rate_1.RateLimits.friends,
         },
