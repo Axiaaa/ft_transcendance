@@ -356,7 +356,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 userInfoContainer.style.width = 'calc(100% - 76px)';
                 var usernameElement = document.createElement('div');
                 userInfoContainer.appendChild(usernameElement);
-                usernameElement.textContent = 'Xxx_D4rkS4suke36_xxX'; // Placeholder
+                var usernameh2 = document.createElement('h2');
+                usernameh2.classList.add('user-name-text');
+                usernameh2.textContent = 'Xxx_D4rkS4suke36_xxX'; // Placeholder
+                usernameh2.style.fontSize = '12px';
+                usernameh2.style.fontWeight = 'bold';
+                usernameh2.style.margin = '0';
+                usernameh2.style.padding = '0';
+                usernameh2.style.color = '#000';
+                usernameh2.style.lineHeight = '1.2';
+                usernameh2.style.overflow = 'hidden';
+                usernameh2.style.maxWidth = '100%';
+                usernameh2.style.overflowWrap = 'break-word';
+                usernameh2.style.wordBreak = 'break-word';
+                usernameh2.style.maxWidth = 'calc(100% - 2px)';
+                usernameh2.style.marginBottom = '5px';
+                usernameh2.style.textAlign = 'left';
+                usernameElement.appendChild(usernameh2);
                 usernameElement.style.maxWidth = 'calc(100% - 2px)';
                 usernameElement.style.overflowWrap = 'break-word';
                 usernameElement.style.wordBreak = 'break-word';

@@ -140,7 +140,28 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
             });
         }); }, INACTIVE_TIMEOUT);
     }
-    var sleepScreen, sleepLogo, timeoutId, INACTIVE_TIMEOUT, trashBinApp;
+    // Function to handle timer state based on pong window
+    function handleTimerState() {
+        if (pongTimerInterval) {
+            clearInterval(pongTimerInterval);
+            pongTimerInterval = null;
+        }
+        if (pongAppwindows.classList.contains('opened-window')) {
+            // Reset timer immediately and set interval to reset every 5 seconds
+            resetTimer();
+            pongTimerInterval = setInterval(function () {
+                resetTimer();
+                console.log('Timer reset - Pong window is open');
+            }, 5000);
+            console.log('Periodic timer reset activated - Pong window is open');
+        }
+        else {
+            // Normal timer behavior when pong window is closed
+            resetTimer();
+            console.log('Timer activated - Pong window is closed');
+        }
+    }
+    var sleepScreen, sleepLogo, timeoutId, INACTIVE_TIMEOUT, pongAppwindows, pongTimerInterval, pongWindowObserver, trashBinApp;
     return __generator(this, function (_a) {
         window.addEventListener('beforeunload', function (event) {
             event.preventDefault();
@@ -177,8 +198,19 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
         document.addEventListener('keypress', resetTimer);
         // Reset timer on scroll
         document.addEventListener('scroll', resetTimer);
-        // Start the initial timer
-        resetTimer();
+        pongAppwindows = document.getElementById('pong-app-window');
+        pongTimerInterval = null;
+        // Check initial state
+        handleTimerState();
+        pongWindowObserver = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    console.log('Pong window class changed');
+                    handleTimerState();
+                }
+            });
+        });
+        pongWindowObserver.observe(pongAppwindows, { attributes: true });
         // SANDBOX AREA
         {
             trashBinApp = document.getElementById('trash-bin-app');
@@ -406,6 +438,26 @@ export function resetUserImages() {
             userWallpapers = document.getElementsByClassName("user-background");
             userWallpapers[0].src = wallpaperURL;
             return [2 /*return*/];
+        });
+    });
+}
+export function updateAllUserNames() {
+    return __awaiter(this, void 0, void 0, function () {
+        var currentUser, userName, userNames, i;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getCurrentUser(sessionStorage.getItem("wxp_token"))];
+                case 1:
+                    currentUser = _a.sent();
+                    if (currentUser == null)
+                        return [2 /*return*/];
+                    userName = currentUser.username;
+                    userNames = document.getElementsByClassName("user-name-text");
+                    for (i = 0; i < userNames.length; i++) {
+                        userNames[i].innerText = userName;
+                    }
+                    return [2 /*return*/];
+            }
         });
     });
 }

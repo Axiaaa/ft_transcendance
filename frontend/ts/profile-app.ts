@@ -361,17 +361,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 					let usernameDisplay = document.createElement('h2');
 					usernameDisplay.innerText = 'Loading...'; // Placeholder text while fetching username
-					try {
-						console.log('Fetching username...');
-						const user = await getCurrentUser(sessionStorage.getItem('wxp_token'));
-						if (user)
-							usernameDisplay.innerText = user.username;
-					}
-					catch (error)
-					{
-						console.error('Error fetching username:', error);
-						usernameDisplay.innerText = 'Unknown User, please log in';
-					}
+					usernameDisplay.classList.add('user-name-text');
 					usernameDisplay.style.color = '#333';
 					usernameDisplay.style.fontSize = '18px';
 					usernameDisplay.style.fontWeight = 'bold';

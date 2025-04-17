@@ -2,7 +2,7 @@ import { getCurrentUser, getUserAvatar, getUserBackground, updateUser } from "./
 import { Cookies, getCookie, setCookie } from 'typescript-cookie'
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
-import { initHistoryAPI, resetUserImages, updateUserImages } from "./system.js";
+import { initHistoryAPI, resetUserImages, updateAllUserNames, updateUserImages } from "./system.js";
 import { goToDesktopPage } from "./system.js";
 import { goToFormsPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
@@ -209,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
 						signUpPassword.value = "";
 						signUpConfirmPassword.value = "";
 						await resetUserImages();
+						await updateAllUserNames();
 						setTimeout(() => {
 							goToDesktopPage();
 						}, 200);
@@ -244,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
 						signInPassword.value = "";
 						await resetUserImages();
 						await updateUserImages();
+						await updateAllUserNames();
 						setTimeout(() => {
 							goToDesktopPage();
 						}, 200);

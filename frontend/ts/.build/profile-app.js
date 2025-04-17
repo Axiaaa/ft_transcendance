@@ -35,7 +35,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { openAppWindow } from "./app-icon.js";
-import { getCurrentUser } from "./API.js";
 function openProfile(AppLauncher, profileTab) {
     var AppId = 'profile-app-window';
     openAppWindow("", AppId);
@@ -244,199 +243,185 @@ function addTournamentHistory(Container, Player1, Player2, Score1, Score2) {
     return tournamentHistoryEntry;
 }
 document.addEventListener('DOMContentLoaded', function () { return __awaiter(void 0, void 0, void 0, function () {
-    var App, AppContent, AppLauncherMain, AppLauncherTournaments, AppLauncherStats, AppContentMain, leftContainer, General, Tournaments, Stats, rightContainer, GeneralCategorie, TournamentsCategorie, StatsCategorie, GeneralContent_1, profileInfoContainer, avatarContainer, avatarImg, usernameDisplay, user, error_1, statusContainer, statusIndicator, statusText, lastLoginInfo, editProfileButton_1, TournamentsContent_1, TournamentHistoryTitle, TournamentHistory, tournament1, StatsContent_1, winLossSection, winLossTitle, winLossBar, wins, losses, winRate, winBar, ratioText, statsSection, statsTitle, statsTable_1, totalMatches, pointsScored, avgMatchDuration, highestScore, statsData, statsNote;
+    var App, AppContent, AppLauncherMain, AppLauncherTournaments, AppLauncherStats, AppContentMain, leftContainer, General, Tournaments, Stats, rightContainer, GeneralCategorie, TournamentsCategorie, StatsCategorie, GeneralContent_1, profileInfoContainer, avatarContainer, avatarImg, usernameDisplay, statusContainer, statusIndicator, statusText, lastLoginInfo, editProfileButton_1, TournamentsContent_1, TournamentHistoryTitle, TournamentHistory, tournament1, StatsContent_1, winLossSection, winLossTitle, winLossBar, wins, losses, winRate, winBar, ratioText, statsSection, statsTitle, statsTable_1, totalMatches, pointsScored, avgMatchDuration, highestScore, statsData, statsNote;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                App = document.getElementById('profile-app-window');
-                if (!App)
-                    return [2 /*return*/];
-                App.style.width = '470px';
-                App.style.minWidth = '470px';
-                App.style.height = '370px';
-                AppContent = App.children[1];
-                if (!AppContent) {
-                    console.log('Profile App Content not found');
-                    return [2 /*return*/];
-                }
-                AppLauncherMain = document.getElementById('start-menu-profile-main');
-                if (AppLauncherMain) {
-                    AppLauncherMain.addEventListener('click', function () {
-                        openProfile('start-menu-profile-main', 'general');
-                    });
-                }
-                AppLauncherTournaments = document.getElementById('start-menu-profile-my-tournaments');
-                if (AppLauncherTournaments) {
-                    AppLauncherTournaments.addEventListener('click', function () {
-                        openProfile('start-menu-profile-my-tournaments', 'tournaments');
-                    });
-                }
-                AppLauncherStats = document.getElementById('start-menu-profile-my-stats');
-                if (AppLauncherStats) {
-                    AppLauncherStats.addEventListener('click', function () {
-                        openProfile('start-menu-profile-my-stats', 'stats');
-                    });
-                }
-                AppContentMain = document.createElement('div');
-                AppContentMain.id = 'profile-app-content-main';
-                AppContentMain.style.width = '100%';
-                AppContentMain.style.height = '100%';
-                AppContentMain.style.display = 'flex';
-                AppContent.appendChild(AppContentMain);
-                {
-                    leftContainer = document.createElement('div');
-                    AppContentMain.appendChild(leftContainer);
-                    leftContainer.id = 'profile-app-content-main-left';
-                    leftContainer.style.background = 'linear-gradient(rgb(117, 142, 219), rgb(109, 124, 218), rgb(104, 108, 213))';
-                    leftContainer.style.width = '150px';
-                    leftContainer.style.minWidth = '150px';
-                    leftContainer.style.maxWidth = '150px';
-                    leftContainer.style.height = '100%';
-                    leftContainer.style.overflow = 'auto';
-                    leftContainer.style.display = 'flex';
-                    leftContainer.style.flexDirection = 'column';
-                    leftContainer.style.alignItems = 'center';
-                    {
-                        General = createCategorieTab('General', './img/Utils/infos-icon.png', leftContainer);
-                        Tournaments = createCategorieTab('Tournaments', './img/Start_Menu/cup-icon.png', leftContainer);
-                        Stats = createCategorieTab('Stats', './img/Start_Menu/stats-icon.png', leftContainer);
-                    }
-                }
-                rightContainer = document.createElement('div');
-                AppContentMain.appendChild(rightContainer);
-                rightContainer.id = 'profile-app-content-main-right';
-                rightContainer.style.backgroundColor = 'rgb(163, 177, 233)';
-                rightContainer.style.width = 'calc(100% - 150px)';
-                rightContainer.style.minWidth = 'calc(100% - 150px)';
-                rightContainer.style.maxWidth = 'calc(100% - 150px)';
-                rightContainer.style.height = '100%';
-                rightContainer.style.overflow = 'auto';
+        App = document.getElementById('profile-app-window');
+        if (!App)
+            return [2 /*return*/];
+        App.style.width = '470px';
+        App.style.minWidth = '470px';
+        App.style.height = '370px';
+        AppContent = App.children[1];
+        if (!AppContent) {
+            console.log('Profile App Content not found');
+            return [2 /*return*/];
+        }
+        AppLauncherMain = document.getElementById('start-menu-profile-main');
+        if (AppLauncherMain) {
+            AppLauncherMain.addEventListener('click', function () {
+                openProfile('start-menu-profile-main', 'general');
+            });
+        }
+        AppLauncherTournaments = document.getElementById('start-menu-profile-my-tournaments');
+        if (AppLauncherTournaments) {
+            AppLauncherTournaments.addEventListener('click', function () {
+                openProfile('start-menu-profile-my-tournaments', 'tournaments');
+            });
+        }
+        AppLauncherStats = document.getElementById('start-menu-profile-my-stats');
+        if (AppLauncherStats) {
+            AppLauncherStats.addEventListener('click', function () {
+                openProfile('start-menu-profile-my-stats', 'stats');
+            });
+        }
+        AppContentMain = document.createElement('div');
+        AppContentMain.id = 'profile-app-content-main';
+        AppContentMain.style.width = '100%';
+        AppContentMain.style.height = '100%';
+        AppContentMain.style.display = 'flex';
+        AppContent.appendChild(AppContentMain);
+        {
+            leftContainer = document.createElement('div');
+            AppContentMain.appendChild(leftContainer);
+            leftContainer.id = 'profile-app-content-main-left';
+            leftContainer.style.background = 'linear-gradient(rgb(117, 142, 219), rgb(109, 124, 218), rgb(104, 108, 213))';
+            leftContainer.style.width = '150px';
+            leftContainer.style.minWidth = '150px';
+            leftContainer.style.maxWidth = '150px';
+            leftContainer.style.height = '100%';
+            leftContainer.style.overflow = 'auto';
+            leftContainer.style.display = 'flex';
+            leftContainer.style.flexDirection = 'column';
+            leftContainer.style.alignItems = 'center';
+            {
+                General = createCategorieTab('General', './img/Utils/infos-icon.png', leftContainer);
+                Tournaments = createCategorieTab('Tournaments', './img/Start_Menu/cup-icon.png', leftContainer);
+                Stats = createCategorieTab('Stats', './img/Start_Menu/stats-icon.png', leftContainer);
+            }
+        }
+        {
+            rightContainer = document.createElement('div');
+            AppContentMain.appendChild(rightContainer);
+            rightContainer.id = 'profile-app-content-main-right';
+            rightContainer.style.backgroundColor = 'rgb(163, 177, 233)';
+            rightContainer.style.width = 'calc(100% - 150px)';
+            rightContainer.style.minWidth = 'calc(100% - 150px)';
+            rightContainer.style.maxWidth = 'calc(100% - 150px)';
+            rightContainer.style.height = '100%';
+            rightContainer.style.overflow = 'auto';
+            {
                 GeneralCategorie = document.getElementById('profile-app-content-main-left-General');
                 TournamentsCategorie = document.getElementById('profile-app-content-main-left-Tournaments');
                 StatsCategorie = document.getElementById('profile-app-content-main-left-Stats');
                 GeneralContent_1 = createCategorieContainer('General', rightContainer);
-                if (!GeneralContent_1) return [3 /*break*/, 5];
-                profileInfoContainer = document.createElement('div');
-                profileInfoContainer.style.display = 'flex';
-                profileInfoContainer.style.flexDirection = 'column';
-                profileInfoContainer.style.alignItems = 'center';
-                profileInfoContainer.style.padding = '15px';
-                profileInfoContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                profileInfoContainer.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-                profileInfoContainer.style.borderRadius = '5px';
-                profileInfoContainer.style.boxShadow = '2px 2px 5px rgba(0, 0, 0, 0.2)';
-                GeneralContent_1.appendChild(profileInfoContainer);
-                avatarContainer = document.createElement('div');
-                avatarContainer.style.width = '100px';
-                avatarContainer.style.height = '100px';
-                avatarContainer.style.marginBottom = '10px';
-                avatarContainer.style.border = '1px solid #7E7E7E';
-                avatarContainer.style.padding = '3px';
-                avatarContainer.style.backgroundColor = 'white';
-                avatarContainer.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.3)';
-                profileInfoContainer.appendChild(avatarContainer);
-                avatarImg = document.createElement('img');
-                avatarImg.alt = 'User Avatar';
-                avatarImg.classList.add('avatar-preview');
-                avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar - replace with user's actual avatar from API
-                avatarImg.style.width = '100%';
-                avatarImg.style.height = '100%';
-                avatarImg.style.objectFit = 'cover';
-                avatarContainer.appendChild(avatarImg);
-                usernameDisplay = document.createElement('h2');
-                usernameDisplay.innerText = 'Loading...'; // Placeholder text while fetching username
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 3, , 4]);
-                console.log('Fetching username...');
-                return [4 /*yield*/, getCurrentUser(sessionStorage.getItem('wxp_token'))];
-            case 2:
-                user = _a.sent();
-                if (user)
-                    usernameDisplay.innerText = user.username;
-                return [3 /*break*/, 4];
-            case 3:
-                error_1 = _a.sent();
-                console.error('Error fetching username:', error_1);
-                usernameDisplay.innerText = 'Unknown User, please log in';
-                return [3 /*break*/, 4];
-            case 4:
-                usernameDisplay.style.color = '#333';
-                usernameDisplay.style.fontSize = '18px';
-                usernameDisplay.style.fontWeight = 'bold';
-                usernameDisplay.style.margin = '5px 0';
-                usernameDisplay.style.textShadow = '1px 1px 1px rgba(255, 255, 255, 0.5)';
-                profileInfoContainer.appendChild(usernameDisplay);
-                statusContainer = document.createElement('div');
-                statusContainer.style.display = 'flex';
-                statusContainer.style.alignItems = 'center';
-                statusContainer.style.marginTop = '5px';
-                profileInfoContainer.appendChild(statusContainer);
-                statusIndicator = document.createElement('div');
-                statusIndicator.style.width = '12px';
-                statusIndicator.style.height = '12px';
-                statusIndicator.style.borderRadius = '50%';
-                statusIndicator.style.backgroundColor = '#4CAF50'; // Green for online - should be dynamic based on API response
-                statusIndicator.style.marginRight = '5px';
-                statusIndicator.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-                statusIndicator.style.boxShadow = '0 0 3px rgba(0, 0, 0, 0.2)';
-                statusContainer.appendChild(statusIndicator);
-                statusText = document.createElement('span');
-                statusText.innerText = 'Online'; // Should be dynamic based on API response
-                statusText.style.color = '#333';
-                statusText.style.fontSize = '14px';
-                statusContainer.appendChild(statusText);
-                lastLoginInfo = document.createElement('p');
-                lastLoginInfo.innerText = 'Last login: Today at 9:45 AM'; // Should be dynamic based on API response
-                lastLoginInfo.style.color = '#555';
-                lastLoginInfo.style.fontSize = '12px';
-                lastLoginInfo.style.margin = '10px 0 5px 0';
-                lastLoginInfo.style.fontStyle = 'italic';
-                profileInfoContainer.appendChild(lastLoginInfo);
-                editProfileButton_1 = document.createElement('button');
-                editProfileButton_1.innerText = 'Edit Profile';
-                editProfileButton_1.style.padding = '5px 10px';
-                editProfileButton_1.style.margin = '10px 0';
-                editProfileButton_1.style.backgroundColor = '#ECE9D8';
-                editProfileButton_1.style.border = '1px solid #ACA899';
-                editProfileButton_1.style.borderRadius = '3px';
-                editProfileButton_1.style.color = '#000';
-                editProfileButton_1.style.fontSize = '12px';
-                editProfileButton_1.style.cursor = 'pointer';
-                editProfileButton_1.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
-                profileInfoContainer.appendChild(editProfileButton_1);
-                // Add hover effect for the button
-                editProfileButton_1.addEventListener('mouseenter', function () {
-                    editProfileButton_1.style.backgroundColor = '#F0F0F0';
-                });
-                editProfileButton_1.addEventListener('mouseleave', function () {
-                    editProfileButton_1.style.backgroundColor = '#ECE9D8';
-                });
-                editProfileButton_1.addEventListener('mousedown', function () {
-                    editProfileButton_1.style.backgroundColor = '#DCDAC0';
-                    editProfileButton_1.style.boxShadow = 'inset 1px 1px 3px rgba(0, 0, 0, 0.2)';
-                });
-                editProfileButton_1.addEventListener('mouseup', function () {
-                    editProfileButton_1.style.backgroundColor = '#F0F0F0';
-                    editProfileButton_1.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
-                });
-                // API CALL NEEDED: On button click, open edit profile form and save changes to the backend
-                editProfileButton_1.addEventListener('click', function () {
-                    // Open edit profile modal or navigate to edit profile page
-                    // Implement form to update user profile data
-                    var settingsApp = document.getElementById('settings-app-window');
-                    if (settingsApp) {
-                        openAppWindow('', 'settings-app-window');
-                        App.style.zIndex = '24';
-                        settingsApp.style.zIndex = '25';
-                        var UserAccountTab = document.getElementById('settings-app-User Account-category');
-                        if (UserAccountTab) {
-                            UserAccountTab.click();
-                        }
+                if (GeneralContent_1) {
+                    {
+                        profileInfoContainer = document.createElement('div');
+                        profileInfoContainer.style.display = 'flex';
+                        profileInfoContainer.style.flexDirection = 'column';
+                        profileInfoContainer.style.alignItems = 'center';
+                        profileInfoContainer.style.padding = '15px';
+                        profileInfoContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                        profileInfoContainer.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+                        profileInfoContainer.style.borderRadius = '5px';
+                        profileInfoContainer.style.boxShadow = '2px 2px 5px rgba(0, 0, 0, 0.2)';
+                        GeneralContent_1.appendChild(profileInfoContainer);
+                        avatarContainer = document.createElement('div');
+                        avatarContainer.style.width = '100px';
+                        avatarContainer.style.height = '100px';
+                        avatarContainer.style.marginBottom = '10px';
+                        avatarContainer.style.border = '1px solid #7E7E7E';
+                        avatarContainer.style.padding = '3px';
+                        avatarContainer.style.backgroundColor = 'white';
+                        avatarContainer.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.3)';
+                        profileInfoContainer.appendChild(avatarContainer);
+                        avatarImg = document.createElement('img');
+                        avatarImg.alt = 'User Avatar';
+                        avatarImg.classList.add('avatar-preview');
+                        avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar - replace with user's actual avatar from API
+                        avatarImg.style.width = '100%';
+                        avatarImg.style.height = '100%';
+                        avatarImg.style.objectFit = 'cover';
+                        avatarContainer.appendChild(avatarImg);
+                        usernameDisplay = document.createElement('h2');
+                        usernameDisplay.innerText = 'Loading...'; // Placeholder text while fetching username
+                        usernameDisplay.classList.add('user-name-text');
+                        usernameDisplay.style.color = '#333';
+                        usernameDisplay.style.fontSize = '18px';
+                        usernameDisplay.style.fontWeight = 'bold';
+                        usernameDisplay.style.margin = '5px 0';
+                        usernameDisplay.style.textShadow = '1px 1px 1px rgba(255, 255, 255, 0.5)';
+                        profileInfoContainer.appendChild(usernameDisplay);
+                        statusContainer = document.createElement('div');
+                        statusContainer.style.display = 'flex';
+                        statusContainer.style.alignItems = 'center';
+                        statusContainer.style.marginTop = '5px';
+                        profileInfoContainer.appendChild(statusContainer);
+                        statusIndicator = document.createElement('div');
+                        statusIndicator.style.width = '12px';
+                        statusIndicator.style.height = '12px';
+                        statusIndicator.style.borderRadius = '50%';
+                        statusIndicator.style.backgroundColor = '#4CAF50'; // Green for online - should be dynamic based on API response
+                        statusIndicator.style.marginRight = '5px';
+                        statusIndicator.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+                        statusIndicator.style.boxShadow = '0 0 3px rgba(0, 0, 0, 0.2)';
+                        statusContainer.appendChild(statusIndicator);
+                        statusText = document.createElement('span');
+                        statusText.innerText = 'Online'; // Should be dynamic based on API response
+                        statusText.style.color = '#333';
+                        statusText.style.fontSize = '14px';
+                        statusContainer.appendChild(statusText);
+                        lastLoginInfo = document.createElement('p');
+                        lastLoginInfo.innerText = 'Last login: Today at 9:45 AM'; // Should be dynamic based on API response
+                        lastLoginInfo.style.color = '#555';
+                        lastLoginInfo.style.fontSize = '12px';
+                        lastLoginInfo.style.margin = '10px 0 5px 0';
+                        lastLoginInfo.style.fontStyle = 'italic';
+                        profileInfoContainer.appendChild(lastLoginInfo);
+                        editProfileButton_1 = document.createElement('button');
+                        editProfileButton_1.innerText = 'Edit Profile';
+                        editProfileButton_1.style.padding = '5px 10px';
+                        editProfileButton_1.style.margin = '10px 0';
+                        editProfileButton_1.style.backgroundColor = '#ECE9D8';
+                        editProfileButton_1.style.border = '1px solid #ACA899';
+                        editProfileButton_1.style.borderRadius = '3px';
+                        editProfileButton_1.style.color = '#000';
+                        editProfileButton_1.style.fontSize = '12px';
+                        editProfileButton_1.style.cursor = 'pointer';
+                        editProfileButton_1.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
+                        profileInfoContainer.appendChild(editProfileButton_1);
+                        // Add hover effect for the button
+                        editProfileButton_1.addEventListener('mouseenter', function () {
+                            editProfileButton_1.style.backgroundColor = '#F0F0F0';
+                        });
+                        editProfileButton_1.addEventListener('mouseleave', function () {
+                            editProfileButton_1.style.backgroundColor = '#ECE9D8';
+                        });
+                        editProfileButton_1.addEventListener('mousedown', function () {
+                            editProfileButton_1.style.backgroundColor = '#DCDAC0';
+                            editProfileButton_1.style.boxShadow = 'inset 1px 1px 3px rgba(0, 0, 0, 0.2)';
+                        });
+                        editProfileButton_1.addEventListener('mouseup', function () {
+                            editProfileButton_1.style.backgroundColor = '#F0F0F0';
+                            editProfileButton_1.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
+                        });
+                        // API CALL NEEDED: On button click, open edit profile form and save changes to the backend
+                        editProfileButton_1.addEventListener('click', function () {
+                            // Open edit profile modal or navigate to edit profile page
+                            // Implement form to update user profile data
+                            var settingsApp = document.getElementById('settings-app-window');
+                            if (settingsApp) {
+                                openAppWindow('', 'settings-app-window');
+                                App.style.zIndex = '24';
+                                settingsApp.style.zIndex = '25';
+                                var UserAccountTab = document.getElementById('settings-app-User Account-category');
+                                if (UserAccountTab) {
+                                    UserAccountTab.click();
+                                }
+                            }
+                        });
                     }
-                });
-                _a.label = 5;
-            case 5:
+                }
                 TournamentsContent_1 = createCategorieContainer('Tournaments', rightContainer);
                 if (TournamentsContent_1) {
                     {
@@ -582,7 +567,8 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                         });
                     }
                 }
-                return [2 /*return*/];
+            }
         }
+        return [2 /*return*/];
     });
 }); });

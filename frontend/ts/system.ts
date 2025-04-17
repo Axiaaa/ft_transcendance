@@ -147,7 +147,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 	document.addEventListener('scroll', resetTimer);
 
 	// Start the initial timer
-	resetTimer();
+	let pongAppwindows = document.getElementById('pong-app-window') as HTMLElement;
+	let pongTimerInterval: NodeJS.Timeout | null = null;
+	
+	// Function to handle timer state based on pong window
+	function handleTimerState() {
+		if (pongTimerInterval) {
+			clearInterval(pongTimerInterval);
+			pongTimerInterval = null;
+		}
+		
+		if (pongAppwindows.classList.contains('opened-window')) {
+			// Reset timer immediately and set interval to reset every 5 seconds
+			resetTimer();
+			pongTimerInterval = setInterval(() => {
+				resetTimer();
+				console.log('Timer reset - Pong window is open');
+			}, 5000);
+			console.log('Periodic timer reset activated - Pong window is open');
+		} else {
+			// Normal timer behavior when pong window is closed
+			resetTimer();
+			console.log('Timer activated - Pong window is closed');
+		}
+	}
+
+	// Check initial state
+	handleTimerState();
+			
+	// Observe changes to the pong window class
+	const pongWindowObserver = new MutationObserver((mutations) => {
+		mutations.forEach((mutation) => {
+			if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+				console.log('Pong window class changed');
+				handleTimerState();
+			}
+		});
+	});
+	pongWindowObserver.observe(pongAppwindows, { attributes: true });
 
 	// SANDBOX AREA
 	{
@@ -360,4 +397,16 @@ export async function resetUserImages()
 	}
 	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
 	userWallpapers[0].src = wallpaperURL;
+}
+
+export async function updateAllUserNames()
+{
+	let currentUser = await getCurrentUser(sessionStorage.getItem("wxp_token"));
+	if (currentUser == null)
+		return;
+	let userName = currentUser.username;
+	let userNames = document.getElementsByClassName("user-name-text") as HTMLCollectionOf<HTMLSpanElement>;
+	for (let i = 0; i < userNames.length; i++) {
+		userNames[i].innerText = userName;
+	}
 }

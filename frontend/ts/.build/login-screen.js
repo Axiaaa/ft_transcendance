@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
-import { initHistoryAPI, resetUserImages, updateUserImages } from "./system.js";
+import { initHistoryAPI, resetUserImages, updateAllUserNames, updateUserImages } from "./system.js";
 import { goToDesktopPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
 var titleScreenBackground = document.createElement('div');
@@ -191,13 +191,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 switch (_a.label) {
                     case 0:
                         event.preventDefault();
-                        if (!(signUpUsername_1 && signUpPassword_1)) return [3 /*break*/, 5];
+                        if (!(signUpUsername_1 && signUpPassword_1)) return [3 /*break*/, 6];
                         username = signUpUsername_1.value;
                         password = signUpPassword_1.value;
-                        if (!(username && password)) return [3 /*break*/, 5];
+                        if (!(username && password)) return [3 /*break*/, 6];
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 4, , 5]);
+                        _a.trys.push([1, 5, , 6]);
                         return [4 /*yield*/, createUser({ username: username, password: password })];
                     case 2:
                         newUser = _a.sent();
@@ -209,18 +209,21 @@ document.addEventListener('DOMContentLoaded', function () {
                         return [4 /*yield*/, resetUserImages()];
                     case 3:
                         _a.sent();
+                        return [4 /*yield*/, updateAllUserNames()];
+                    case 4:
+                        _a.sent();
                         setTimeout(function () {
                             goToDesktopPage();
                         }, 200);
-                        return [3 /*break*/, 5];
-                    case 4:
+                        return [3 /*break*/, 6];
+                    case 5:
                         error_1 = _a.sent();
                         console.error("Error creating user:", error_1);
                         signUpUsername_1.value = "";
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         }); });
@@ -236,13 +239,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 switch (_a.label) {
                     case 0:
                         event.preventDefault();
-                        if (!(signInUsername_1 && signInPassword_1)) return [3 /*break*/, 6];
+                        if (!(signInUsername_1 && signInPassword_1)) return [3 /*break*/, 7];
                         username = signInUsername_1.value;
                         password = signInPassword_1.value;
-                        if (!(username && password)) return [3 /*break*/, 6];
+                        if (!(username && password)) return [3 /*break*/, 7];
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 5, , 6]);
+                        _a.trys.push([1, 6, , 7]);
                         return [4 /*yield*/, getUser(username, password)];
                     case 2:
                         user = _a.sent();
@@ -256,17 +259,20 @@ document.addEventListener('DOMContentLoaded', function () {
                         return [4 /*yield*/, updateUserImages()];
                     case 4:
                         _a.sent();
+                        return [4 /*yield*/, updateAllUserNames()];
+                    case 5:
+                        _a.sent();
                         setTimeout(function () {
                             goToDesktopPage();
                         }, 200);
-                        return [3 /*break*/, 6];
-                    case 5:
+                        return [3 /*break*/, 7];
+                    case 6:
                         error_2 = _a.sent();
                         console.error("Error signing in:", error_2);
                         signInUsername_1.value = "";
                         signInPassword_1.value = "";
-                        return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/];
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         }); });
