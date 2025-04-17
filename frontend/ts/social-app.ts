@@ -393,6 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				avatarImage.style.height = '100%';
 				avatarImage.style.backgroundColor = '#99ccff'; // Placeholder color
 				avatarImage.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar
+				avatarImage.classList.add('avatar-preview');
 				// API CALL NEEDED: Get user avatar
 
 				// User info
@@ -450,6 +451,8 @@ document.addEventListener('DOMContentLoaded', () => {
 					if (settingsWindow)
 					{
 						openAppWindow('', 'settings-app-window');
+						let settingBackButton = document.getElementById('settings-app-back-button') as HTMLElement;
+						settingBackButton.click();
 						Appwindow.style.zIndex = '24';
 						settingsWindow.style.zIndex = '25';
 						let UserAccountTab = document.getElementById('settings-app-User Account-category') as HTMLElement;

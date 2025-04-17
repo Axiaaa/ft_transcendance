@@ -35,8 +35,29 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { sendNotification } from "./notification.js";
-import { getUser } from "./API.js";
-import { createUser } from "./API.js";
+import { getCurrentUser, getUserAvatar, getUserBackground, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
+import { disconnectUser } from "./start-menu.js";
+var userBackground = document.createElement('img');
+userBackground.id = 'user-background';
+userBackground.className = 'user-background';
+document.body.appendChild(userBackground);
+userBackground.src = './img/Desktop/linus-wallpaper.jpg';
+userBackground.style.position = 'absolute';
+userBackground.style.zIndex = '-1';
+userBackground.style.width = '100%';
+userBackground.style.height = '100%';
+userBackground.style.objectFit = 'cover';
+userBackground.style.objectPosition = 'center';
+userBackground.style.top = '0';
+userBackground.style.left = '0';
+userBackground.style.display = 'block';
+/**
+ * Sets the background image on the body element
+ * @param url The URL of the image to set as background
+ */
+export function setBodyBackgroundImage(url) {
+    document.body.style.backgroundImage = "url(".concat(url, ")");
+}
 document.addEventListener('DOMContentLoaded', function () { return __awaiter(void 0, void 0, void 0, function () {
     function animateLogo(Logo) {
         if (!Logo)
@@ -55,10 +76,15 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
         console.log("Logo dimensions - Height:", Logo.clientHeight, "Width:", Logo.clientWidth);
         var x = screenBorderLeft;
         var y = screenBorderTop;
-        var dx = Math.round((Math.random() * 2 - 1) * 10) / 10;
-        var dy = Math.round((Math.random() * 2 - 1) * 10) / 10;
+        var dx = (Math.floor(Math.random() * 9) + 1) / 10;
+        if (Math.random() < 0.5)
+            dx = -dx;
+        var dy = (Math.floor(Math.random() * 9) + 1) / 10;
+        if (Math.random() < 0.5)
+            dy = -dy;
         console.log("SleepScreen X/Y direction" + dx + "/" + dy);
-        var speed = 5;
+        var speed = Math.max(5, Math.sqrt(Math.pow(sleepScreen.clientWidth, 2) + Math.pow(sleepScreen.clientHeight, 2)) * 0.007);
+        console.log("Animation speed:", speed);
         var interval = 50;
         var animation = setInterval(function () {
             Logo.style.left = x + 'px';
@@ -87,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                     case 0:
                         _a.trys.push([0, 3, , 4]);
                         console.log('User is inactive');
-                        sendNotification('Inactivity Alert', 'You have been inactive for 20 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
+                        sendNotification('Inactivity Alert', 'You have been inactive for 30 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
                         sleepScreen.style.display = 'block';
                         return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 200); })];
                     case 1:
@@ -114,81 +140,78 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
             });
         }); }, INACTIVE_TIMEOUT);
     }
-    var sleepScreen, sleepLogo, timeoutId, INACTIVE_TIMEOUT, CurrentUser, trashBinApp;
+    var sleepScreen, sleepLogo, timeoutId, INACTIVE_TIMEOUT, trashBinApp;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                sleepScreen = document.createElement('div');
-                document.body.appendChild(sleepScreen);
-                sleepScreen.id = 'sleep-screen';
-                sleepScreen.style.position = 'absolute';
-                sleepScreen.style.left = '0';
-                sleepScreen.style.top = '0';
-                sleepScreen.style.width = '100%';
-                sleepScreen.style.height = '100%';
-                sleepScreen.style.backgroundColor = 'rgb(0, 0, 0)';
-                sleepScreen.style.zIndex = '1000';
-                sleepScreen.style.justifyContent = 'center';
-                sleepScreen.style.alignItems = 'center';
-                sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
-                sleepLogo = document.createElement('img');
-                sleepScreen.appendChild(sleepLogo);
-                sleepLogo.src = './img/Utils/windows-xp-logo.png';
-                sleepLogo.style.width = '100px';
-                sleepLogo.style.height = '100px';
-                sleepLogo.style.position = 'absolute';
-                sleepLogo.style.padding = '0 10px';
-                animateLogo(sleepLogo);
-                INACTIVE_TIMEOUT = 20000;
-                // Reset timer on mouse movement
-                document.addEventListener('mousemove', resetTimer);
-                // Reset timer on mouse clicks
-                document.addEventListener('click', resetTimer);
-                // Reset timer on key press
-                document.addEventListener('keypress', resetTimer);
-                // Reset timer on scroll
-                document.addEventListener('scroll', resetTimer);
-                // Start the initial timer
-                resetTimer();
-                return [4 /*yield*/, getUser(1)];
-            case 1:
-                CurrentUser = _a.sent();
-                if (!!CurrentUser) return [3 /*break*/, 3];
-                return [4 /*yield*/, createUser({ username: 'Guest', password: 'guest', email: 'guest@guest.com' })];
-            case 2:
-                CurrentUser = _a.sent();
-                _a.label = 3;
-            case 3:
-                trashBinApp = document.getElementById('trash-bin-app');
-                trashBinApp.addEventListener('dblclick', function (e) { return __awaiter(void 0, void 0, void 0, function () {
-                    var user1, error_2, errorMessage;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0:
-                                _a.trys.push([0, 2, , 3]);
-                                return [4 /*yield*/, getUser(1)];
-                            case 1:
-                                user1 = _a.sent();
-                                if (user1) {
-                                    sendNotification('User Data', "User ID: ".concat(user1.id, ", Username: ").concat(user1.username, ", Email: ").concat(user1.email), './img/Utils/API-icon.png');
-                                    console.log("User ID: " + user1.id + " Username: " + user1.username);
-                                    console.log("User Data:", user1);
-                                }
-                                return [3 /*break*/, 3];
-                            case 2:
-                                error_2 = _a.sent();
-                                console.error('Error fetching user:', error_2);
-                                errorMessage = error_2 instanceof Error ? error_2.message : String(error_2);
-                                if (typeof sendNotification === 'function') {
-                                    sendNotification('Session Error', "Failed to get user: ".concat(errorMessage), './img/Utils/API-icon.png');
-                                }
-                                return [3 /*break*/, 3];
-                            case 3: return [2 /*return*/];
-                        }
-                    });
-                }); });
-                return [2 /*return*/];
+        window.addEventListener('beforeunload', function (event) {
+            event.preventDefault();
+            disconnectUser();
+            return 'You will be disconnected if you reload or leave this page. Are you sure ?';
+        });
+        sleepScreen = document.createElement('div');
+        document.body.appendChild(sleepScreen);
+        sleepScreen.id = 'sleep-screen';
+        sleepScreen.style.position = 'absolute';
+        sleepScreen.style.left = '0';
+        sleepScreen.style.top = '0';
+        sleepScreen.style.width = '100%';
+        sleepScreen.style.height = '100%';
+        sleepScreen.style.backgroundColor = 'rgb(0, 0, 0)';
+        sleepScreen.style.zIndex = '1000';
+        sleepScreen.style.justifyContent = 'center';
+        sleepScreen.style.alignItems = 'center';
+        sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
+        sleepLogo = document.createElement('img');
+        sleepScreen.appendChild(sleepLogo);
+        sleepLogo.src = './img/Utils/windows-xp-logo.png';
+        sleepLogo.style.width = '100px';
+        sleepLogo.style.height = '100px';
+        sleepLogo.style.position = 'absolute';
+        sleepLogo.style.padding = '0 10px';
+        animateLogo(sleepLogo);
+        INACTIVE_TIMEOUT = 30000;
+        // Reset timer on mouse movement
+        document.addEventListener('mousemove', resetTimer);
+        // Reset timer on mouse clicks
+        document.addEventListener('click', resetTimer);
+        // Reset timer on key press
+        document.addEventListener('keypress', resetTimer);
+        // Reset timer on scroll
+        document.addEventListener('scroll', resetTimer);
+        // Start the initial timer
+        resetTimer();
+        // SANDBOX AREA
+        {
+            trashBinApp = document.getElementById('trash-bin-app');
+            trashBinApp.addEventListener('dblclick', function (e) { return __awaiter(void 0, void 0, void 0, function () {
+                var currentUserToken, currentUser, error_2, errorMessage;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            currentUserToken = sessionStorage.getItem('wxp_token');
+                            return [4 /*yield*/, getCurrentUser(currentUserToken)];
+                        case 1:
+                            currentUser = _a.sent();
+                            if (currentUser) {
+                                sendNotification('User Data', "User ID: ".concat(currentUser.id, ", Username: ").concat(currentUser.username, ", Email: ").concat(currentUser.email), './img/Utils/API-icon.png');
+                                console.log("User ID: " + currentUser.id + " Username: " + currentUser.username);
+                                console.log("User Data:", currentUser);
+                            }
+                            return [3 /*break*/, 3];
+                        case 2:
+                            error_2 = _a.sent();
+                            console.error('Error fetching user:', error_2);
+                            errorMessage = error_2 instanceof Error ? error_2.message : String(error_2);
+                            if (typeof sendNotification === 'function') {
+                                sendNotification('Session Error', "Failed to get user: ".concat(errorMessage), './img/Utils/API-icon.png');
+                            }
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            }); });
         }
+        return [2 /*return*/];
     });
 }); });
 export function initHistoryAPI() {
@@ -296,4 +319,93 @@ export function goToFormsPage(pushState) {
     if (forms)
         forms.style.display = 'block';
     console.log('Navigated to forms page');
+}
+export function updateUserImages(fileAvatar, fileWallpaper) {
+    return __awaiter(this, void 0, void 0, function () {
+        var userID, avatarURL, wallpaperURL, error_3, userAvatars, i, error_4, userWallpapers;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    userID = Number(sessionStorage.getItem("wxp_user_id"));
+                    if (userID == null)
+                        return [2 /*return*/];
+                    avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+                    wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+                    if (!fileAvatar) return [3 /*break*/, 1];
+                    avatarURL = URL.createObjectURL(fileAvatar);
+                    return [3 /*break*/, 7];
+                case 1:
+                    _a.trys.push([1, 6, , 7]);
+                    return [4 /*yield*/, isAvatarUserExists(userID)];
+                case 2:
+                    if (!_a.sent()) return [3 /*break*/, 4];
+                    return [4 /*yield*/, getUserAvatar(userID)];
+                case 3:
+                    avatarURL = _a.sent();
+                    return [3 /*break*/, 5];
+                case 4:
+                    avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+                    _a.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
+                    error_3 = _a.sent();
+                    console.error("Error fetching avatar:", error_3);
+                    avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+                    return [3 /*break*/, 7];
+                case 7:
+                    userAvatars = document.getElementsByClassName("avatar-preview");
+                    console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
+                    for (i = 0; i < userAvatars.length; i++) {
+                        console.log(userAvatars[i] + " now = " + avatarURL);
+                        userAvatars[i].src = avatarURL;
+                    }
+                    if (!fileWallpaper) return [3 /*break*/, 8];
+                    wallpaperURL = URL.createObjectURL(fileWallpaper);
+                    return [3 /*break*/, 14];
+                case 8:
+                    _a.trys.push([8, 13, , 14]);
+                    return [4 /*yield*/, isBackgroundUserExists(userID)];
+                case 9:
+                    if (!_a.sent()) return [3 /*break*/, 11];
+                    return [4 /*yield*/, getUserBackground(userID)];
+                case 10:
+                    wallpaperURL = _a.sent();
+                    return [3 /*break*/, 12];
+                case 11:
+                    wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+                    _a.label = 12;
+                case 12: return [3 /*break*/, 14];
+                case 13:
+                    error_4 = _a.sent();
+                    console.error("Error fetching wallpaper:", error_4);
+                    wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+                    return [3 /*break*/, 14];
+                case 14:
+                    userWallpapers = document.getElementsByClassName("user-background");
+                    console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
+                    userWallpapers[0].src = wallpaperURL;
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+;
+export function resetUserImages() {
+    return __awaiter(this, void 0, void 0, function () {
+        var userID, avatarURL, wallpaperURL, userAvatars, i, userWallpapers;
+        return __generator(this, function (_a) {
+            userID = Number(sessionStorage.getItem("wxp_user_id"));
+            if (userID == null)
+                return [2 /*return*/];
+            avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+            wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+            userAvatars = document.getElementsByClassName("avatar-preview");
+            for (i = 0; i < userAvatars.length; i++) {
+                userAvatars[i].src = avatarURL;
+            }
+            userWallpapers = document.getElementsByClassName("user-background");
+            userWallpapers[0].src = wallpaperURL;
+            return [2 /*return*/];
+        });
+    });
 }

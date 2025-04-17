@@ -1,10 +1,13 @@
-import { getCurrentUser, updateUser } from "./API.js";
+import { getCurrentUser, getUserAvatar, getUserBackground, updateUser } from "./API.js";
+import { Cookies, getCookie, setCookie } from 'typescript-cookie'
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
-import { initHistoryAPI } from "./system.js";
+import { initHistoryAPI, resetUserImages, updateUserImages } from "./system.js";
 import { goToDesktopPage } from "./system.js";
 import { goToFormsPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
+import { sign } from "crypto";
+import { Session } from "inspector/promises";
 
 let	titleScreenBackground = document.createElement('div');
 titleScreenBackground.id = 'title-screen-background';
@@ -160,6 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	form.appendChild(backbutton);
 
 	backbutton.addEventListener('click', () => {
+		const existingErrorBox = document.querySelector('.error-box');
+		if (existingErrorBox) {
+			existingErrorBox.remove();
+		}
 		goToLoginPage();
 		form.style.display = 'none';
 		for (let i = 0; i < profiles.length; i++) {
@@ -185,10 +192,49 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // SANDBOX AREA
+
+export async function showError(message: string) {
+	const errorBox = document.createElement('div');
+	errorBox.className = 'error-box';
+	errorBox.textContent = message;
+	errorBox.style.position = 'fixed';
+	errorBox.style.top = '10px';
+	errorBox.style.left = '50%';
+	errorBox.style.transform = 'translateX(-50%)';
+	errorBox.style.backgroundColor = 'red';
+	errorBox.style.color = 'white';
+	errorBox.style.padding = '10px 20px';
+	errorBox.style.borderRadius = '5px';
+	errorBox.style.zIndex = '1000';
+	errorBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+	errorBox.style.fontSize = '14px';
+	errorBox.style.fontWeight = 'bold';
+
+
+	const existingErrorBox = document.querySelector('.error-box');
+	if (existingErrorBox) {
+		existingErrorBox.remove();
+	}
+
+	document.body.appendChild(errorBox);
+	errorBox.style.opacity = '0';
+	errorBox.style.transition = 'opacity 0.5s ease-in-out';
+	setTimeout(() => {
+		errorBox.style.opacity = '1';
+	}, 0);
+	setTimeout(() => {
+		errorBox.style.opacity = '0';
+		setTimeout(() => {
+			errorBox.remove();
+		}, 500);
+	}, 5000);
+}
+
 {
 	let signUpForm = document.getElementById("sign-up-form") as HTMLFormElement;
 	let signUpButton = document.getElementById("sign-up-button") as HTMLButtonElement;
 	let signUpUsername = document.getElementById("sign-up-username") as HTMLInputElement;
+	let signUpConfirmPassword = document.getElementById("sign-up-confirm-password") as HTMLInputElement;
 	let signUpPassword = document.getElementById("sign-up-password") as HTMLInputElement;
 	if (signUpButton) {
 		signUpButton.addEventListener("click", async (event) => {
@@ -196,18 +242,102 @@ document.addEventListener('DOMContentLoaded', () => {
 			if (signUpUsername && signUpPassword) {
 				const username = signUpUsername.value;
 				const password = signUpPassword.value;
-				if (username && password) {
-					try {
-						const newUser = await createUser({ username, password });
-						console.log("User created:", newUser);
-						// Optionally, redirect to a different page or show a success message
-					} catch (error) {
-						console.error("Error creating user:", error);
-						// Optionally, show an error message to the user
+				const confirmPassword = signUpConfirmPassword.value;
+				if (username && password && confirmPassword) {
+					if (password == confirmPassword)
+					{
+						if (password.length >= 8)
+						{
+							if (/[A-Z]/.test(password))
+							{
+								if (/[a-z]/.test(password))
+								{
+									if (/[0-9]/.test(password))
+									{
+										try
+										{
+											const existingErrorBox = document.querySelector('.error-box');
+											if (existingErrorBox) {
+												existingErrorBox.remove();
+											}
+											const newUser = await createUser({ username, password });
+											sessionStorage.setItem("wxp_token", newUser.token);
+											sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
+											signUpUsername.value = "";
+											signUpPassword.value = "";
+											signUpConfirmPassword.value = "";
+											await resetUserImages();
+											setTimeout(() => {
+												goToDesktopPage();
+											}, 200);
+										}
+										catch (error)
+										{
+											const existingErrorBox = document.querySelector('.error-box');
+											if (existingErrorBox) {
+												existingErrorBox.remove();
+											}
+											showError("User already exists.");
+											signUpUsername.value = "";
+											signUpPassword.value = "";
+											signUpConfirmPassword.value = "";
+										}
+									}
+									else {
+										const existingErrorBox = document.querySelector('.error-box');
+										if (existingErrorBox) {
+											existingErrorBox.remove();
+										}
+										showError("Password must contain at least one number.");
+										signUpUsername.value = "";
+										signUpPassword.value = "";
+										signUpConfirmPassword.value = "";
+									}
+								}
+								else {
+									const existingErrorBox = document.querySelector('.error-box');
+									if (existingErrorBox) {
+										existingErrorBox.remove();
+									}
+									showError("Password must contain at least one lowercase letter.");
+									signUpUsername.value = "";
+									signUpPassword.value = "";
+									signUpConfirmPassword.value = "";
+								}
+							}
+							else{
+								const existingErrorBox = document.querySelector('.error-box');
+								if (existingErrorBox) {
+									existingErrorBox.remove();
+								}
+								showError("Password must contain at least one uppercase letter.");
+								signUpUsername.value = "";
+								signUpPassword.value = "";
+								signUpConfirmPassword.value = "";
+							}
+						}
+						else{
+							const existingErrorBox = document.querySelector('.error-box');
+							if (existingErrorBox) {
+								existingErrorBox.remove();
+							}
+							showError("Password must be at least 8 characters long.");
+							signUpUsername.value = "";
+							signUpPassword.value = "";
+							signUpConfirmPassword.value = "";
+							}
 					}
-				}
-			}
-		});
+					else{
+						const existingErrorBox = document.querySelector('.error-box');
+						if (existingErrorBox) {
+							existingErrorBox.remove();
+						}
+						showError("Passwords do not match.");
+						signUpUsername.value = "";
+						signUpPassword.value = "";
+						signUpConfirmPassword.value = "";
+					}	
+		}}});
 	}
 
 
@@ -215,4 +345,42 @@ document.addEventListener('DOMContentLoaded', () => {
 	let signInButton = document.getElementById("sign-in-button") as HTMLButtonElement;
 	let signInUsername = document.getElementById("sign-in-username") as HTMLInputElement;
 	let signInPassword = document.getElementById("sign-in-password") as HTMLInputElement;
+	if (signInButton) {
+		signInButton.addEventListener("click", async (event) => {
+			event.preventDefault();
+			if (signInUsername && signInPassword) {
+				const username = signInUsername.value;
+				const password = signInPassword.value;
+				if (username && password) {
+					try {
+						const existingErrorBox = document.querySelector('.error-box');
+							if (existingErrorBox) {
+								existingErrorBox.remove();
+							}
+						const user = await getUser(username, password );
+						sessionStorage.setItem("wxp_token", user.token);
+						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
+						signInUsername.value = "";
+						signInPassword.value = "";
+						await resetUserImages();
+						await updateUserImages();
+						setTimeout(() => {
+							goToDesktopPage();
+						}, 200);
+					} 
+					catch (error) {
+						const existingErrorBox = document.querySelector('.error-box');
+							if (existingErrorBox) {
+								existingErrorBox.remove();
+							}
+							showError("Username or password is incorrect.");
+						signInUsername.value = "";
+						signInPassword.value = "";
+					}
+				}
+			}
+		});
+	}
 }
+
+export { updateUserImages, resetUserImages };

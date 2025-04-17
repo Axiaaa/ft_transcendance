@@ -1,14 +1,17 @@
 import { sys } from "../node_modules/typescript/lib/typescript.js";
 import { sendNotification } from "./notification.js";
+import { deleteUserAvatar, deleteUserBackground, getUserBackground, updateUser } from "./API.js";
 
+import { getUserAvatar, uploadFile } from "./API.js";
+import { updateUserImages } from "./login-screen.js";
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
 
 	let categoryContainer = document.getElementById('settings-app-category-container') as HTMLElement;
 
 	let appearanceCategory = document.getElementById('settings-app-appearance-container') as HTMLElement;
-	
+
 	
 	// Appearance Settings
 	
@@ -81,12 +84,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		importButton.onclick = () => fileInput.click();
 
-		fileInput.onchange = (e) => {
+		fileInput.onchange = async (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
-				currentWallpaperName.textContent = file.name;
-				document.body.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
-				sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
+				let currentuserID = await Number(sessionStorage.getItem('wxp_user_id'));
+				await uploadFile(currentuserID, file, 'wallpaper')
+				.then(response => {
+					if (response && response.ok === true) {
+						let wallpaperURL = document.getElementsByClassName('user-background')[0] as HTMLImageElement;
+						if (wallpaperURL)
+							wallpaperURL.src = URL.createObjectURL(file);
+						currentWallpaperName.textContent = file.name;
+						updateUserImages(undefined, file);
+						document.body.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+						sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
+					}
+				}).catch(error => {
+					console.error('Error uploading wallpaper:', error);
+					sendNotification('Error', 'Failed to upload wallpaper', "./img/Utils/error-icon.png");
+				});
 			}
 			else
 				sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
@@ -246,6 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		let currentAvatarPreview = document.createElement('img');
 		leftColumn.appendChild(currentAvatarPreview);
 		currentAvatarPreview.id = 'current-avatar-preview';
+		currentAvatarPreview.classList.add('avatar-preview');
 		currentAvatarPreview.src = './img/Login_Screen/demo-user-profile-icon.jpg';
 		currentAvatarPreview.style.width = '55px';
 		currentAvatarPreview.style.height = '55px';
@@ -288,12 +305,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		importButton.onclick = () => fileInput.click();
 
-		fileInput.onchange = (e) => {
+		fileInput.onchange = async (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
-				currentAvatarName.textContent = file.name;
-				currentAvatarPreview.src = URL.createObjectURL(file);
-				sendNotification('Avatar Changed', `Avatar changed to ${file.name}`, "./img/Utils/profile-icon.png");
+				let currentuserID = await Number(sessionStorage.getItem('wxp_user_id'));
+				await uploadFile(currentuserID, file, 'avatar')
+				.then(async response => {
+					if (response && response.ok === true) {
+						let newAvatar = await getUserAvatar(currentuserID);
+						if (newAvatar)
+							console.log("New avatar URL: ", newAvatar);
+						currentAvatarName.textContent = file.name;
+						currentAvatarPreview.src = URL.createObjectURL(file);
+						updateUserImages(file);
+						sendNotification('Avatar Changed', `Avatar changed to ${newAvatar}`, "./img/Utils/profile-icon.png");
+					}
+				}).catch(error => {
+					console.error('Error uploading avatar:', error);
+					sendNotification('Error', 'Failed to upload avatar', "./img/Utils/error-icon.png");
+				});
+				
 			}
 			else {
 				sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
@@ -361,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			if (confirm(`Are you sure you want to change your username to "${nameInput.value}"?`)) {
 				sendNotification('Username Changed', `Username changed to ${nameInput.value}`, "./img/Utils/profile-icon.png");
+				updateUser(sessionStorage.getItem('wxp_token'), { username: nameInput.value })
 				nameInput.value = '';
 			}
 		};
@@ -451,6 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			if (confirm('Are you sure you want to change your password?')) {
 				sendNotification('Password Changed', 'Password successfully changed', "./img/Utils/profile-icon.png");
+				updateUser(sessionStorage.getItem('wxp_token'), { password: passwordInput.value })
 				passwordInput.value = '';
 				confirmPasswordInput.value = '';
 			}
@@ -641,29 +674,30 @@ document.addEventListener('DOMContentLoaded', () => {
 			latestVersionStatusCheckButton.onclick = () => {
 				latestVersionStatusCheckButton.textContent = 'Checking...';
 				latestVersionStatusCheckButton.disabled = true;
-				fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
-				.then(response => response.json())
-				.then(data => {
-					latestVersionStatusText = data.tag_name;
-					console.log('Latest version:', latestVersionStatusText);
-					latestVersionStatus.textContent = latestVersionStatusText;
-					if (!latestVersionStatusText || latestVersionStatusText.includes('API rate limit exceeded')) {
-						sendNotification('Error', 'Failed to check version', "./img/Utils/error-icon.png");
-					} else if (latestVersionStatusText === currentVersion.textContent) {
-						sendNotification('System Update', 'System is up to date', "./img/Utils/update-icon.png");
-					} else {
-						sendNotification('System Update', 'New version available', "./img/Utils/update-icon.png");
-					}
-					latestVersionStatusCheckButton.textContent = 'Check for Updates';
-				})
-				.catch(error => {
-					console.error('Error fetching latest version:', error);
-					latestVersionStatusText = "Beta 0.7"; // Fallback version if fetch fails
-					latestVersionStatus.textContent = latestVersionStatusText;
-					sendNotification('Error', 'Failed to check for updates', "./img/Utils/error-icon.png");
-					latestVersionStatusCheckButton.textContent = 'Check for Updates';
-				});
+				// fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
+				// .then(response => response.json())
+				// .then(data => {
+				// 	latestVersionStatusText = data.tag_name;
+				// 	console.log('Latest version:', latestVersionStatusText);
+				// 	latestVersionStatus.textContent = latestVersionStatusText;
+				// 	if (!latestVersionStatusText || latestVersionStatusText.includes('API rate limit exceeded')) {
+				// 		sendNotification('Error', 'Failed to check version', "./img/Utils/error-icon.png");
+				// 	} else if (latestVersionStatusText === currentVersion.textContent) {
+				// 		sendNotification('System Update', 'System is up to date', "./img/Utils/update-icon.png");
+				// 	} else {
+				// 		sendNotification('System Update', 'New version available', "./img/Utils/update-icon.png");
+				// 	}
+				// 	latestVersionStatusCheckButton.textContent = 'Check for Updates';
+				// })
+				// .catch(error => {
+				// 	console.error('Error fetching latest version:', error);
+				// 	latestVersionStatusText = "Beta 0.7"; // Fallback version if fetch fails
+				// 	latestVersionStatus.textContent = latestVersionStatusText;
+				// 	sendNotification('Error', 'Failed to check for updates', "./img/Utils/error-icon.png");
+				// 	latestVersionStatusCheckButton.textContent = 'Check for Updates';
+				// });
 				setTimeout(() => latestVersionStatusCheckButton.disabled = false, 3000);
+				latestVersionStatusCheckButton.textContent = 'Check for Updates';
 			};
 			latestVersionStatusCheckButton.textContent = 'Check for Updates';
 			latestVersionStatusCheckButton.style.padding = '5px 10px';
@@ -696,9 +730,16 @@ document.addEventListener('DOMContentLoaded', () => {
 			restoreSystemButton.style.marginBottom = '0';
 			restoreSystemButton.onclick = () => {
 				restoreSystemButton.disabled = true;
-				restoreSystemButton.textContent = 'Restoring...';
 				if (confirm('Are you sure you want to restore the system ?')) {
-					sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
+					restoreSystemButton.textContent = 'Restoring...';
+					setTimeout(() => {
+						// API call needs to be made here
+						// For now, we will just simulate the restore process
+						deleteUserAvatar(Number(sessionStorage.getItem('wxp_user_id')));
+						deleteUserBackground(Number(sessionStorage.getItem('wxp_user_id')));
+						sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
+					});
+					
 				}
 				setTimeout(() => {
 					restoreSystemButton.disabled = false;
@@ -1297,3 +1338,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 });
+function getElementByClassName(arg0: string) {
+	throw new Error("Function not implemented.");
+}
+

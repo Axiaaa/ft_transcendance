@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS `users` (
     `avatar` TEXT NOT NULL,
     `background` TEXT NOT NULL,
     `last_login` REAL NOT NULL,
-    `font_size` INTEGER NOT NULL DEFAULT 12
+    `font_size` INTEGER NOT NULL DEFAULT 12,
+    `token` TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `friends` (

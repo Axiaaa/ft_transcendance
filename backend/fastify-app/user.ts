@@ -3,6 +3,7 @@ import { server, db, salt } from ".";
 import { getMatchFromDb } from "./matchs";
 import path from "path";
 import { sha256 } from "js-sha256";
+import crypto from "crypto";
 
 export const DEFAULT_AVATAR_URL : string = "https://zizi.fr";
 export const DEFAULT_BACKGROUND_URL : string = "https://zizi.fr";
@@ -24,16 +25,16 @@ export class User implements User {
     public friend_list: Array<number>;
     public pending_friend_list: Array<number>;
     public font_size: number;
+    public token : string;
 
     constructor(
         username: string,
-        email: string,
         password: string,
     )
     {
         this.id = 0; //Id value is only a placeholder, It'll be set in the DB
         this.username = username;
-        this.email = email;
+        this.email = username;
         this.password = sha256.hmac(salt, password);
         this.is_online = false;
         this.created_at = new Date();
@@ -46,6 +47,7 @@ export class User implements User {
         this.friend_list = new Array<number>();
         this.pending_friend_list = new Array<number>();
         this.font_size = 15;
+        this.token = crypto.randomBytes(32).toString('hex');
     }
 
     
@@ -58,8 +60,8 @@ export class User implements User {
         
         try {
             const insertUser = db.prepare(`
-                INSERT INTO users (username, email, password, is_online, created_at, win_nbr, loss_nbr, avatar, background, last_login, font_size)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO users (username, email, password, is_online, created_at, win_nbr, loss_nbr, avatar, background, last_login, font_size, token)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `);
                 
                     db.transaction(() => {
@@ -75,8 +77,8 @@ export class User implements User {
                             this.avatar,
                             this.background,
                             Number(this.last_login),
-                            this.font_size
-                            
+                            this.font_size,
+                            this.token
                 );
                 const lastId = result.lastInsertRowid as number;
                 this.id = lastId;
@@ -104,7 +106,7 @@ export class User implements User {
         try {
             const updateUser = db.prepare(`
                 UPDATE users 
-                SET username = ?, email = ?, password = ?, is_online = ?, win_nbr = ?, loss_nbr = ?, avatar = ?, background = ?, last_login = ?, font_size = ?
+                SET username = ?, email = ?, password = ?, is_online = ?, win_nbr = ?, loss_nbr = ?, avatar = ?, background = ?, last_login = ?, font_size = ?, token = ?
                 WHERE id = ?
             `);
 
@@ -126,6 +128,7 @@ export class User implements User {
                     this.background,
                     Number(this.last_login),
                     this.font_size,
+                    this.token,
                     this.id,
                 );
                 deleteFriends.run(this.id);
@@ -208,11 +211,15 @@ export class User implements User {
     }
 }
 
-export async function getUserFromDb(query: number): Promise<User | null> {
+export async function getUserFromDb(query: Partial<User>): Promise<User | null> {
+    try {
+        const conditions = Object.keys(query)
+            .map(key => `${key} = ?`)
+            .join(" AND ");
+        const values = Object.values(query);
 
-    try { 
-        const sqlRequest = "SELECT * FROM users WHERE id = ?";
-        const userRow = db.prepare(sqlRequest).get(query) as { 
+        const sqlRequest = `SELECT * FROM users WHERE ${conditions}`;
+        const userRow = db.prepare(sqlRequest).get(...values) as { 
             id: number;
             username: string;
             email: string;
@@ -225,12 +232,14 @@ export async function getUserFromDb(query: number): Promise<User | null> {
             background: string;
             last_login: string;
             font_size: number;
-        } | undefined; 
+            token: string;
+        } | undefined;
 
         if (!userRow) return null;
 
-        let user: User = new User(userRow.username, userRow.email, userRow.password);
+        let user: User = new User(userRow.username, userRow.password);
         user.id = userRow.id;
+        user.password = userRow.password;
         user.is_online = userRow.is_online === 1;
         user.created_at = new Date(userRow.created_at);
         user.win_nbr = userRow.win_nbr;
@@ -239,11 +248,12 @@ export async function getUserFromDb(query: number): Promise<User | null> {
         user.background = userRow.background;
         user.last_login = new Date(userRow.last_login);
         user.font_size = userRow.font_size;
+        user.token = userRow.token;
         const friends = await getFriendsFromDb(user.id);
         if (friends) user.friend_list = friends.map(f => f.id);
-        const pending_friends = await getPendingFriendsListFromDb(user.id)
-        if (pending_friends) user.pending_friend_list = pending_friends.map(f => f.id); 
-        
+        const pending_friends = await getPendingFriendsListFromDb(user.id);
+        if (pending_friends) user.pending_friend_list = pending_friends.map(f => f.id);
+
         const userId = Number(user.id);
         const matches = db.prepare("SELECT * FROM matchs").all() as Array<Match>;
         const userMatches = matches.filter(match => match.player1 === userId.toString() || match.player2 === userId.toString());
@@ -251,7 +261,7 @@ export async function getUserFromDb(query: number): Promise<User | null> {
         return user;
 
     } catch (error) {
-        server.log.error(`Could not fetch user from DB ${error}`)
+        server.log.error(`Could not fetch user from DB ${error}`);
         return null;
     }
 }
@@ -263,7 +273,7 @@ export async function getFriendsFromDb(userId: number): Promise<Array<User> | nu
         const friendsRow = db.prepare(sqlRequest).all(userId) as Array<{ friend_id: number }>;
         const users = new Array<User>();
         for (const friend of friendsRow) {
-            const user = await getUserFromDb(friend.friend_id);
+            const user = await getUserFromDb({ id: friend.friend_id });
             if (user) users.push(user);
         }
         return users;
@@ -280,12 +290,82 @@ export async function getPendingFriendsListFromDb(userId: number): Promise<Array
         const friendsRow = db.prepare(sqlRequest).all(userId) as Array<{ friend_id: number }>;
         const users = new Array<User>();
         for (const friend of friendsRow) {
-            const user = await getUserFromDb(friend.friend_id);
+            const user = await getUserFromDb({ id: friend.friend_id });
             if (user) users.push(user);
         }
         return users;
     } catch (error) {
         server.log.error(`Could not fetch pending friends from DB ${error}`)
+        return null;
+    }
+}
+
+export  async function updateUserAvatar(user: User, filePath: string) : Promise<string | null> {
+    const userFromDb = await getUserFromDb({ id: user.id });
+    if (userFromDb == null) {
+        return "User not found";
+    }
+    userFromDb.avatar = filePath;
+    const req_message = await userFromDb.updateUserInDb();
+    return req_message;
+}
+
+export async function updateUserBackground(user: User, filePath: string) : Promise<string | null> {
+    const userFromDb = await getUserFromDb({ id: user.id });
+    if (userFromDb == null) {
+        return "User not found";
+    }
+    userFromDb.background = filePath;
+    const req_message = await userFromDb.updateUserInDb();
+    return req_message;
+}
+export async function getUserFromHash(username: string, password: string): Promise<User | null> {
+    try {
+        const hash_password = sha256.hmac(salt, password);
+        const existingUser = db.prepare('SELECT * FROM users WHERE username = ? AND password = ?');
+        const userRow = existingUser.get(username, hash_password) as { 
+            id: number;
+            username: string;
+            email: string;
+            password: string;
+            is_online: number;
+            created_at: string;
+            win_nbr: number;
+            loss_nbr: number;
+            avatar: string;
+            background: string;
+            last_login: string;
+            font_size: number;
+            token: string;
+        } | undefined; 
+
+        if (!userRow) return null;
+
+        let user: User = new User(userRow.username, userRow.password);
+        user.id = userRow.id;
+        user.password = userRow.password;
+        user.is_online = userRow.is_online === 1;
+        user.created_at = new Date(userRow.created_at);
+        user.win_nbr = userRow.win_nbr;
+        user.loss_nbr = userRow.loss_nbr;
+        user.avatar = userRow.avatar;
+        user.background = userRow.background;
+        user.last_login = new Date(userRow.last_login);
+        user.font_size = userRow.font_size;
+        user.token = userRow.token;
+        const friends = await getFriendsFromDb(user.id);
+        if (friends) user.friend_list = friends.map(f => f.id);
+        const pending_friends = await getPendingFriendsListFromDb(user.id)
+        if (pending_friends) user.pending_friend_list = pending_friends.map(f => f.id);
+
+        
+        const userId = Number(user.id);
+        const matches = db.prepare("SELECT * FROM matchs").all() as Array<Match>;
+        const userMatches = matches.filter(match => match.player1 === userId.toString() || match.player2 === userId.toString());
+        user.history = userMatches.map(match => match.id);
+        return user;
+    } catch (error) {
+        server.log.error(`Could not fetch user from DB ${error}`)
         return null;
     }
 }

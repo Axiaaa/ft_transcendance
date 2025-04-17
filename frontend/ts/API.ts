@@ -1,4 +1,7 @@
+import { resetUserImages } from "./login-screen.js";
 import {sendNotification} from "./notification.js";
+import { getCookie, setCookie } from 'typescript-cookie'
+
 
 // API.ts - Client for API interactions
 
@@ -6,16 +9,22 @@ import {sendNotification} from "./notification.js";
  * User interface representing a user entity from the API
  */
 interface User {
-	id: number;
-	username: string;
-	email: string;
-	password: string;
-	isOnline: boolean;
-	created_at: string;
-	win_nbr: number;
-	loss_nbr: number;
-	avatar: string;
-	// Add other user properties as needed
+    id?: number;
+    email: string;  
+    password: string;
+    username: string;
+    is_online: boolean;
+    created_at: Date;
+    last_login: Date;
+    history: Array<number>;
+    win_nbr: number;
+    loss_nbr: number; 
+    avatar: string;
+    background: string;
+    friend_list: Array<number>;
+    pending_friend_list: Array<number>;
+    font_size: number;
+	token: string;
 }
 
 /**
@@ -23,10 +32,10 @@ interface User {
  */
 const API_CONFIG = {
 	baseUrl: '/api',
-	credentials: {
-		username: 'admin',
-		password: 'adminpassword'
-	}
+	// credentials: {
+	// 	username: 'admin',
+	// 	password: 'adminpassword'
+	// }
 };
 
 /*
@@ -39,36 +48,44 @@ const API_CONFIG = {
 	}
 };
 */
-
 /**
  * Base fetch function with authentication
  * @param url - API endpoint
  * @param options - Fetch options
  * @returns Promise with response
  */
-async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
-	const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
+async function apiFetch(url: string, options: RequestInit = {}, useJsonContentType = true, nojson?: boolean): Promise<Response> {
+	// const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
 	
-	const headers = {
-		'Authorization': `Basic ${credentials}`,
-		'Content-Type': 'application/json',
+	let headers: HeadersInit = {
+		'Authorization': `Bearer ${sessionStorage.getItem('wxp_token')}`,
 		...options.headers
 	};
 
+	// Only add Content-Type if specified (useful to exclude when using FormData)
+	if (!nojson && useJsonContentType) {
+		headers = {
+			...headers,
+			'Content-Type': 'application/json'
+		};
+	}
+	
+	console.log('API Fetch:', `${API_CONFIG.baseUrl}${url}`, options);
+	console.log('Headers:', headers);
+	console.log('Body:', options.body);
 	const response = await fetch(`${API_CONFIG.baseUrl}${url}`, {
 		...options,
 		headers
 	});
 	
-	if (!response.ok) {
-		const error = new Error(`HTTP error! status: ${response.status}`);
-		(error as any).status = response.status;
-		throw error;
-	}
+	// if (!response.ok) {
+	// 	const error = new Error(`HTTP error! status: ${response.status}`);
+	// 	(error as any).status = response.status;
+	// 	throw error;
+	// }
 	
 	return response;
 }
-
 
 
 /**
@@ -99,12 +116,44 @@ export async function getAllUsers(): Promise<User[]> {
 
 /**
  * Get user by ID
- * @param userId - User ID to fetch
+ * @param userId - User ID
  * @returns Promise with User object
+ * @throws Will throw an error if the user is not found
  */
-export async function getUser(userId: number): Promise<User> {
+export async function getUserById(userId: number): Promise<User> {
 	try {
 		const response = await apiFetch(`/users/${userId}`);
+		if (!response.ok) {
+			const error = new Error(`HTTP error! status: ${response.status}`);
+			(error as any).status = response.status;
+			throw error;
+		}
+		return await response.json();
+	} catch (error) {
+		console.error('Error fetching user by ID:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to fetch user by ID: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+}
+
+
+/**
+ * Get user by username and password
+ * @param username - User's username
+ * @param password - User's password
+ * @returns Promise with User object
+ */
+export async function getUser(username: string, password: string): Promise<User> {
+	try {
+		const response = await apiFetch(`/users/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+		if (!response.ok) {
+			const error = new Error(`HTTP error! status: ${response.status}`);
+			(error as any).status = response.status;
+			throw error;
+		}
 		return await response.json();
 	} catch (error) {
 		console.error('Error fetching user:', error);
@@ -112,7 +161,7 @@ export async function getUser(userId: number): Promise<User> {
 		if (typeof sendNotification === 'function') {
 			sendNotification('API Error', `Failed to fetch user data: ${errorMessage}`, './img/Utils/API-icon.png');
 		}
-		throw error;
+		throw error;	
 	}
 }
 
@@ -120,11 +169,13 @@ export async function getUser(userId: number): Promise<User> {
  * Get current user from the session
  * @returns Promise with the current User object
  */
-export async function getCurrentUser(): Promise<User> {
+export async function getCurrentUser(token : string | null): Promise<User> {
+	if (token === null) {
+		throw new Error('Token isn\'t valid, try to log in again');
+	}
 	try {
 		// This endpoint should be adjusted based on your actual API
-		// Typically APIs have a /me or /current-user endpoint
-		const response = await apiFetch('/users/me');
+		const response = await apiFetch(`/users/${token}`);
 		
 		const user = await response.json();
 		console.log("Current User:", user);
@@ -153,15 +204,21 @@ export async function getCurrentUser(): Promise<User> {
 // Create a new user
 export async function createUser(userData: Partial<User>): Promise<User> {
 	try {
-		const response = await apiFetch('/users', {
+		const response = await apiFetch('/users/login', {
 			method: 'POST',
 			body: JSON.stringify(userData)
 		});
 		
+		if (!response.ok) {
+			const error = new Error(`HTTP error! status: ${response.status}`);
+			(error as any).status = response.status;
+			throw error;
+		}
+
 		return await response.json();
+
 	} catch (error) {
 		console.error('Error creating user:', error);
-		
 		// Handle conflict (user already exists)
 		if ((error as any).status === 409) {
 			const conflictMessage = "User already exists. Please try a different username or email.";
@@ -192,14 +249,16 @@ export async function createUser(userData: Partial<User>): Promise<User> {
  * // Update a user's name
  * const updatedUser = await updateUser(123, { name: "John Doe" });
  */
-export async function updateUser(userId: number, userData: Partial<User>): Promise<User> {
+export async function updateUser(token: string | null, userData: Partial<User>) {
+	if (token === null) {
+		throw new Error('Token isn\'t valid, try to log in again');
+	}
 	try {
-		const response = await apiFetch(`/users/${userId}`, {
-			method: 'PUT',
+		const response = await apiFetch(`/users/${token}`, {
+			method: 'PATCH',
 			body: JSON.stringify(userData)
 		});
 		
-		return await response.json();
 	} catch (error) {
 		console.error('Error updating user:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
@@ -220,7 +279,7 @@ export async function deleteUser(userId: number): Promise<User> {
 		const response = await apiFetch(`/users/${userId}`, {
 			method: 'DELETE'
 		});
-		
+		sendNotification('User Deleted', `User with ID ${userId} deleted successfully`, './img/Utils/API-icon.png');
 		return await response.json();
 	} catch (error) {
 		console.error('Error deleting user:', error);
@@ -270,6 +329,152 @@ export async function loginUser(username: string, password: string): Promise<Use
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		if (typeof sendNotification === 'function') {
 			sendNotification('Login Error', `Failed to log in: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+}
+
+export async function uploadFile(userId: number, file: File, fileType: string): Promise<Response | null> {
+	const formData = new FormData();
+	formData.append('file', file);
+	formData.append('metadata', JSON.stringify({ userId, fileType }));
+	try {
+		const response = await apiFetch(`/user_images/${fileType}/${userId}`, {
+			method: 'POST',
+			body: formData,
+		}, false);
+		
+		if (response.ok) {
+			const result = await response.json();
+			console.log('File uploaded successfully:', result);
+			sendNotification('File Uploaded', `File uploaded successfully: ${result.message}`, "./img/Utils/API-icon.png");
+			return response;
+		} else {
+			const error = await response.json();
+			console.error('Error uploading file:', error);
+			sendNotification('Error', `Error uploading file: ${error.message || 'Unknown error'}`, "./img/Utils/error-icon.png");
+		}
+	} catch (error) {
+		console.error('Error uploading file:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		sendNotification('Error', `Error uploading file: ${errorMessage}`, "./img/Utils/error-icon.png");
+	}
+	
+	return null;
+}
+
+export async function deleteUserAvatar(userId: number): Promise<void> {
+	try {
+		console.log(`Attempting to delete avatar for user ${userId}`);
+		
+		const response = await apiFetch(`/user_images/avatar/${userId}`, {
+			method: 'DELETE'
+		}, false, true);
+		
+		if (response.ok) {
+			const result = await response.json();
+			console.log('Avatar deleted successfully');
+			sendNotification('Avatar Deleted', `Avatar deleted successfully: ${result.message}`, "./img/Utils/API-icon.png");
+			resetUserImages();
+			return;
+		}
+		else {
+			const error = await response.json();
+			console.error('Error deleting avatar:', error);
+			sendNotification('Error', `Error deleting avatar: ${error.message || 'Unknown error'}`, "./img/Utils/error-icon.png");
+		}
+		
+	}
+	catch (error) {
+		throw error;
+	}
+}
+
+export async function isAvatarUserExists(userId: number): Promise<boolean> {
+	try {
+		const response = await apiFetch(`/user_images/avatar/${userId}`, {
+			method: 'GET'
+		});
+		return response.ok;
+	} catch (error) {
+		console.error('Error checking avatar existence:', error);
+		return false;
+	}
+}
+
+export async function isBackgroundUserExists(userId: number): Promise<boolean> {
+	try {
+		const response = await apiFetch(`/user_images/wallpaper/${userId}`, {
+			method: 'GET'
+		});
+		return response.ok;
+	} catch (error) {
+		console.error('Error checking background existence:', error);
+		return false;
+	}
+}
+
+export async function deleteUserBackground(userId: number): Promise<void> {
+	try {
+		console.log(`Attempting to delete background for user ${userId}`);
+		const response = await apiFetch(`/user_images/wallpaper/${userId}`, {
+			method: 'DELETE'
+		}, false, true);
+		if (response.ok) {
+			const result = await response.json();
+			console.log('Background deleted successfully');
+			sendNotification('Background Deleted', `Background deleted successfully: ${result.message}`, "./img/Utils/API-icon.png");
+			resetUserImages();
+			return;
+		}
+		else {
+			const error = await response.json();
+			console.error('Error deleting background:', error);
+			sendNotification('Error', `Error deleting background: ${error.message || 'Unknown error'}`, "./img/Utils/error-icon.png");
+		}
+	}
+	catch (error) {
+		console.error('Error deleting background:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		sendNotification('Error', `Error deleting background: ${errorMessage}`, "./img/Utils/error-icon.png");
+	}
+}
+
+export async function getUserAvatar(userId: number): Promise<string> {
+	try {
+		const response = await apiFetch(`/user_images/avatar/${userId}`, {
+			method: 'GET'
+		});
+		console.log("Get user " + userId + " avatar");
+		console.log("Response: ", response);
+		if (!response.ok) {
+			throw new Error(`Failed to fetch avatar: ${response.status}`);
+		}
+		const filePath = await response.text();
+		return filePath;
+	} catch (error) {
+		console.error('Error fetching user avatar:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to fetch avatar: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+}
+
+export async function getUserBackground(userId: number): Promise<string> {
+	try {
+		const response = await apiFetch(`/user_images/wallpaper/${userId}`);
+		if (!response.ok) {
+			throw new Error(`Failed to fetch background: ${response.status}`);
+		}
+		const filePath = await response.text();
+		return filePath;
+	} catch (error) {
+		console.error('Error fetching user background:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to fetch background: ${errorMessage}`, './img/Utils/API-icon.png');
 		}
 		throw error;
 	}

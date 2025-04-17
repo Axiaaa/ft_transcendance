@@ -8,11 +8,11 @@ export function getCurrentTime(): number {
 
 export async function keepAliveRoute(server : FastifyInstance) {
 
-    server.post<{ Body: { id : number } }>('/keep-alive', async (request, reply) => {
+    server.post<{ Body: { token : string } }>('/keep-alive', async (request, reply) => {
         
-        const { id } = request.body;
+        const { token } = request.body;
 
-        const user = await getUserFromDb(id);
+        const user = await getUserFromDb({ token });
         if (user == null) {
             reply.code(404).send({error: "User not found"});
             return;

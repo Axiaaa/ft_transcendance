@@ -1,17 +1,44 @@
 import { send } from "process";
 import { sendNotification } from "./notification.js";
-import { getCurrentUser, updateUser } from "./API.js";
+import { getCurrentUser, getUserAvatar, getUserBackground, getUserById, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
 import { create } from "domain";
 import { get } from "http";
+import { disconnectUser } from "./start-menu.js";
+
+
+
+let userBackground = document.createElement('img');
+userBackground.id = 'user-background';
+userBackground.className = 'user-background';
+document.body.appendChild(userBackground);
+userBackground.src = './img/Desktop/linus-wallpaper.jpg';
+userBackground.style.position = 'absolute';
+userBackground.style.zIndex = '-1';
+userBackground.style.width = '100%';
+userBackground.style.height = '100%';
+userBackground.style.objectFit = 'cover';
+userBackground.style.objectPosition = 'center';
+userBackground.style.top = '0';
+userBackground.style.left = '0';
+userBackground.style.display = 'block';
+
+/**
+ * Sets the background image on the body element
+ * @param url The URL of the image to set as background
+ */
+export function setBodyBackgroundImage(url: string): void {
+	document.body.style.backgroundImage = `url(${url})`;
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-	// window.addEventListener('beforeunload', (event) => {
-	// 	event.preventDefault();
-	// 	return 'Your data will be lost if you reload or leave this page. Are you sure ?';
-	// });
+	window.addEventListener('beforeunload', (event) => {
+		event.preventDefault();
+		disconnectUser();
+		return 'You will be disconnected if you reload or leave this page. Are you sure ?';
+	});
 
 	let sleepScreen = document.createElement('div');
 	document.body.appendChild(sleepScreen);
@@ -53,10 +80,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 		console.log("Logo dimensions - Height:", Logo.clientHeight, "Width:", Logo.clientWidth);
 		let x = screenBorderLeft;
 		let y = screenBorderTop;
-		let dx = Math.round((Math.random() * 2 - 1) * 10) / 10;
-		let dy = Math.round((Math.random() * 2 - 1) * 10) / 10;
+		let dx = (Math.floor(Math.random() * 9) + 1) / 10;
+		if (Math.random() < 0.5) dx = -dx;
+		
+		let dy = (Math.floor(Math.random() * 9) + 1) / 10;
+		if (Math.random() < 0.5) dy = -dy;
 		console.log("SleepScreen X/Y direction" + dx + "/" + dy);
-		let speed = 5;
+		let speed = Math.max(5, Math.sqrt(sleepScreen.clientWidth**2 + sleepScreen.clientHeight**2) * 0.007);
+		console.log("Animation speed:", speed);
 		let interval = 50;
 		let animation = setInterval(() => {
 			Logo.style.left = x + 'px';
@@ -74,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 	let timeoutId: NodeJS.Timeout;
-	const INACTIVE_TIMEOUT = 20000; // 10 seconds of inactivity
+	const INACTIVE_TIMEOUT = 30000; // 10 seconds of inactivity
 
 	function resetTimer() {
 		// Clear any existing timeout
@@ -89,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		timeoutId = setTimeout(async () => {
 			try {
 				console.log('User is inactive');
-				sendNotification('Inactivity Alert', 'You have been inactive for 20 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
+				sendNotification('Inactivity Alert', 'You have been inactive for 30 seconds. The system will sleep soon.', './img/Utils/sleep-icon.png');
 				sleepScreen.style.display = 'block';
 				await new Promise(resolve => setTimeout(resolve, 200));
 				if (sleepScreen.style.display === 'none') return;
@@ -120,19 +151,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// SANDBOX AREA
 	{
-		let CurrentUser = await getUser(1);
-		if (!CurrentUser) {
-			CurrentUser = await createUser({username: 'Guest', password: 'guest', email: 'guest@guest.com'});
-		}
+		// let CurrentUser = await getUserById(1);
+		// if (!CurrentUser) {
+		// 	CurrentUser = await createUser({username: 'Guest', password: 'guest', email: 'guest@guest.com'});
+		// }
 		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
 			try {
 				
-			let user1 = await getUser(1);
-			if (user1) {
-					sendNotification('User Data', `User ID: ${user1.id}, Username: ${user1.username}, Email: ${user1.email}`, './img/Utils/API-icon.png');
-					console.log("User ID: " + user1.id + " Username: " + user1.username);
-					console.log("User Data:", user1);
+			const currentUserToken = sessionStorage.getItem('wxp_token');
+			let currentUser = await getCurrentUser(currentUserToken);
+			if (currentUser) {
+					sendNotification('User Data', `User ID: ${currentUser.id}, Username: ${currentUser.username}, Email: ${currentUser.email}`, './img/Utils/API-icon.png');
+					console.log("User ID: " + currentUser.id + " Username: " + currentUser.username);
+					console.log("User Data:", currentUser);
 			}
 			}
 			catch (error) {
@@ -263,4 +295,69 @@ export function goToFormsPage(pushState: boolean = true)
 	if (forms)
 		forms.style.display = 'block';
 	console.log('Navigated to forms page');
+}
+
+export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) {
+	const userID = Number(sessionStorage.getItem("wxp_user_id"));
+	if (userID == null)
+		return;
+	let avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+	let wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+	if (fileAvatar)
+		avatarURL = URL.createObjectURL(fileAvatar);
+	else
+	{
+		try {
+			if (await isAvatarUserExists(userID))
+				avatarURL = await getUserAvatar(userID);
+			else
+				avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+		}
+		catch (error) {
+			console.error("Error fetching avatar:", error);
+			avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+		}
+	}
+	let userAvatars = document.getElementsByClassName("avatar-preview") as HTMLCollectionOf<HTMLImageElement>;
+	
+	console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
+
+	for (let i = 0; i < userAvatars.length; i++) {
+		console.log(userAvatars[i] + " now = " + avatarURL);
+		userAvatars[i].src = avatarURL;
+	}
+	if (fileWallpaper)
+		wallpaperURL = URL.createObjectURL(fileWallpaper);
+	else
+	{
+		try {
+			if (await isBackgroundUserExists(userID))
+				wallpaperURL = await getUserBackground(userID);
+			else
+				wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+		}
+		catch (error) {
+			console.error("Error fetching wallpaper:", error);
+			wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+		}
+	}
+		
+	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
+	console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
+	userWallpapers[0].src = wallpaperURL;
+};
+
+export async function resetUserImages()
+{
+	const userID = Number(sessionStorage.getItem("wxp_user_id"));
+	if (userID == null)
+		return;
+	let avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+	let wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
+	let userAvatars = document.getElementsByClassName("avatar-preview") as HTMLCollectionOf<HTMLImageElement>;
+	for (let i = 0; i < userAvatars.length; i++) {
+		userAvatars[i].src = avatarURL;
+	}
+	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
+	userWallpapers[0].src = wallpaperURL;
 }
