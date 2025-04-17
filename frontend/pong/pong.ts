@@ -130,18 +130,27 @@ document.getElementById("resume-button")!.addEventListener("click", () => {
 window.addEventListener("keydown", (e) => {
     if (!isPlaying) return;
     if (e.code === "Escape") {
-        isPaused = !isPaused; // Alterne l'état de pause
-        if (isPaused) {
-            pauseMenu.style.display = "block"; // Affiche le menu de pause
-            countdownContainer.style.display = "block"; // Affiche le compte à rebours
-            overlay.style.display = "block"; // Affiche l'overlay
-        } else {
-            pauseMenu.style.display = "none"; // Cache le menu de pause
-            countdownContainer.style.display = "none"; // Cache le compte à rebours
-            overlay.style.display = "none"; // Cache l'overlay
-        }
+        togglePause();
     }
 });
+window.addEventListener("blur", () => {
+    if (!isPlaying || gameIsFinished) return;
+    if (!isPaused) {
+        togglePause();
+    }
+});
+function togglePause() { // Pause the game and show the menu
+    isPaused = !isPaused;
+    if (isPaused) {
+        pauseMenu.style.display = "block";
+        countdownContainer.style.display = "block";
+        overlay.style.display = "block";
+    } else {
+        pauseMenu.style.display = "none";
+        countdownContainer.style.display = "none";
+        overlay.style.display = "none";
+    }
+}
 
 ////////////////////////////// START PLAY //////////////////////////////
 
@@ -815,6 +824,9 @@ function zoomOutEffect(callback?: () => void): void {
 
 //////////////////////////////// RESET ////////////////////////////////
 
+let enterButton: HTMLElement | null = null;
+let spaceButton: HTMLElement | null = null;
+
 function reset(): void {
     paddle1.position.set(0, fieldHeight + 0.2, 6.5);
     paddle2.position.set(0, fieldHeight + 0.2, -6.5);
@@ -828,6 +840,39 @@ function reset(): void {
     }
     else if (lastScorer === 2) {
         ballSpeed = { x: 0, z: 0.05 }
+    }
+    if ((score1 !== 10 && score2 !== 10) || (score1 === 0 && score2 === 0) ) {
+        createButton('Enter', 'key-enter');
+        createButton('Space', 'key-space');
+        window.addEventListener('keydown', handleKeyPress);
+    }
+}
+function createButton(text: string, className: string): void {
+    const button = document.createElement('div');
+    button.classList.add('key-display', className);
+    button.textContent = text;
+    document.body.appendChild(button);
+    if (className === 'key-enter') {
+        enterButton = button;
+    } else if (className === 'key-space') {
+        spaceButton = button;
+    }
+    button.style.position = 'absolute';
+    button.style.top = '20%';
+    if (className === 'key-enter') {
+        button.style.left = '40%';
+    } else if (className === 'key-space') {
+        button.style.right = '40%';
+    }
+}
+function hideButtons(): void {
+    if (enterButton) {
+        enterButton.remove();
+        enterButton = null;
+    }
+    if (spaceButton) {
+        spaceButton.remove();
+        spaceButton = null;
     }
 }
 
@@ -917,7 +962,7 @@ function endGame(): void {
 function handleKeyPress(event: KeyboardEvent): void {
     if (event.code == 'Space' || event.code == 'Enter') {
         if (gameIsFinished) return; // If the game is finished we stop the ball
-
+        hideButtons();
         isPaused = false; // If the game is not finished, we relaunch the ball
         window.removeEventListener('keydown', handleKeyPress);
     }
@@ -940,18 +985,6 @@ function restartGame(callback?: () => void) {
         if (callback) callback(); // Launch what we want after the countdown
     });
 }
-
-//////////////////////////////// MOUSE LEAVE ////////////////////////////////
-
-window.addEventListener("blur", () => { // Here we need to loose the focus on the window to stop the game, like clicking outisde the game, more natural
-    isPaused = true;
-    // overlay.style.display = "block"; // Show overlay
-});
-window.addEventListener("focus", () => { // Click again to play
-    if (gameIsFinished) return;
-    isPaused = false;
-    // overlay.style.display = "none"; // Hide overlay
-});
 
 //////////////////////////////// COLLISION ////////////////////////////////
 
