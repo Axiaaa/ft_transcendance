@@ -156,15 +156,14 @@
                     background: transparent;
                     border: 2px solid #00ffff;
                     font-family: 'Orbitron', sans-serif;
-                    transition: 0.3s;
+                    transition: 0.2s ease-out;
                 }
-
                 button-endgame:hover {
-                    background: rgba(0, 255, 255, 0.1);
                     box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+                    transform: translate(-50%, -50%) scale(1.1);
                 }
 
-                #winner {
+                #winner, #winnerTournamentText {
                     display: none;
                     font-family: 'Orbitron', sans-serif;
                     font-size: 48px;
@@ -176,6 +175,13 @@
                     color: white;
                     text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff;
                     z-index: 1000;
+                }
+                .custom-winner-h1 {
+                    font-size: 48px;
+                    margin: 0;
+                    padding: 0;
+                    text-align: center;
+                    line-height: 1.2;
                 }
 
                 #pong-global-container {
@@ -423,7 +429,7 @@
             document.head.appendChild(style);
         </script>
         <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
 
         <script type="importmap">
             {
@@ -465,6 +471,7 @@
                 <button id="continueTournament">CONTINUE</button>
                 <div id="match-list"></div>
             </div>
+            <div id="winnerTournamentText"></div>
         </div>
     </body>
 

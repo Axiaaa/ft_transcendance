@@ -4,6 +4,8 @@ import '@babylonjs/loaders';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
 
+declare var confetti: any;
+
 // Create the canvas element and append it to the document html
 const canvas = document.getElementById('canvas') as unknown as HTMLCanvasElement;
 if (!canvas) {
@@ -126,6 +128,7 @@ document.getElementById("resume-button")!.addEventListener("click", () => {
 
 // Toggle pause with Escape key
 window.addEventListener("keydown", (e) => {
+    if (!isPlaying) return;
     if (e.code === "Escape") {
         isPaused = !isPaused; // Alterne l'état de pause
         if (isPaused) {
@@ -146,11 +149,13 @@ let countdownComplete = false;
 let countdownElement = document.getElementById("countdown") as HTMLSpanElement;
 let goElement = document.getElementById("countdown-go") as HTMLSpanElement;
 let menu = document.getElementById("menu") as HTMLDivElement;
+let isPlaying = false; // Check if the game is playing
 
 // Start the game after the countdown
 function startGame(): void {
     countdownContainer.style.display = "none";
     isPaused = false; // Start the game
+    isPlaying = true; // Set the game as playing
     scoreElement.style.display = "block";
     overlay.style.display = "none";
 }
@@ -832,6 +837,7 @@ let gameIsFinished = false;
 
 function endGame(): void {
     gameIsFinished = true;
+    isPlaying = false;
     document.removeEventListener("keydown", handleKeyPress);
     const winnerText = document.getElementById("winner");
     const isFinal = isTournament === 1 && isLastTournamentMatch;
@@ -841,33 +847,71 @@ function endGame(): void {
         winnerText.style.color = "white";
         winnerText.style.textShadow = `0 0 5px ${winnerColor}, 0 0 10px ${winnerColor}, 0 0 20px ${winnerColor}`;
     }
-    countdownContainer.style.display = "block"; // Hide countdown
+    countdownContainer.style.display = "block";
     overlay.style.display = "block"; // Show overlay
     setTimeout(() => {
         if (isFinal) {
-            // Afficher une alerte avec le nom du gagnant
+            const winnerTournamentText = document.getElementById("winnerTournamentText");
+            winnerTournamentText!.style.display = "block";
             const winnerName = score1 > 9 ? currentPlayer1 : currentPlayer2;
-            alert(`Winner is ${winnerName}`);
-            return;
+            const winnerColor = score1 > 9 ? player1Color.toHexString() : player2Color.toHexString();
+            winnerTournamentText!.style.textShadow = `0 0 5px ${winnerColor}, 0 0 10px ${winnerColor}, 0 0 20px ${winnerColor}`;
+            const message = `WINNER IS ${winnerName}`;
+            const words = message.split(" ");
+            winnerTournamentText!.textContent = ""; // Clear previous content
+            words.forEach((word, index) => {
+                setTimeout(() => {
+                    const h1 = document.createElement("h1");
+                    h1.textContent = word;
+                    h1.classList.add("custom-winner-h1");
+                    winnerTournamentText!.appendChild(h1); // Add the word
+                    winnerTournamentText!.appendChild(document.createElement("br")); // Add a line break
+                    if (index === words.length - 1) {
+                        confetti({
+                            particleCount: 200, // Number of confettis
+                            spread: 70,         // Spread of confettis
+                            origin: { x: 0.5, y: 0.5 }, // Origin of confettis
+                            colors: ['#ff0', '#0f0', '#00f', '#f00', '#ff00ff'], // Colors of confettis
+                        });
+                    }
+                }, 500 * index);
+            });
+            const totalDelay = 1000 * (words.length + 1);
+            setTimeout(() => {
+                const restartButton = document.createElement("button-endgame");
+                restartButton.textContent = "Home";
+                restartButton.onmouseover = () => {
+                    restartButton.style.backgroundColor = "rgb(0, 255, 255)";
+                    restartButton.style.color = "white";
+                };
+                restartButton.onmouseout = () => {
+                    restartButton.style.backgroundColor = "transparent";
+                    restartButton.style.color = "#00ffff";
+                };
+                restartButton.onclick = () => location.reload();
+                document.body.appendChild(restartButton);
+            }, totalDelay);
         }
-        const restartButton = document.createElement("button-endgame");
-        if (isTournament === 1) {
-            restartButton.textContent = "Next Match";
-            restartButton.onclick = () => {
-                const winnerName = score1 > 9 ? currentPlayer1 : currentPlayer2;
-                if (matchEndCallback) {
-                    matchEndCallback(winnerName);
-                    matchEndCallback = null; // Reset to avoid multiple calls
-                }
-                restartGame(() => {
-                    startGame();
-                });
-            };
-        } else {
-            restartButton.textContent = "Restart";
-            restartButton.onclick = () => restartGame(() => startGame());
+        if (!(isTournament === 1 && isFinal)) {
+            const restartButton = document.createElement("button-endgame");
+            if (isTournament === 1 && !isFinal) {
+                restartButton.textContent = "Next Match";
+                restartButton.onclick = () => {
+                    const winnerName = score1 > 9 ? currentPlayer1 : currentPlayer2;
+                    if (matchEndCallback) {
+                        matchEndCallback(winnerName);
+                        matchEndCallback = null;
+                    }
+                    restartGame(() => {
+                        startGame();
+                    });
+                };
+            } else {
+                restartButton.textContent = "Restart";
+                restartButton.onclick = () => restartGame(() => startGame());
+            }
+            document.body.appendChild(restartButton);
         }
-        document.body.appendChild(restartButton);
     }, 2500);
 }
 function handleKeyPress(event: KeyboardEvent): void {
