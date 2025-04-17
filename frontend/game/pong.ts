@@ -455,11 +455,34 @@ const MAX_PADDLE_SPEED = 1;
 let agentIsActive: Boolean = true
 const agent = new PongAI()
 
+function highlight_keys(action: number): void
+{
+	const keyElements = document.querySelectorAll(".key-display");
+	keyElements.forEach((element: Element) => {
+		const htmlElement = element as HTMLElement;
+		htmlElement.classList.remove("key-pressed");})
+	if (action == 0)
+	{
+		keyElements.forEach((element: Element) => {
+			const htmlElement = element as HTMLElement;
+			if (htmlElement.textContent === "←")
+				htmlElement.classList.add("key-pressed");})
+	}
+	if (action == 1)
+	{
+		keyElements.forEach((element: Element) => {
+			const htmlElement = element as HTMLElement;
+			if (htmlElement.textContent === "→")
+				htmlElement.classList.add("key-pressed");})
+	}
+}
+
 function movePaddles(): void
 {
 	if (agentIsActive)
 	{
 		let action = agent.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x)
+		highlight_keys(action)
 		if (action == 0 && paddle2.position.x < 5)
 			paddle2.position.x += paddleSpeed;
 		if (action == 1 && paddle2.position.x > -5)
