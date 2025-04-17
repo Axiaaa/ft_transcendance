@@ -90,17 +90,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 				let currentuserID = await Number(sessionStorage.getItem('wxp_user_id'));
 				await uploadFile(currentuserID, file, 'wallpaper')
 				.then(response => {
-					sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
+					if (response && response.ok === true) {
+						let wallpaperURL = document.getElementsByClassName('user-background')[0] as HTMLImageElement;
+						if (wallpaperURL)
+							wallpaperURL.src = URL.createObjectURL(file);
+						currentWallpaperName.textContent = file.name;
+						updateUserImages(undefined, file);
+						document.body.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+						sendNotification('Wallpaper Changed', `Wallpaper changed to ${file.name}`, "./img/Settings_app/picture-icon.png");
+					}
 				}).catch(error => {
 					console.error('Error uploading wallpaper:', error);
 					sendNotification('Error', 'Failed to upload wallpaper', "./img/Utils/error-icon.png");
 				});
-				let wallpaperURL = document.getElementsByClassName('user-background')[0] as HTMLImageElement;
-				if (wallpaperURL)
-					wallpaperURL.src = URL.createObjectURL(file);
-				currentWallpaperName.textContent = file.name;
-				updateUserImages(undefined, file);
-				document.body.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
 			}
 			else
 				sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
@@ -307,16 +309,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) {
 				let currentuserID = await Number(sessionStorage.getItem('wxp_user_id'));
-				await uploadFile(currentuserID, file, 'avatar');
-				let newAvatar = await getUserAvatar(currentuserID);
-				if (newAvatar)
-				{
-					console.log("New avatar URL: ", newAvatar);
-				}
-				currentAvatarName.textContent = file.name;
-				currentAvatarPreview.src = URL.createObjectURL(file);
-				updateUserImages(file);
-				sendNotification('Avatar Changed', `Avatar changed to ${newAvatar}`, "./img/Utils/profile-icon.png");
+				await uploadFile(currentuserID, file, 'avatar')
+				.then(async response => {
+					if (response && response.ok === true) {
+						let newAvatar = await getUserAvatar(currentuserID);
+						if (newAvatar)
+							console.log("New avatar URL: ", newAvatar);
+						currentAvatarName.textContent = file.name;
+						currentAvatarPreview.src = URL.createObjectURL(file);
+						updateUserImages(file);
+						sendNotification('Avatar Changed', `Avatar changed to ${newAvatar}`, "./img/Utils/profile-icon.png");
+					}
+				}).catch(error => {
+					console.error('Error uploading avatar:', error);
+					sendNotification('Error', 'Failed to upload avatar', "./img/Utils/error-icon.png");
+				});
+				
 			}
 			else {
 				sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");

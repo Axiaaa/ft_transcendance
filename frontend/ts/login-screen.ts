@@ -205,11 +205,13 @@ document.addEventListener('DOMContentLoaded', () => {
 						const newUser = await createUser({ username, password });
 						sessionStorage.setItem("wxp_token", newUser.token);
 						sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
-						goToDesktopPage();
 						signUpUsername.value = "";
 						signUpPassword.value = "";
 						signUpConfirmPassword.value = "";
 						await resetUserImages();
+						setTimeout(() => {
+							goToDesktopPage();
+						}, 200);
 
 					} catch (error) {
 						console.error("Error creating user:", error);
@@ -238,11 +240,13 @@ document.addEventListener('DOMContentLoaded', () => {
 						const user = await getUser(username, password );
 						sessionStorage.setItem("wxp_token", user.token);
 						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
-						goToDesktopPage();
 						signInUsername.value = "";
 						signInPassword.value = "";
 						await resetUserImages();
 						await updateUserImages();
+						setTimeout(() => {
+							goToDesktopPage();
+						}, 200);
 					} 
 					catch (error) {
 						console.error("Error signing in:", error);

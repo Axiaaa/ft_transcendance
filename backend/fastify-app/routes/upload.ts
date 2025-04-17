@@ -17,6 +17,41 @@ export async function createDirectory(path: string) {
 	}
 };
 
+async function checkImageValidity(file: MultipartFile): Promise<boolean> {
+	const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+	if (!validImageTypes.includes(file.mimetype)) {
+		return false;
+	}
+	const buffer = await file.toBuffer();
+	if (buffer.length > 5 * 1024 * 1024) { // 5MB limit
+		return false;
+	}
+	// Check file signature (magic numbers)
+	if (file.mimetype === 'image/png') {
+		// PNG signature: 89 50 4E 47 0D 0A 1A 0A
+		if (buffer.length < 8 || 
+				buffer[0] !== 0x89 || 
+				buffer[1] !== 0x50 || 
+				buffer[2] !== 0x4E || 
+				buffer[3] !== 0x47 || 
+				buffer[4] !== 0x0D || 
+				buffer[5] !== 0x0A || 
+				buffer[6] !== 0x1A || 
+				buffer[7] !== 0x0A) {
+			return false;
+		}
+	} else if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg') {
+		// JPEG signature: starts with FF D8 FF
+		if (buffer.length < 3 || 
+				buffer[0] !== 0xFF || 
+				buffer[1] !== 0xD8 || 
+				buffer[2] !== 0xFF) {
+			return false;
+		}
+	}
+	return true;
+}
+
 export async function uploadRoutes(server: FastifyInstance) {
 
 	server.post<{ Params: { id: number, type: string}, Body: { file: MultipartFile } }>('/user_images/:type/:id', async (request, reply) => {
@@ -34,6 +69,23 @@ export async function uploadRoutes(server: FastifyInstance) {
 		}
 		if (type !== "avatar" && type !== "wallpaper") {
 			reply.code(400).send({error: "Invalid type"});
+			return;
+		}
+		if (!await checkImageValidity(file)) {
+			reply.code(400).send({error: "Invalid image file"});
+			return;
+		}
+		if (file.mimetype !== "image/png" && file.mimetype !== "image/jpeg" && file.mimetype !== "image/jpg") {
+			reply.code(400).send({error: "Invalid image type"});
+			return;
+		}
+		const bufferdata = await file.toBuffer();
+		if (!bufferdata) {
+			reply.code(400).send({error: "Failed to read file"});
+			return;
+		}
+		if (bufferdata.length > 5 * 1024 * 1024) { // 5MB limit
+			reply.code(400).send({error: "File size exceeds limit"});
 			return;
 		}
 		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
@@ -57,7 +109,6 @@ export async function uploadRoutes(server: FastifyInstance) {
 			await updateUserBackground(user, frontFilePath);
 		}
 		await createDirectory(BACK_VOLUME_DIR);
-		const bufferdata = await file.toBuffer();
 		fs.writeFile(filePath, bufferdata, (err) => {
 			if (err) {
 				reply.code(400).send({error: "Failed to save file"});

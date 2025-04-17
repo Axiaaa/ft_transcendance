@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
             fileInput_1.style.display = 'none';
             importButton.onclick = function () { return fileInput_1.click(); };
             fileInput_1.onchange = function (e) { return __awaiter(void 0, void 0, void 0, function () {
-                var file, currentuserID, wallpaperURL;
+                var file, currentuserID;
                 var _a;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
@@ -166,19 +166,21 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
                             currentuserID = _b.sent();
                             return [4 /*yield*/, uploadFile(currentuserID, file, 'wallpaper')
                                     .then(function (response) {
-                                    sendNotification('Wallpaper Changed', "Wallpaper changed to ".concat(file.name), "./img/Settings_app/picture-icon.png");
+                                    if (response && response.ok === true) {
+                                        var wallpaperURL = document.getElementsByClassName('user-background')[0];
+                                        if (wallpaperURL)
+                                            wallpaperURL.src = URL.createObjectURL(file);
+                                        currentWallpaperName_1.textContent = file.name;
+                                        updateUserImages(undefined, file);
+                                        document.body.style.backgroundImage = "url(".concat(URL.createObjectURL(file), ")");
+                                        sendNotification('Wallpaper Changed', "Wallpaper changed to ".concat(file.name), "./img/Settings_app/picture-icon.png");
+                                    }
                                 }).catch(function (error) {
                                     console.error('Error uploading wallpaper:', error);
                                     sendNotification('Error', 'Failed to upload wallpaper', "./img/Utils/error-icon.png");
                                 })];
                         case 2:
                             _b.sent();
-                            wallpaperURL = document.getElementsByClassName('user-background')[0];
-                            if (wallpaperURL)
-                                wallpaperURL.src = URL.createObjectURL(file);
-                            currentWallpaperName_1.textContent = file.name;
-                            updateUserImages(undefined, file);
-                            document.body.style.backgroundImage = "url(".concat(URL.createObjectURL(file), ")");
                             return [3 /*break*/, 4];
                         case 3:
                             sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
@@ -342,34 +344,47 @@ document.addEventListener('DOMContentLoaded', function () { return __awaiter(voi
             fileInput_2.style.display = 'none';
             importButton.onclick = function () { return fileInput_2.click(); };
             fileInput_2.onchange = function (e) { return __awaiter(void 0, void 0, void 0, function () {
-                var file, currentuserID, newAvatar;
+                var file, currentuserID_1;
                 var _a;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
                             file = (_a = e.target.files) === null || _a === void 0 ? void 0 : _a[0];
-                            if (!file) return [3 /*break*/, 4];
+                            if (!file) return [3 /*break*/, 3];
                             return [4 /*yield*/, Number(sessionStorage.getItem('wxp_user_id'))];
                         case 1:
-                            currentuserID = _b.sent();
-                            return [4 /*yield*/, uploadFile(currentuserID, file, 'avatar')];
+                            currentuserID_1 = _b.sent();
+                            return [4 /*yield*/, uploadFile(currentuserID_1, file, 'avatar')
+                                    .then(function (response) { return __awaiter(void 0, void 0, void 0, function () {
+                                    var newAvatar;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0:
+                                                if (!(response && response.ok === true)) return [3 /*break*/, 2];
+                                                return [4 /*yield*/, getUserAvatar(currentuserID_1)];
+                                            case 1:
+                                                newAvatar = _a.sent();
+                                                if (newAvatar)
+                                                    console.log("New avatar URL: ", newAvatar);
+                                                currentAvatarName_1.textContent = file.name;
+                                                currentAvatarPreview_1.src = URL.createObjectURL(file);
+                                                updateUserImages(file);
+                                                sendNotification('Avatar Changed', "Avatar changed to ".concat(newAvatar), "./img/Utils/profile-icon.png");
+                                                _a.label = 2;
+                                            case 2: return [2 /*return*/];
+                                        }
+                                    });
+                                }); }).catch(function (error) {
+                                    console.error('Error uploading avatar:', error);
+                                    sendNotification('Error', 'Failed to upload avatar', "./img/Utils/error-icon.png");
+                                })];
                         case 2:
                             _b.sent();
-                            return [4 /*yield*/, getUserAvatar(currentuserID)];
+                            return [3 /*break*/, 4];
                         case 3:
-                            newAvatar = _b.sent();
-                            if (newAvatar) {
-                                console.log("New avatar URL: ", newAvatar);
-                            }
-                            currentAvatarName_1.textContent = file.name;
-                            currentAvatarPreview_1.src = URL.createObjectURL(file);
-                            updateUserImages(file);
-                            sendNotification('Avatar Changed', "Avatar changed to ".concat(newAvatar), "./img/Utils/profile-icon.png");
-                            return [3 /*break*/, 5];
-                        case 4:
                             sendNotification('Error', 'No file selected', "./img/Utils/error-icon.png");
-                            _b.label = 5;
-                        case 5: return [2 /*return*/];
+                            _b.label = 4;
+                        case 4: return [2 /*return*/];
                     }
                 });
             }); };

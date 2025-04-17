@@ -450,7 +450,6 @@ export function uploadFile(userId, file, fileType) {
                 case 0:
                     formData = new FormData();
                     formData.append('file', file);
-                    // Add a JSON string that can be parsed by the backend
                     formData.append('metadata', JSON.stringify({ userId: userId, fileType: fileType }));
                     _a.label = 1;
                 case 1:
@@ -458,7 +457,6 @@ export function uploadFile(userId, file, fileType) {
                     return [4 /*yield*/, apiFetch("/user_images/".concat(fileType, "/").concat(userId), {
                             method: 'POST',
                             body: formData,
-                            // Keep multipart/form-data content type that browser will set
                         }, false)];
                 case 2:
                     response = _a.sent();
@@ -535,7 +533,6 @@ export function isAvatarUserExists(userId) {
                         })];
                 case 1:
                     response = _a.sent();
-                    // If we get a successful response, the avatar exists
                     return [2 /*return*/, response.ok];
                 case 2:
                     error_12 = _a.sent();
@@ -558,7 +555,6 @@ export function isBackgroundUserExists(userId) {
                         })];
                 case 1:
                     response = _a.sent();
-                    // If we get a successful response, the background exists
                     return [2 /*return*/, response.ok];
                 case 2:
                     error_13 = _a.sent();
@@ -622,7 +618,6 @@ export function getUserAvatar(userId) {
                     response = _a.sent();
                     console.log("Get user " + userId + " avatar");
                     console.log("Response: ", response);
-                    // Check if response is successful
                     if (!response.ok) {
                         throw new Error("Failed to fetch avatar: ".concat(response.status));
                     }
@@ -653,7 +648,6 @@ export function getUserBackground(userId) {
                     return [4 /*yield*/, apiFetch("/user_images/wallpaper/".concat(userId))];
                 case 1:
                     response = _a.sent();
-                    // Check if response is successful
                     if (!response.ok) {
                         throw new Error("Failed to fetch background: ".concat(response.status));
                     }

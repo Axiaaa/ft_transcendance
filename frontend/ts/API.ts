@@ -337,15 +337,12 @@ export async function loginUser(username: string, password: string): Promise<Use
 export async function uploadFile(userId: number, file: File, fileType: string): Promise<Response | null> {
 	const formData = new FormData();
 	formData.append('file', file);
-	// Add a JSON string that can be parsed by the backend
 	formData.append('metadata', JSON.stringify({ userId, fileType }));
-	
 	try {
 		const response = await apiFetch(`/user_images/${fileType}/${userId}`, {
 			method: 'POST',
 			body: formData,
-			// Keep multipart/form-data content type that browser will set
-		}, false); // Set useJsonContentType=false, nojson=true to prevent setting Content-Type
+		}, false);
 		
 		if (response.ok) {
 			const result = await response.json();
@@ -398,8 +395,6 @@ export async function isAvatarUserExists(userId: number): Promise<boolean> {
 		const response = await apiFetch(`/user_images/avatar/${userId}`, {
 			method: 'GET'
 		});
-		
-		// If we get a successful response, the avatar exists
 		return response.ok;
 	} catch (error) {
 		console.error('Error checking avatar existence:', error);
@@ -412,7 +407,6 @@ export async function isBackgroundUserExists(userId: number): Promise<boolean> {
 		const response = await apiFetch(`/user_images/wallpaper/${userId}`, {
 			method: 'GET'
 		});
-		// If we get a successful response, the background exists
 		return response.ok;
 	} catch (error) {
 		console.error('Error checking background existence:', error);
@@ -453,12 +447,9 @@ export async function getUserAvatar(userId: number): Promise<string> {
 		});
 		console.log("Get user " + userId + " avatar");
 		console.log("Response: ", response);
-		// Check if response is successful
 		if (!response.ok) {
 			throw new Error(`Failed to fetch avatar: ${response.status}`);
 		}
-		
-		// The API returns a file path as text, not a blob
 		const filePath = await response.text();
 		return filePath;
 	} catch (error) {
@@ -474,13 +465,9 @@ export async function getUserAvatar(userId: number): Promise<string> {
 export async function getUserBackground(userId: number): Promise<string> {
 	try {
 		const response = await apiFetch(`/user_images/wallpaper/${userId}`);
-		
-		// Check if response is successful
 		if (!response.ok) {
 			throw new Error(`Failed to fetch background: ${response.status}`);
 		}
-		
-		// The API returns a file path as text, not a blob
 		const filePath = await response.text();
 		return filePath;
 	} catch (error) {

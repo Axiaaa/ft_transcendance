@@ -203,13 +203,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         newUser = _a.sent();
                         sessionStorage.setItem("wxp_token", newUser.token);
                         sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
-                        goToDesktopPage();
                         signUpUsername_1.value = "";
                         signUpPassword_1.value = "";
                         signUpConfirmPassword_1.value = "";
                         return [4 /*yield*/, resetUserImages()];
                     case 3:
                         _a.sent();
+                        setTimeout(function () {
+                            goToDesktopPage();
+                        }, 200);
                         return [3 /*break*/, 5];
                     case 4:
                         error_1 = _a.sent();
@@ -246,7 +248,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         user = _a.sent();
                         sessionStorage.setItem("wxp_token", user.token);
                         sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
-                        goToDesktopPage();
                         signInUsername_1.value = "";
                         signInPassword_1.value = "";
                         return [4 /*yield*/, resetUserImages()];
@@ -255,6 +256,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         return [4 /*yield*/, updateUserImages()];
                     case 4:
                         _a.sent();
+                        setTimeout(function () {
+                            goToDesktopPage();
+                        }, 200);
                         return [3 /*break*/, 6];
                     case 5:
                         error_2 = _a.sent();
