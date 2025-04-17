@@ -163,6 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	form.appendChild(backbutton);
 
 	backbutton.addEventListener('click', () => {
+		const existingErrorBox = document.querySelector('.error-box');
+		if (existingErrorBox) {
+			existingErrorBox.remove();
+		}
 		goToLoginPage();
 		form.style.display = 'none';
 		for (let i = 0; i < profiles.length; i++) {
@@ -218,6 +222,44 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 };
 
 // SANDBOX AREA
+
+export async function showError(message: string) {
+	const errorBox = document.createElement('div');
+	errorBox.className = 'error-box';
+	errorBox.textContent = message;
+	errorBox.style.position = 'fixed';
+	errorBox.style.top = '10px';
+	errorBox.style.left = '50%';
+	errorBox.style.transform = 'translateX(-50%)';
+	errorBox.style.backgroundColor = 'red';
+	errorBox.style.color = 'white';
+	errorBox.style.padding = '10px 20px';
+	errorBox.style.borderRadius = '5px';
+	errorBox.style.zIndex = '1000';
+	errorBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+	errorBox.style.fontSize = '14px';
+	errorBox.style.fontWeight = 'bold';
+
+
+	const existingErrorBox = document.querySelector('.error-box');
+	if (existingErrorBox) {
+		existingErrorBox.remove();
+	}
+
+	document.body.appendChild(errorBox);
+	errorBox.style.opacity = '0';
+	errorBox.style.transition = 'opacity 0.5s ease-in-out';
+	setTimeout(() => {
+		errorBox.style.opacity = '1';
+	}, 0);
+	setTimeout(() => {
+		errorBox.style.opacity = '0';
+		setTimeout(() => {
+			errorBox.remove();
+		}, 500);
+	}, 5000);
+}
+
 {
 	let signUpForm = document.getElementById("sign-up-form") as HTMLFormElement;
 	let signUpButton = document.getElementById("sign-up-button") as HTMLButtonElement;
@@ -230,26 +272,101 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 			if (signUpUsername && signUpPassword) {
 				const username = signUpUsername.value;
 				const password = signUpPassword.value;
-				if (username && password) {
-					try {
-						const newUser = await createUser({ username, password });
-						sessionStorage.setItem("wxp_token", newUser.token);
-						sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
-						goToDesktopPage();
-						signUpUsername.value = "";
-						signUpPassword.value = "";
-						signUpConfirmPassword.value = "";
-						updateUserImages();
+				const confirmPassword = signUpConfirmPassword.value;
 
-					} catch (error) {
-						console.error("Error creating user:", error);
+				if (username && password) {
+					if (password == confirmPassword)
+					{
+						if (password.length >= 8)
+						{
+							if (/[A-Z]/.test(password))
+							{
+								if (/[a-z]/.test(password))
+								{
+									if (/[0-9]/.test(password))
+									{
+										try
+										{
+											const existingErrorBox = document.querySelector('.error-box');
+											if (existingErrorBox) {
+												existingErrorBox.remove();
+											}
+											const newUser = await createUser({ username, password });
+											sessionStorage.setItem("wxp_token", newUser.token);
+											sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
+											goToDesktopPage();
+											signUpUsername.value = "";
+											signUpPassword.value = "";
+											signUpConfirmPassword.value = "";
+											updateUserImages();
+										}
+										catch (error)
+										{
+											const existingErrorBox = document.querySelector('.error-box');
+											if (existingErrorBox) {
+												existingErrorBox.remove();
+											}
+											showError("User already exists.");
+											signUpUsername.value = "";
+											signUpPassword.value = "";
+											signUpConfirmPassword.value = "";
+										}
+									}
+									else {
+										const existingErrorBox = document.querySelector('.error-box');
+										if (existingErrorBox) {
+											existingErrorBox.remove();
+										}
+										showError("Password must contain at least one number.");
+										signUpUsername.value = "";
+										signUpPassword.value = "";
+										signUpConfirmPassword.value = "";
+									}
+								}
+								else {
+									const existingErrorBox = document.querySelector('.error-box');
+									if (existingErrorBox) {
+										existingErrorBox.remove();
+									}
+									showError("Password must contain at least one lowercase letter.");
+									signUpUsername.value = "";
+									signUpPassword.value = "";
+									signUpConfirmPassword.value = "";
+								}
+							}
+							else{
+								const existingErrorBox = document.querySelector('.error-box');
+								if (existingErrorBox) {
+									existingErrorBox.remove();
+								}
+								showError("Password must contain at least one uppercase letter.");
+								signUpUsername.value = "";
+								signUpPassword.value = "";
+								signUpConfirmPassword.value = "";
+							}
+						}
+						else{
+							const existingErrorBox = document.querySelector('.error-box');
+							if (existingErrorBox) {
+								existingErrorBox.remove();
+							}
+							showError("Password must be at least 8 characters long.");
+							signUpUsername.value = "";
+							signUpPassword.value = "";
+							signUpConfirmPassword.value = "";
+							}
+					}
+					else{
+						const existingErrorBox = document.querySelector('.error-box');
+						if (existingErrorBox) {
+							existingErrorBox.remove();
+						}
+						showError("Passwords do not match.");
 						signUpUsername.value = "";
 						signUpPassword.value = "";
 						signUpConfirmPassword.value = "";
-					}
-				}
-			}
-		});
+					}	
+		}}});
 	}
 
 
@@ -265,6 +382,10 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 				const password = signInPassword.value;
 				if (username && password) {
 					try {
+						const existingErrorBox = document.querySelector('.error-box');
+							if (existingErrorBox) {
+								existingErrorBox.remove();
+							}
 						const user = await getUser(username, password );
 						sessionStorage.setItem("wxp_token", user.token);
 						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
@@ -274,7 +395,11 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 						updateUserImages();
 						} 
 					catch (error) {
-						console.error("Error signing in:", error);
+						const existingErrorBox = document.querySelector('.error-box');
+							if (existingErrorBox) {
+								existingErrorBox.remove();
+							}
+							showError("Username or password is incorrect.");
 						signInUsername.value = "";
 						signInPassword.value = "";
 					}
