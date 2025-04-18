@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		importButton.textContent = 'Change Wallpaper';
 		importButton.style.padding = '5px 10px';
 		importButton.style.marginBottom = '5px';
+		importButton.style.transform = 'translateY(-10px)';
 
 		let fileInput = document.createElement('input');
 		rightColumn.appendChild(fileInput);
@@ -115,9 +116,23 @@ document.addEventListener('DOMContentLoaded', () => {
 		resolutionText.textContent = 'Recommended: 1920x1080';
 		resolutionText.style.color = '#666';
 		resolutionText.style.fontSize = '10px';
-		resolutionText.style.padding = '5px';
+		resolutionText.style.transform = 'translateY(-10px)';
 
+		let formatText = document.createElement('span');
+		rightColumn.appendChild(formatText);
+		formatText.id = 'wallpaper-format-text';
+		formatText.textContent = 'Accepted formats: PNG, JPG, JPEG';
+		formatText.style.color = '#666';
+		formatText.style.fontSize = '10px';
+		formatText.style.transform = 'translateY(-10px)';
 
+		let sizeText = document.createElement('span');
+		rightColumn.appendChild(sizeText);
+		sizeText.id = 'wallpaper-size-text';
+		sizeText.textContent = 'Maximum file size: 5 MB';
+		sizeText.style.color = '#666';
+		sizeText.style.fontSize = '10px';
+		sizeText.style.transform = 'translateY(-10px)';
 		wallpaperSettings.appendChild(wallpaperInfo);
 	}
 
@@ -275,6 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		importButton.textContent = 'Change Avatar';
 		importButton.style.padding = '5px 10px';
 		importButton.style.marginBottom = '5px';
+		importButton.style.transform = 'translateY(-10px)';
 
 		let fileInput = document.createElement('input');
 		rightColumn.appendChild(fileInput);
@@ -317,8 +333,23 @@ document.addEventListener('DOMContentLoaded', () => {
 		resolutionText.textContent = 'Recommended: 256x256';
 		resolutionText.style.color = '#666';
 		resolutionText.style.fontSize = '10px';
-		resolutionText.style.padding = '5px';
+		resolutionText.style.transform = 'translateY(-10px)';
 
+		let formatText = document.createElement('span');
+		rightColumn.appendChild(formatText);
+		formatText.id = 'avatar-format-text';
+		formatText.textContent = 'Accepted formats: PNG, JPG, JPEG';
+		formatText.style.color = '#666';
+		formatText.style.fontSize = '10px';
+		formatText.style.transform = 'translateY(-10px)';
+
+		let sizeText = document.createElement('span');
+		rightColumn.appendChild(sizeText);
+		sizeText.id = 'avatar-size-text';
+		sizeText.textContent = 'Maximum file size: 5 MB';
+		sizeText.style.color = '#666';
+		sizeText.style.fontSize = '10px';
+		sizeText.style.transform = 'translateY(-10px)';
 		UserAccountAvatar.appendChild(avatarInfo);
 	}
 
@@ -593,16 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			githubRepo.appendChild(githubRepoURL);
 
 			let license = createFormatedSpan(sysInfo7);
-			let licensePromise = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/license')
-			.then(response => response.json())
-			.then(data => {
-				return data.license?.name || 'License information not available';
-			})
-			.catch(error => {
-				console.error('Error fetching license:', error);
-				return 'License information not available';
-			});
-			licensePromise.then(licenseText => license.textContent = licenseText);
+			let licensePromise = 
 
 			sysInfo1.appendChild(systemName);
 			sysInfo2.appendChild(systemVersion);
@@ -629,22 +651,40 @@ document.addEventListener('DOMContentLoaded', () => {
 			currentVersion.textContent = "Beta 0.7";
 			let systemCategoryButton = document.getElementById('settings-app-System-category') as HTMLElement;
 			systemCategoryButton.onclick = () => {
-				let currentVersionText = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
-				.then(response => response.json())
-				.then(data => {
-					let version = data.tag_name;
-					if (version.startsWith('0.')) {
-						version = 'Beta ' + version;
-					}
-					currentVersion.textContent = version;
-					return version;
-				})
-				.catch(error => {
-					console.error('Error fetching current version:', error);
-					let fallbackVersion = 'Beta 0.7';
-					currentVersion.textContent = fallbackVersion;
-					return fallbackVersion;
-				});
+				// Fetch commit count from the GitHub API
+				fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/commits?per_page=1')
+					.then(response => {
+						// Get total commit count from the Link header
+						const linkHeader = response.headers.get('Link');
+						let totalCommits = 0;
+						
+						if (linkHeader) {
+							const matches = linkHeader.match(/page=(\d+)>; rel="last"/);
+							if (matches && matches[1]) {
+								totalCommits = parseInt(matches[1], 10);
+							}
+						}
+						
+						// If we couldn't get the count, use a fallback
+						if (totalCommits === 0) {
+							throw new Error('Could not determine commit count');
+						}
+						
+						// Generate version number: major.minor.patch
+						const major = Math.floor(totalCommits / 100);
+						const minor = Math.floor((totalCommits % 100) / 10);
+						const patch = totalCommits % 10;
+						
+						const versionString = `${major}.${minor}.${patch}`;
+						currentVersion.textContent = versionString;
+						return versionString;
+					})
+					.catch(error => {
+						console.error('Error calculating version number:', error);
+						const fallbackVersion = '0.7.0';
+						currentVersion.textContent = fallbackVersion;
+						return fallbackVersion;
+					});
 			};
 
 			let latestVersionStatus = createFormatedSpan(updateInfo2);

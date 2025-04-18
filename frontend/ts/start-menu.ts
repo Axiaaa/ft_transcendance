@@ -118,8 +118,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		let startMenuTop = document.getElementsByClassName('start-menu-top')[0] as HTMLElement;
 		startMenuTop.style.height = '60px';
 		startMenuTop.style.width = '100%';
+		startMenuTop.style.borderRadius = '10px 10px 0px 0px';
 		startMenuTop.addEventListener('mouseenter', (e: MouseEvent) => {
-			startMenuTop.style.backgroundColor = 'rgba(69, 141, 255, 0.31)';
+			startMenuTop.style.backgroundColor = 'rgba(69, 141, 255, 0.45)';
 		});
 		startMenuTop.addEventListener('mouseleave', (e: MouseEvent) => {
 			startMenuTop.style.backgroundColor = 'transparent';
@@ -132,5 +133,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			let userAccountButton = document.getElementById('settings-app-User Account-category') as HTMLElement;
 			userAccountButton.click();
 		});
+	}
+	{
+		let startMenuUsername = document.getElementById('start-menu-username') as HTMLElement;
+		startMenuUsername.style.width = '300px';
+		startMenuUsername.style.height = '25px';
+		startMenuUsername.style.whiteSpace = 'nowrap';
+		startMenuUsername.style.overflow = 'hidden';
+		startMenuUsername.style.textOverflow = 'ellipsis';
+
 	}
 });
