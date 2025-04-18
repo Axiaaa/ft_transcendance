@@ -3,8 +3,10 @@ import * as GUI from '@babylonjs/gui';
 import '@babylonjs/loaders';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
+import { PongAI } from './pong-ai.js';
 
 declare var confetti: any;
+let pongAIInstance: PongAI | null = null;
 
 // Create the canvas element and append it to the document html
 const canvas = document.getElementById('canvas') as unknown as HTMLCanvasElement;
@@ -123,6 +125,7 @@ document.getElementById("resume-button")!.addEventListener("click", () => {
     pauseMenu.style.display = "none";
     countdownContainer.style.display = "none";
     overlay.style.display = "none";
+    if (spaceAndEnterIsPrint) return;
     isPaused = false;
 });
 
@@ -140,7 +143,7 @@ window.addEventListener("blur", () => {
     }
 });
 function togglePause() { // Pause the game and show the menu
-    isPaused = !isPaused;
+    isPaused = true;
     if (isPaused) {
         pauseMenu.style.display = "block";
         countdownContainer.style.display = "block";
@@ -161,7 +164,7 @@ let menu = document.getElementById("menu") as HTMLDivElement;
 let isPlaying = false; // Check if the game is playing
 
 // Start the game after the countdown
-function startGame(): void {
+function startGame(pongAIInstance?: PongAI): void {
     countdownContainer.style.display = "none";
     isPaused = false; // Start the game
     isPlaying = true; // Set the game as playing
@@ -196,10 +199,25 @@ function startCountdown(callback: () => void): void {
     updateCountdown();
 }
 
-document.getElementById("playButton")?.addEventListener("click", function() { // '?' means call only if the element exist, can't be "null" (warning of ts)
+const modeSelection = document.getElementById("mode-selection") as HTMLElement | null;
+document.getElementById("playButton")?.addEventListener("click", () => { // '?' means call only if the element exist, can't be "null" (warning of ts)
+    menu.style.display = "none"; // Hide menu
+    document.getElementById("mode-selection-container")!.style.display = "flex"; // Display the two modes selection
+});
+document.getElementById("aiMode")?.addEventListener("click", () => {
+    modeSelection!.style.display = "none"; // Hide mode selection
+    pongAIInstance = new PongAI();
+    // code of ia launching
+    isPaused = true;
+    startCountdown(() => {
+        startGame(); // On passe ici l’instance d’IA à startGame
+    });
+});
+document.getElementById("humanMode")?.addEventListener("click", () => {
+    modeSelection!.style.display = "none"; // Hide mode selection
     isPaused = true;
     startCountdown(startGame);
-})
+});
 
 ////////////////////////////// TOURNAMENT //////////////////////////////
 
@@ -563,7 +581,7 @@ let lastScorer: 1 | 2 | null = null;
 const MAX_BALL_SPEED: number = 0.2;
 
 //////////////////////////////// SCORE ////////////////////////////////
-let score1: number = 0, score2: number = 9;
+let score1: number = 0, score2: number = 0;
 const scoreElement: HTMLDivElement = document.createElement('div');
 scoreElement.style.position = 'absolute';
 scoreElement.style.top = '20px';
@@ -826,6 +844,7 @@ function zoomOutEffect(callback?: () => void): void {
 
 let enterButton: HTMLElement | null = null;
 let spaceButton: HTMLElement | null = null;
+let spaceAndEnterIsPrint = false;
 
 function reset(): void {
     paddle1.position.set(0, fieldHeight + 0.2, 6.5);
@@ -841,9 +860,11 @@ function reset(): void {
     else if (lastScorer === 2) {
         ballSpeed = { x: 0, z: 0.05 }
     }
-    if ((score1 !== 10 && score2 !== 10) || (score1 === 0 && score2 === 0) ) {
+    if (score1 === 0 && score2 === 0) return;
+    if (score1 !== 10 && score2 !== 10) {
         createButton('Enter', 'key-enter');
         createButton('Space', 'key-space');
+        spaceAndEnterIsPrint = true;
         window.addEventListener('keydown', handleKeyPress);
     }
 }
@@ -866,6 +887,7 @@ function createButton(text: string, className: string): void {
     }
 }
 function hideButtons(): void {
+    spaceAndEnterIsPrint = false;
     if (enterButton) {
         enterButton.remove();
         enterButton = null;
@@ -970,7 +992,7 @@ function handleKeyPress(event: KeyboardEvent): void {
 function restartGame(callback?: () => void) {
     gameIsFinished = false;
     score1 = 0;
-    score2 = 9;
+    score2 = 0;
     lastScorer = null;
     isPaused = true;
     const winnerText = document.querySelector("#winner") as HTMLElement;
@@ -1054,6 +1076,13 @@ function checkCollision(): void {
 engine.runRenderLoop(() => {
     if (!isPaused && countdownComplete) {
         movePaddles();
+        if (pongAIInstance) {
+            const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
+            console.log("AI Action:", action);
+            if (action === 0 && paddle2.position.x < 5) paddle2.position.x += paddleSpeed;
+            else if (action === 1 && paddle2.position.x > -5) paddle2.position.x -= paddleSpeed;
+            // 2 = rien faire
+        }
         ball.position.x += ballSpeed.x;
         ball.position.z += ballSpeed.z;
         checkCollision();
