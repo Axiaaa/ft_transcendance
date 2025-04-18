@@ -758,6 +758,20 @@ interface KeyState {
 const keys: KeyState = { ArrowRight: false, ArrowLeft: false, KeyA: false, KeyD: false };
 window.addEventListener('keydown', (e: KeyboardEvent) => { if (keys.hasOwnProperty(e.code)) keys[e.code as keyof KeyState] = true; });
 window.addEventListener('keyup', (e: KeyboardEvent) => { if (keys.hasOwnProperty(e.code)) keys[e.code as keyof KeyState] = false; });
+// IA detection for keys to shine
+const activateKeyPressEffect = (key: string) => {
+    const keyElements = document.querySelectorAll(".key-display");
+    keyElements.forEach((element: Element) => {
+        const htmlElement = element as HTMLElement;
+        if (
+            (htmlElement.textContent === key) ||
+            (key === "ArrowLeft" && htmlElement.textContent === "←") ||
+            (key === "ArrowRight" && htmlElement.textContent === "→")
+        ) {
+            htmlElement.classList.add("key-pressed");
+        }
+    });
+};
 
 // Paddle movement
 let paddleSpeed: number = 0.1;
@@ -1079,10 +1093,16 @@ engine.runRenderLoop(() => {
         if (pongAIInstance) {
             const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
             console.log("AI Action:", action);
-            if (action === 0 && paddle2.position.x < 5) paddle2.position.x += paddleSpeed;
-            else if (action === 1 && paddle2.position.x > -5) paddle2.position.x -= paddleSpeed;
+            if (action === 0 && paddle2.position.x < 5) {
+                paddle2.position.x += paddleSpeed;
+                activateKeyPressEffect("ArrowLeft");
+            }
+            else if (action === 1 && paddle2.position.x > -5) 
+                 paddle2.position.x -= paddleSpeed;
+                activateKeyPressEffect("ArrowRight")
+            }
             // 2 = rien faire
-        }
+        
         ball.position.x += ballSpeed.x;
         ball.position.z += ballSpeed.z;
         checkCollision();
