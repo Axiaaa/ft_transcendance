@@ -1,8 +1,10 @@
-import * as tf from '@tensorflow/tfjs';
+// @ts-ignore
+const tf = window.tf;
+
 
 export class PongAI
 {
-	private model!: tf.LayersModel; // ! to force TypeScript to treat this as a non-nullable property
+	private model: any;
 	private isLoaded: boolean = false;
 	private delay: number = 1000;
 	private lastUpdate: number = 0;
@@ -38,7 +40,7 @@ export class PongAI
 			const ballSpeedY = state[7];
 
 			let tensor = tf.tensor2d([state.slice(4)]);
-			let output = this.model.predict(tensor) as tf.Tensor;
+			let output = this.model.predict(tensor);
 			let predictionX = output.dataSync()[0];
 			tensor.dispose();
 			output.dispose();

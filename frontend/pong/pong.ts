@@ -6,6 +6,7 @@ import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
 import { PongAI } from './pong-ai.js';
 
 declare var confetti: any;
+let pongAIInstance: PongAI | null = null;
 
 // Create the canvas element and append it to the document html
 const canvas = document.getElementById('canvas') as unknown as HTMLCanvasElement;
@@ -162,7 +163,7 @@ let menu = document.getElementById("menu") as HTMLDivElement;
 let isPlaying = false; // Check if the game is playing
 
 // Start the game after the countdown
-function startGame(): void {
+function startGame(pongAIInstance?: PongAI): void {
     countdownContainer.style.display = "none";
     isPaused = false; // Start the game
     isPlaying = true; // Set the game as playing
@@ -197,10 +198,25 @@ function startCountdown(callback: () => void): void {
     updateCountdown();
 }
 
-document.getElementById("playButton")?.addEventListener("click", function() { // '?' means call only if the element exist, can't be "null" (warning of ts)
+const modeSelection = document.getElementById("mode-selection") as HTMLElement | null;
+document.getElementById("playButton")?.addEventListener("click", () => { // '?' means call only if the element exist, can't be "null" (warning of ts)
+    menu.style.display = "none"; // Hide menu
+    document.getElementById("mode-selection-container")!.style.display = "flex"; // Display the two modes selection
+});
+document.getElementById("aiMode")?.addEventListener("click", () => {
+    modeSelection!.style.display = "none"; // Hide mode selection
+    pongAIInstance = new PongAI();
+    // code of ia launching
+    isPaused = true;
+    startCountdown(() => {
+        startGame(); // On passe ici l’instance d’IA à startGame
+    });
+});
+document.getElementById("humanMode")?.addEventListener("click", () => {
+    modeSelection!.style.display = "none"; // Hide mode selection
     isPaused = true;
     startCountdown(startGame);
-})
+});
 
 ////////////////////////////// TOURNAMENT //////////////////////////////
 
@@ -1056,6 +1072,13 @@ function checkCollision(): void {
 engine.runRenderLoop(() => {
     if (!isPaused && countdownComplete) {
         movePaddles();
+        if (pongAIInstance) {
+            const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
+            console.log("AI Action:", action);
+            if (action === 0 && paddle2.position.x > -5) paddle2.position.x -= paddleSpeed;
+            else if (action === 1 && paddle2.position.x < 5) paddle2.position.x += paddleSpeed;
+            // 2 = rien faire
+        }
         ball.position.x += ballSpeed.x;
         ball.position.z += ballSpeed.z;
         checkCollision();

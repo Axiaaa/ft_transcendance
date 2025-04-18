@@ -258,7 +258,7 @@
                     box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
                 }
                     
-                #tournament-button-container {
+                #tournament-button-container, #mode-selection-container {
                     position: fixed;
                     display: none;
                     top: 50%;
@@ -270,12 +270,12 @@
                     transform-origin: center;
                 }
 
-                #player-count-selector {
+                #player-count-selector, #mode-selection {
                     display: flex;
                     gap: calc(40px * var(--scale-factor));
                 }
 
-                .player-option {
+                .player-option, .mode-option {
                     min-width: 200px;
                     min-height: 200px;
                     font-size: calc(48px * var(--scale-factor));
@@ -290,7 +290,7 @@
                     transition: 0.2s;
                     cursor: pointer;
                 }
-                .player-option:hover {
+                .player-option:hover, .mode-option:hover {
                     background: rgba(0, 255, 255, 1);
                     transform: scale(1.1);
                     box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
@@ -430,7 +430,7 @@
         </script>
         <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.18.0/dist/tf.min.js"></script>
 
         <script type="importmap">
             {
@@ -462,6 +462,12 @@
             </div>
             <div id="winner">
                 <h1>WINNER</h1>
+            </div>
+            <div id="mode-selection-container">
+                <div id="mode-selection">
+                    <button class="mode-option" id="humanMode">🤼‍♂️</button>
+                    <button class="mode-option" id="aiMode">🤖</button>
+                </div>
             </div>
             <div id="tournament-button-container">
                 <div id="player-count-selector">
