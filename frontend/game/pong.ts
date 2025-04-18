@@ -1,8 +1,7 @@
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
-
-
+import { PongAI } from './pong-ai.js';
 
 // Create the canvas element and append it to the document html
 let globalContainer = document.createElement('div');
@@ -43,14 +42,14 @@ camera.inputs.clear(); // Disable camera controls with arrowLeft and arrowRight
 const updateCanvasSize = () => {
 	const containerWidth = globalContainer.clientWidth;
 	const containerHeight = globalContainer.clientHeight;
-	
+
 	canvas.width = containerWidth;
 	canvas.height = containerHeight;
-	
+
 	// Adjust camera FOV based on aspect ratio
 	const aspectRatio = containerWidth / containerHeight;
 	camera.fov = Math.min(Math.PI / 2, Math.PI / 2 / aspectRatio);
-	
+
 	engine.resize();
 };
 
@@ -70,7 +69,7 @@ const pipeline: BABYLON.DefaultRenderingPipeline = new BABYLON.DefaultRenderingP
 // Enable bloom effect
 pipeline.bloomEnabled = true;
 pipeline.bloomThreshold = 0.8;
-pipeline.bloomKernel = 64;      // Controls blur radius of bloom
+pipeline.bloomKernel = 64;	  // Controls blur radius of bloom
 
 // Define players's color
 const player1Color: BABYLON.Color3 = new BABYLON.Color3(0, 1, 0); // Green
@@ -79,7 +78,7 @@ const player1Color4: BABYLON.Color4 = new BABYLON.Color4(player1Color.r, player1
 const player2Color4: BABYLON.Color4 = new BABYLON.Color4(player2Color.r, player2Color.g, player2Color.b, 1);
 // Game Variables
 let numHit: number = 0; // Number of time the ball has been hit (0 to 5)
-let speedIncrement: number = 0.025; // Speed increase every 5 hits
+let speedIncrement: number = 0.005; // Speed increase every 2 hits
 let ballSpeedReachedMax: boolean = false; // Check if maxSpeed has been reached
 let isPaused: boolean = false; // Pause the game after scoring
 
@@ -152,7 +151,7 @@ const circles: BABYLON.Mesh[] = [];
 // Function to create a circle mesh
 function createCircle(x: number, z: number, radius: number = 0.3): BABYLON.Mesh {
 	const circle: BABYLON.Mesh = BABYLON.MeshBuilder.CreateDisc("circle", {
-		radius: radius, tessellation: 64    // Higher = smoother circle
+		radius: radius, tessellation: 64	// Higher = smoother circle
 	}, scene);
 	// Assign material
 	const circleMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("circleMaterial", scene);
@@ -315,9 +314,9 @@ ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0); // Yellow
 ballMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
 ball.material = ballMaterial;
 ball.position = new BABYLON.Vector3(0, fieldHeight + 0.2, 0);
-let ballSpeed: {x: number, z: number} = { x: 0, z: 0.05 };
+let ballSpeed: {x: number, z: number} = { x: 0, z: 0.3 };
 let lastScorer: 1 | 2 | null = null;
-const MAX_BALL_SPEED: number = 0.2;
+const MAX_BALL_SPEED: number = 0.5;
 
 //////////////////////////////// SCORE ////////////////////////////////
 let score1: number = 0, score2: number = 0;
@@ -353,13 +352,15 @@ updateScores();
 
 //////////////////////////////// KEYS PRINT ////////////////////////////////
 // Keys creation
-interface KeyConfig {
+interface KeyConfig
+{
 	key: string;
 	side: string;
 	top: string;
 }
 
-const keysPrint: KeyConfig[] = [
+const keysPrint: KeyConfig[] =
+[
 	{ key: "Q", side: "left", top: "25%" },  // Position for Q
 	{ key: "D", side: "left", top: "40%" },  // Position for D
 	{ key: "←", side: "right", top: "25%" }, // Position for ←
@@ -411,11 +412,11 @@ document.head.appendChild(styleKeys);
 document.addEventListener("keydown", (event: KeyboardEvent) => {
 	const key = event.key;
 	const keyElements = document.querySelectorAll(".key-display");
-	
+
 	keyElements.forEach((element: Element) => {
 		const htmlElement = element as HTMLElement;
-		if (htmlElement.textContent?.toUpperCase() === key.toUpperCase() || 
-			(key === "ArrowLeft" && htmlElement.textContent === "←") || 
+		if (htmlElement.textContent?.toUpperCase() === key.toUpperCase() ||
+			(key === "ArrowLeft" && htmlElement.textContent === "←") ||
 			(key === "ArrowRight" && htmlElement.textContent === "→")) {
 			htmlElement.classList.add("key-pressed");
 		}
@@ -425,11 +426,11 @@ document.addEventListener("keydown", (event: KeyboardEvent) => {
 document.addEventListener("keyup", (event: KeyboardEvent) => {
 	const key = event.key;
 	const keyElements = document.querySelectorAll(".key-display");
-	
+
 	keyElements.forEach((element: Element) => {
 		const htmlElement = element as HTMLElement; // Cast to HTMLElement
-		if (htmlElement.textContent?.toUpperCase() === key.toUpperCase() || 
-			(key === "ArrowLeft" && htmlElement.textContent === "←") || 
+		if (htmlElement.textContent?.toUpperCase() === key.toUpperCase() ||
+			(key === "ArrowLeft" && htmlElement.textContent === "←") ||
 			(key === "ArrowRight" && htmlElement.textContent === "→")) {
 			htmlElement.classList.remove("key-pressed");
 		}
@@ -449,14 +450,52 @@ window.addEventListener('keydown', (e: KeyboardEvent) => { if (keys.hasOwnProper
 window.addEventListener('keyup', (e: KeyboardEvent) => { if (keys.hasOwnProperty(e.code)) keys[e.code as keyof KeyState] = false; });
 
 // Paddle movement
-let paddleSpeed: number = 0.1;
-const MAX_PADDLE_SPEED = 0.15;
-function movePaddles(): void {
-	if (keys.KeyA && paddle1.position.x < 5) paddle1.position.x += paddleSpeed;
-	if (keys.KeyD && paddle1.position.x > -5) paddle1.position.x -= paddleSpeed;
+let paddleSpeed: number = 0.25;
+const MAX_PADDLE_SPEED = 1;
+let agentIsActive: Boolean = true
+const agent = new PongAI()
 
-	if (keys.ArrowLeft && paddle2.position.x < 5) paddle2.position.x += paddleSpeed;
-	if (keys.ArrowRight && paddle2.position.x > -5) paddle2.position.x -= paddleSpeed;
+function highlight_keys(action: number): void
+{
+	const keyElements = document.querySelectorAll(".key-display");
+	keyElements.forEach((element: Element) => {
+		const htmlElement = element as HTMLElement;
+		if (htmlElement.textContent === "←" || htmlElement.textContent === "→") {
+			htmlElement.classList.remove("key-pressed");
+		}
+	});
+
+	keyElements.forEach((element: Element) => {
+		const htmlElement = element as HTMLElement;
+		if ((action == 0 && htmlElement.textContent === "←") ||
+			(action == 1 && htmlElement.textContent === "→")) {
+			htmlElement.classList.add("key-pressed");
+		}
+	});
+}
+function movePaddles(): void
+{
+	if (agentIsActive)
+	{
+		let action = agent.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x)
+		highlight_keys(action)
+		if (action == 0 && paddle2.position.x < 5)
+			paddle2.position.x += paddleSpeed;
+		if (action == 1 && paddle2.position.x > -5)
+			paddle2.position.x -= paddleSpeed;
+	}
+	else
+	{
+		if (keys.ArrowLeft && paddle2.position.x < 5)
+			paddle2.position.x += paddleSpeed;
+		if (keys.ArrowRight && paddle2.position.x > -5)
+			paddle2.position.x -= paddleSpeed;
+	}
+
+	if (keys.KeyA && paddle1.position.x < 5)
+		paddle1.position.x += paddleSpeed;
+	if (keys.KeyD && paddle1.position.x > -5)
+		paddle1.position.x -= paddleSpeed;
 }
 
 ////////////////////////////// GOAL EFFECT //////////////////////////////
@@ -540,10 +579,10 @@ function reset(): void {
 	paddleSpeed = 0.1;
 	numHit = 0;
 	if (lastScorer === 1) {
-		ballSpeed = { x: 0, z: -0.05 }
+		ballSpeed = { x: 0, z: -0.3 }
 	}
 	else if (lastScorer === 2) {
-		ballSpeed = { x: 0, z: 0.05 }
+		ballSpeed = { x: 0, z: 0.3 }
 	}
 }
 
@@ -570,6 +609,7 @@ function handleKeyPress(event: KeyboardEvent): void {
 		window.removeEventListener('keydown', handleKeyPress);
 	}
 }
+
 function restartGame() {
 	gameIsFinished = false;
 	score1 = 0;
@@ -607,20 +647,23 @@ function checkCollision(): void {
 		ballSpeed.z = Math.abs(speed * Math.cos(bounceAngle)); // Ensure ball moves downward
 		numHit++;
 	}
-	// Increase speed every 5 hits
-	if (numHit >= 5) {
+
+	// Increase speed every 2 hits
+	if (numHit >= 2 && !ballSpeedReachedMax)
+	{
 		ballSpeed.x += Math.sign(ballSpeed.x) * speedIncrement; // Horizontaly
 		ballSpeed.z += Math.sign(ballSpeed.z) * speedIncrement; // Verticaly
 		ballSpeed.x = Math.min(Math.abs(ballSpeed.x), MAX_BALL_SPEED) * Math.sign(ballSpeed.x);
 		ballSpeed.z = Math.min(Math.abs(ballSpeed.z), MAX_BALL_SPEED) * Math.sign(ballSpeed.z);
-		if (Math.abs(ballSpeed.x) === MAX_BALL_SPEED && !ballSpeedReachedMax) { ballSpeedReachedMax = true; }
+		if (Math.abs(ballSpeed.x) >= MAX_BALL_SPEED)
+			ballSpeedReachedMax = true;
 		paddleSpeed = Math.min(paddleSpeed + speedIncrement, MAX_PADDLE_SPEED);
 		numHit = 0;
 	}
 	// Walls collision
-	if (ball.position.x < -6 || ball.position.x > 6) {
+	if (ball.position.x < -6 || ball.position.x > 6)
 		ballSpeed.x *= -1;
-	}
+
 	// Score
 	if (ball.position.z > 6.5) {
 		score2++;
@@ -645,10 +688,10 @@ function checkCollision(): void {
 }
 
 ////////////////////////////// LOOP //////////////////////////////
-
 // Render loop
 engine.runRenderLoop(() => {
-	if (!isPaused && countdownComplete) {
+	if (!isPaused && countdownComplete)
+	{
 		movePaddles();
 		ball.position.x += ballSpeed.x;
 		ball.position.z += ballSpeed.z;

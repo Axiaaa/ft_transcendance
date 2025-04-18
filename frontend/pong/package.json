@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@babylonjs/core": "^8.2.0",
+    "@babylonjs/gui": "^8.2.0"
+  }
+}

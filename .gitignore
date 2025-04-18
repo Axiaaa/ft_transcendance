@@ -7,3 +7,5 @@ liste.md
 __pycache__/
 ddos.py
 draw.drawio
+.gitignore
+.vscode

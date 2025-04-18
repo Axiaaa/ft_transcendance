@@ -2,18 +2,11 @@
 	"compilerOptions": {
 		"composite": true,
 		"target": "es2020",
-		"module": "ESNext", 
+		"module": "ESNext",
 		"moduleResolution": "node",
 		"outDir": "./.build",
-		// "rootDir": "./",
-		// "baseUrl": "./",
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
-		"strict": true,
+		"strict": true
 	},
-	// "include": ["./**/*.ts"],
-	// "exclude": ["node_modules"],
-	// "references": [
-	// 	{ "path": "../" }
-	// ]
 }
