@@ -1079,8 +1079,8 @@ engine.runRenderLoop(() => {
         if (pongAIInstance) {
             const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
             console.log("AI Action:", action);
-            if (action === 0 && paddle2.position.x > -5) paddle2.position.x -= paddleSpeed;
-            else if (action === 1 && paddle2.position.x < 5) paddle2.position.x += paddleSpeed;
+            if (action === 0 && paddle2.position.x < 5) paddle2.position.x += paddleSpeed;
+            else if (action === 1 && paddle2.position.x > -5) paddle2.position.x -= paddleSpeed;
             // 2 = rien faire
         }
         ball.position.x += ballSpeed.x;
