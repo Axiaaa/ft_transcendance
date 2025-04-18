@@ -3,6 +3,7 @@ import * as GUI from '@babylonjs/gui';
 import '@babylonjs/loaders';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
+import { PongAI } from './pong-ai.js';
 
 declare var confetti: any;
 
@@ -563,7 +564,7 @@ let lastScorer: 1 | 2 | null = null;
 const MAX_BALL_SPEED: number = 0.2;
 
 //////////////////////////////// SCORE ////////////////////////////////
-let score1: number = 0, score2: number = 9;
+let score1: number = 0, score2: number = 0;
 const scoreElement: HTMLDivElement = document.createElement('div');
 scoreElement.style.position = 'absolute';
 scoreElement.style.top = '20px';
@@ -841,7 +842,8 @@ function reset(): void {
     else if (lastScorer === 2) {
         ballSpeed = { x: 0, z: 0.05 }
     }
-    if ((score1 !== 10 && score2 !== 10) || (score1 === 0 && score2 === 0) ) {
+    if (score1 === 0 && score2 === 0) return;
+    if (score1 !== 10 && score2 !== 10) {
         createButton('Enter', 'key-enter');
         createButton('Space', 'key-space');
         window.addEventListener('keydown', handleKeyPress);
@@ -970,7 +972,7 @@ function handleKeyPress(event: KeyboardEvent): void {
 function restartGame(callback?: () => void) {
     gameIsFinished = false;
     score1 = 0;
-    score2 = 9;
+    score2 = 0;
     lastScorer = null;
     isPaused = true;
     const winnerText = document.querySelector("#winner") as HTMLElement;
