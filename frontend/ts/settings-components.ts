@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	applyButton.textContent = 'Apply';
 	applyButton.style.padding = '5px 5px';
 	applyButton.style.marginLeft = '10px';
-	applyButton.style.left = 'calc(100% - 160px)';
+	applyButton.style.left = 'calc(100% - 125px)';
 	applyButton.style.position = 'absolute';
 	applyButton.style.top = '35px';
 	let previousSize = 0;
@@ -717,6 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
 						// For now, we will just simulate the restore process
 						deleteUserAvatar(Number(sessionStorage.getItem('wxp_user_id')));
 						deleteUserBackground(Number(sessionStorage.getItem('wxp_user_id')));
+						setFont(0, 0);
 						sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
 					});
 					
