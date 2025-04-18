@@ -32,6 +32,34 @@ export function setBodyBackgroundImage(url: string): void {
 	document.body.style.backgroundImage = `url(${url})`;
 }
 
+export function setFont(inputSize: number, previousSize: number | 0) {
+	console.log("Font size changed to: " + inputSize);
+	let inputString = inputSize.toString();
+	let applyButton = document.getElementById('font-size-apply-button') as HTMLButtonElement;
+	if (applyButton.classList[0] && applyButton.classList[0].includes('font-size-applied-'))
+		{
+			previousSize = parseInt(applyButton.classList[0].replace('font-size-applied-', ''));
+			applyButton.classList.remove('font-size-applied-' + previousSize);
+		}
+		applyButton.classList.add('font-size-applied-' + inputString);
+		const allTextElements = document.querySelectorAll('p, span, h1, h2, h3, h4, h5, h6, div, button, input, label, a');
+		allTextElements.forEach(element => {
+			const currentSize = window.getComputedStyle(element).fontSize;
+			const sizeNumber = parseInt(currentSize);
+			if (!isNaN(sizeNumber)) {
+				const newSize = sizeNumber + parseInt(inputString) - previousSize;
+				(element as HTMLElement).style.fontSize = `${newSize}px`;
+				
+			}
+		});
+		if (parseInt(inputString) > 0)
+			sendNotification('Font Size Changed', `Font size increased by ${inputString}px`, "./img/Utils/font-icon.png");
+		else if (parseInt(inputString) < 0)
+			sendNotification('Font Size Changed', `Font size decreased by ${inputString}px`, "./img/Utils/font-icon.png");
+		else
+			sendNotification('Font Size Changed', `Font size reset`, "./img/Utils/font-icon.png");
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
 
 	window.addEventListener('beforeunload', (event) => {

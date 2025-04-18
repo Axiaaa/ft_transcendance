@@ -1,11 +1,11 @@
-import { sys } from "../node_modules/typescript/lib/typescript.js";
 import { sendNotification } from "./notification.js";
-import { deleteUserAvatar, deleteUserBackground, getUserBackground, updateUser } from "./API.js";
+import { deleteUserAvatar, deleteUserBackground, updateUser } from "./API.js";
 
 import { getUserAvatar, uploadFile } from "./API.js";
 import { updateUserImages } from "./login-screen.js";
+import { setFont } from "./system.js";
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
 
 
 	let categoryContainer = document.getElementById('settings-app-category-container') as HTMLElement;
@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 	
 	{
 		let wallpaperSettings = document.getElementById('settings-app-Wallpaper-setting') as HTMLElement;
-
+		if (!wallpaperSettings)
+			console.log('Wallpaper settings element not found');
 		const documentBody = getComputedStyle(document.body);
 		let actualWallpaper = documentBody.getPropertyValue('background-image')
 			.split('/')
@@ -130,7 +131,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 	//		Font Size Settings
 
 	let fontSizeSettings = document.getElementById('settings-app-Font Size-setting') as HTMLElement;
-
 	let fontSizeSettingsContainer = document.createElement('div');
 	fontSizeSettings.appendChild(fontSizeSettingsContainer);
 	fontSizeSettingsContainer.id = 'font-size-settings-container';
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	exampleText.style.position = 'absolute';
 	exampleText.style.right = '35px';
 	exampleText.style.top = '5px';
-	exampleText.style.left = 'calc(100% - 170px)';
+	exampleText.style.left = 'calc(100% - 125px)';
 	exampleText.style.fontSize = `15px`;
 	exampleText.style.maxHeight = '50px';
 	exampleText.style.overflow = 'hidden';
@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	maxSize.textContent = '+5px';
 
 
+	
 
 	let applyButton = document.createElement('button');
 	fontSizeInfo.appendChild(applyButton);
@@ -201,28 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	applyButton.style.top = '35px';
 	let previousSize = 0;
 	applyButton.addEventListener('click', () => {
-		if (applyButton.classList[0] && applyButton.classList[0].includes('font-size-applied-'))
-		{
-			previousSize = parseInt(applyButton.classList[0].replace('font-size-applied-', ''));
-			applyButton.classList.remove('font-size-applied-' + previousSize);
-		}
-		applyButton.classList.add('font-size-applied-' + range.value);
-		const allTextElements = document.querySelectorAll('p, span, h1, h2, h3, h4, h5, h6, div, button, input, label, a');
-		allTextElements.forEach(element => {
-			const currentSize = window.getComputedStyle(element).fontSize;
-			const sizeNumber = parseInt(currentSize);
-			if (!isNaN(sizeNumber)) {
-				const newSize = sizeNumber + parseInt(range.value) - previousSize;
-				(element as HTMLElement).style.fontSize = `${newSize}px`;
-				
-			}
-		});
-		if (parseInt(range.value) > 0)
-			sendNotification('Font Size Changed', `Font size increased by ${range.value}px`, "./img/Utils/font-icon.png");
-		else if (parseInt(range.value) < 0)
-			sendNotification('Font Size Changed', `Font size decreased by ${range.value}px`, "./img/Utils/font-icon.png");
-		else
-			sendNotification('Font Size Changed', `Font size reset`, "./img/Utils/font-icon.png");
+		setFont(parseInt(range.value), previousSize);
 	});
 
 
@@ -1338,7 +1318,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 	}
 
 });
-function getElementByClassName(arg0: string) {
-	throw new Error("Function not implemented.");
-}
 
+	// // SANDBOX ZONE 
+	// {
+	// 	setTimeout(() => {
+	// 		let wallpaperSettings = document.getElementById('settings-app-Wallpaper-setting') as HTMLElement;
+	// 		if (!wallpaperSettings)
+	// 			console.log('Wallpaper settings element not found, again.......');
+	// 		else
+	// 			console.log('Wallpaper settings element found WTFFF ???');
+	// 	}, 0);
+
+	// }

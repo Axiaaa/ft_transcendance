@@ -1,3 +1,4 @@
+import { setFont } from "./system.js";
 import { getCurrentUser, updateUser } from "./API.js";
 import { openAppWindow } from "./app-icon.js";
 
@@ -20,6 +21,7 @@ export function disconnectUser()
 			.catch((error) => {
 				console.error('Error updating user status:', error);
 			});
+		setFont(0, 0);
 	}
 }
 
