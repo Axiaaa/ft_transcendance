@@ -125,6 +125,7 @@ document.getElementById("resume-button")!.addEventListener("click", () => {
     pauseMenu.style.display = "none";
     countdownContainer.style.display = "none";
     overlay.style.display = "none";
+    if (spaceAndEnterIsPrint) return;
     isPaused = false;
 });
 
@@ -142,7 +143,7 @@ window.addEventListener("blur", () => {
     }
 });
 function togglePause() { // Pause the game and show the menu
-    isPaused = !isPaused;
+    isPaused = true;
     if (isPaused) {
         pauseMenu.style.display = "block";
         countdownContainer.style.display = "block";
@@ -843,6 +844,7 @@ function zoomOutEffect(callback?: () => void): void {
 
 let enterButton: HTMLElement | null = null;
 let spaceButton: HTMLElement | null = null;
+let spaceAndEnterIsPrint = false;
 
 function reset(): void {
     paddle1.position.set(0, fieldHeight + 0.2, 6.5);
@@ -862,6 +864,7 @@ function reset(): void {
     if (score1 !== 10 && score2 !== 10) {
         createButton('Enter', 'key-enter');
         createButton('Space', 'key-space');
+        spaceAndEnterIsPrint = true;
         window.addEventListener('keydown', handleKeyPress);
     }
 }
@@ -884,6 +887,7 @@ function createButton(text: string, className: string): void {
     }
 }
 function hideButtons(): void {
+    spaceAndEnterIsPrint = false;
     if (enterButton) {
         enterButton.remove();
         enterButton = null;
