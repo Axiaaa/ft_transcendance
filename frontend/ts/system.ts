@@ -1,10 +1,5 @@
-import { send } from "process";
 import { sendNotification } from "./notification.js";
-import { getCurrentUser, getUserAvatar, getUserBackground, getUserById, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
-import { getUser } from "./API.js";
-import { createUser } from "./API.js";
-import { create } from "domain";
-import { get } from "http";
+import { getCurrentUser, getUserAvatar, getUserBackground, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
 import { disconnectUser } from "./start-menu.js";
 
 

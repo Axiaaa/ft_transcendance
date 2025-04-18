@@ -1,6 +1,5 @@
 import { resetUserImages } from "./login-screen.js";
-import {sendNotification} from "./notification.js";
-import { getCookie, setCookie } from 'typescript-cookie'
+import { sendNotification } from "./notification.js";
 
 
 // API.ts - Client for API interactions

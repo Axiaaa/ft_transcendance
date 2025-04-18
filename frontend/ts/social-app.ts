@@ -1,4 +1,3 @@
-import { toNamespacedPath } from "path";
 import { openAppWindow } from "./app-icon.js";
 
 function createTab(Name: string, Container: HTMLElement): HTMLElement

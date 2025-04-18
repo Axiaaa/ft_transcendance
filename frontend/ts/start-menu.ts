@@ -1,5 +1,5 @@
 import { setFont } from "./system.js";
-import { getCurrentUser, updateUser } from "./API.js";
+import { updateUser } from "./API.js";
 import { openAppWindow } from "./app-icon.js";
 
 export function disconnectUser()

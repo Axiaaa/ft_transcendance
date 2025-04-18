@@ -1,13 +1,8 @@
-import { getCurrentUser, getUserAvatar, getUserBackground, updateUser } from "./API.js";
-import { Cookies, getCookie, setCookie } from 'typescript-cookie'
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
 import { initHistoryAPI, resetUserImages, updateAllUserNames, updateUserImages } from "./system.js";
 import { goToDesktopPage } from "./system.js";
-import { goToFormsPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
-import { sign } from "crypto";
-import { Session } from "inspector/promises";
 
 let	titleScreenBackground = document.createElement('div');
 titleScreenBackground.id = 'title-screen-background';
