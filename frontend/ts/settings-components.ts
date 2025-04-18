@@ -185,13 +185,13 @@ document.addEventListener('DOMContentLoaded', () => {
 	let minSize = document.createElement('label');
 	fontSizeSlider.appendChild(minSize);
 	minSize.htmlFor = 'range26';
-	minSize.textContent = '-5px';
+	minSize.textContent = '-3px';
 	let range = document.createElement('input');
 	fontSizeSlider.appendChild(range);
 	range.id = 'range26';
 	range.type = 'range';
-	range.min = '-5';
-	range.max = '5';
+	range.min = '-3';
+	range.max = '3';
 	range.value = '0';
 	range.addEventListener('input', () => {
 		const newSize = 15 + parseInt(range.value);
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	let maxSize = document.createElement('label');
 	fontSizeSlider.appendChild(maxSize);
 	maxSize.htmlFor = 'range27';
-	maxSize.textContent = '+5px';
+	maxSize.textContent = '+3px';
 
 
 	
