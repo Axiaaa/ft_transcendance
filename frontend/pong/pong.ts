@@ -7,93 +7,389 @@ import { PongAI } from './pong-ai.js';
 
 declare var confetti: any;
 let pongAIInstance: PongAI | null = null;
+const PI: number = Math.PI;
+const maxBounceAngle: number = PI/3;
 
-// Create the canvas element and append it to the document html
-const canvas = document.getElementById('canvas') as unknown as HTMLCanvasElement;
-if (!canvas) {
-	throw new Error("Canvas element not found");
-}
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-// Initialize the Babylon.js engine
-const engine: BABYLON.Engine = new BABYLON.Engine(canvas, true);
-// Create the scene
-const scene: BABYLON.Scene = new BABYLON.Scene(engine);
-// Set background color
-scene.clearColor = new BABYLON.Color4(0, 0, 0, 1); // Black
-// Create a camera to control it
-// const camera: BABYLON.UniversalCamera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 6.5, 9), scene);
-const camera: BABYLON.UniversalCamera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 8, 10), scene);
-camera.setTarget(BABYLON.Vector3.Zero());
-camera.minZ = 0.1;
-camera.maxZ = 1000;
-camera.inputs.clear(); // Disable camera controls with arrowLeft and arrowRight
-// Jcuzin update on size of the canvas
-const pongGlobalContainer = document.getElementById("pong-global-container") as HTMLDivElement;
-let resizePending = false;
-const updateCanvasSize = () => {
-	if (resizePending) return; // Avoid infinity loop
-	resizePending = true;
-	requestAnimationFrame(() => {
-		const containerWidth = window.innerWidth;
-		const containerHeight = window.innerHeight;
-
-		canvas.width = containerWidth;
-		canvas.height = containerHeight;
-
-		const aspectRatio = containerWidth / containerHeight;
-		const BASE_FOV = BABYLON.Tools.ToRadians(150);
-		camera.fov = Math.min(BASE_FOV, BASE_FOV / aspectRatio);
-		engine.resize();
-
-		const scaleFactor = Math.min(containerWidth / 1280, containerHeight / 720); // Resolution's reference
-		document.documentElement.style.setProperty("--scale-factor", scaleFactor.toString());
-
-		updateScoreSize();
-		updateKeySize();
-
-		resizePending = false;
-	});
-};
-updateCanvasSize();
-const resizeObserver = new ResizeObserver(updateCanvasSize);
-resizeObserver.observe(pongGlobalContainer);
-
-// Add a hemispheric light
-const light: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 5, 5), scene);
-light.intensity = 0.8;
-
-// Post-processing effects
-const pipeline: BABYLON.DefaultRenderingPipeline = new BABYLON.DefaultRenderingPipeline("defaultPipeline", true, scene, [camera]);
-// Enable bloom effect
-pipeline.bloomEnabled = true;
-pipeline.bloomThreshold = 0.8;
-pipeline.bloomKernel = 32;	  // Controls blur radius of bloom
-
-// Define players's color
+//  paddle
 const player1Color: BABYLON.Color3 = new BABYLON.Color3(0, 1, 0); // Green
 const player2Color: BABYLON.Color3 = new BABYLON.Color3(0.5, 0, 0.5); // Purple
 const player1Color4: BABYLON.Color4 = new BABYLON.Color4(player1Color.r, player1Color.g, player1Color.b, 1);
 const player2Color4: BABYLON.Color4 = new BABYLON.Color4(player2Color.r, player2Color.g, player2Color.b, 1);
-// Game Variables
-let numHit: number = 0; // Number of time the ball has been hit (0 to 2)
-let speedIncrement: number = 0.02; // Speed increase every 2 hits
-let ballSpeedReachedMax: boolean = false; // Check if maxSpeed has been reached
-let isPaused: boolean = false; // Pause the game after scoring
-let overlay = document.getElementById("overlay") as HTMLDivElement;
-let countdownContainer = document.getElementById("countdown-container")as HTMLDivElement;
-let isTournament: number = 0; // 0 = no tournament, 1 = tournament
-let isLastTournamentMatch = false; // Check if it's the last match of the tournament
 
+// Game state
+let numHit: number = 0;
+let speedIncrement: number = 0.02;
+let ballSpeedReachedMax: boolean = false;
+let isPaused: boolean = false;
+let isPlaying = false;
+let countdownComplete = false;
+let gameIsFinished = false;
+let isZooming = false;
+let paddleSpeed: number = 0.15;
+let resizePending = false;
+
+// Field
+const fieldThickness: number = 0.2;
+const fieldSize: { width: number, height: number } = { width: 12, height: 12 };
+const fieldHalf = fieldSize.width / 2
+
+// Tournament
+let isTournament: number = 0; // 0 = no tournament, 1 = tournament
+let isLastTournamentMatch = false;
+let currentPlayer1 = "";
+let currentPlayer2 = "";
 let matchEndCallback: ((winner: string) => void) | null = null;
-function onMatchEnd(callback: (winner: string) => void): void {
-	matchEndCallback = callback;
+
+// Score
+let score1: number = 0, score2: number = 0;
+let lastScorer: 1 | 2 | null = null;
+
+// Ball
+const MAX_BALL_SPEED: number = 0.2;
+let ballSpeed: {x: number, z: number} = { x: 0, z: 0.1 };
+
+// Keys
+interface KeyConfig {
+	key: string;
+	side: string;
+	top: string;
+	code: string;
+}
+const keysPrint: KeyConfig[] = [
+	{ key: "A", side: "left", top: "25%", code: "KeyA" },  // Position for A
+	{ key: "D", side: "left", top: "40%", code: "KeyD" },  // Position for D
+	{ key: "←", side: "right", top: "25%", code: "ArrowLeft" }, // Position for ←
+	{ key: "→", side: "right", top: "40%", code: "ArrowRight" }  // Position for →
+];
+
+interface KeyState {
+	pressed: boolean;
+	element: HTMLElement | null;
+}
+const keyMap = new Map<string, KeyState>();
+const codeToDetectedKey: Record<string, string> = {};
+
+const canvas = document.getElementById('canvas') as unknown as HTMLCanvasElement;
+if (!canvas)
+	throw new Error("Canvas element not found");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// UI
+const pongGlobalContainer = document.getElementById("pong-global-container") as HTMLDivElement;
+let overlay = document.getElementById("overlay") as HTMLDivElement;
+let countdownContainer = document.getElementById("countdown-container") as HTMLDivElement;
+let menu = document.getElementById("menu") as HTMLDivElement;
+let goElement = document.getElementById("countdown-go") as HTMLSpanElement;
+let countdownElement = document.getElementById("countdown") as HTMLSpanElement;
+
+// Mode selection
+const modeSelection = document.getElementById("mode-selection") as HTMLElement | null;
+const tournamentButton = document.getElementById('tournamentButton') as HTMLElement | null;
+const tournamentButtonContainer = document.getElementById('tournament-button-container') as HTMLElement | null;
+const playerCountSelector = document.getElementById('player-count-selector') as HTMLElement | null;
+const playerInputs = document.getElementById('player-inputs') as HTMLElement | null;
+const continueButton = document.getElementById('continueTournament') as HTMLElement | null;
+
+// Babylon
+const engine: BABYLON.Engine = new BABYLON.Engine(canvas, true);
+const scene: BABYLON.Scene = new BABYLON.Scene(engine);
+scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
+
+// Camera
+const camera: BABYLON.UniversalCamera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 8, 10), scene);
+camera.setTarget(BABYLON.Vector3.Zero());
+camera.minZ = 0.1;
+camera.maxZ = 1000;
+camera.inputs.clear();
+
+// Babylon (options)
+const light: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 5, 5), scene);
+light.intensity = 0.8;
+const pipeline: BABYLON.DefaultRenderingPipeline = new BABYLON.DefaultRenderingPipeline("defaultPipeline", true, scene, [camera]);
+pipeline.bloomEnabled = true;
+pipeline.bloomThreshold = 0.8;
+pipeline.bloomKernel = 32;
+
+// Create field
+function createField(scene: BABYLON.Scene): BABYLON.Mesh {
+	const field: BABYLON.Mesh = BABYLON.MeshBuilder.CreateBox("field", {
+		width: fieldSize.width,
+		height: fieldThickness,
+		depth: fieldSize.height,
+		updatable: false,
+		sideOrientation: BABYLON.Mesh.FRONTSIDE
+	}, scene);
+
+	field.position.y = fieldThickness / 2 + 0.5;
+
+	const fieldMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("fieldMaterial", scene);
+	fieldMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+	fieldMaterial.freeze();
+
+	field.material = fieldMaterial;
+	field.freezeWorldMatrix();
+
+	return field;
 }
 
-////////////////////////////// ECHAP //////////////////////////////
-// Creation of the Pause Menu
-const pauseMenu = document.createElement("div");
+const field: BABYLON.Mesh = createField(scene);
+const fieldHeight: number = field.position.y + fieldThickness / 2;
 
+// Create ball
+function createBall(): BABYLON.Mesh {
+	const ballMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
+	ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0);
+	ballMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
+	ballMaterial.freeze();
+
+	const ball: BABYLON.Mesh = BABYLON.MeshBuilder.CreateSphere("ball", {diameter: 0.4, segments: 8}, scene);
+	ball.material = ballMaterial;
+	ball.position = new BABYLON.Vector3(0, fieldHeight + 0.2, 0);
+
+	return ball;
+}
+
+let ball = createBall();
+
+// Create paddles
+const createCapsuleOutline = (radius: number, height: number, radialSegments: number, scene: BABYLON.Scene, color: BABYLON.Color3, thickness: number = 0.01): BABYLON.LinesMesh => {
+	const segmentStep = PI / radialSegments;
+	const halfHeight = height / 2;
+
+	const topHalf: BABYLON.Vector3[] = [];
+	const bottomHalf: BABYLON.Vector3[] = [];
+
+	for (let i = 0; i <= radialSegments; i++) {
+		const theta = i * segmentStep;
+		const cosTheta = Math.cos(theta);
+		const sinTheta = Math.sin(theta);
+
+		topHalf[i] = new BABYLON.Vector3(radius * cosTheta, halfHeight + radius * sinTheta, 0);
+		bottomHalf[i] = new BABYLON.Vector3(radius * Math.cos(PI - theta), -halfHeight - radius * Math.sin(PI - theta), 0);
+	}
+
+	const verticalLines = [
+		[new BABYLON.Vector3(radius, halfHeight, 0), new BABYLON.Vector3(radius, -halfHeight, 0)],
+		[new BABYLON.Vector3(-radius, halfHeight, 0), new BABYLON.Vector3(-radius, -halfHeight, 0)]
+	];
+
+	const lines = [topHalf, bottomHalf, ...verticalLines];
+	const capsuleLines = BABYLON.MeshBuilder.CreateLineSystem("capsule", {lines, updatable: false}, scene);
+
+	capsuleLines.color = color;
+	return capsuleLines;
+};
+
+const createPaddles = (scene: BABYLON.Scene, fieldHeight: number) => {
+	const radius = 0.25;
+	const height = 1.5;
+	const radialSegments = 12;
+
+	const paddle1 = createCapsuleOutline(radius, height, radialSegments, scene, player1Color);
+	const paddle2 = createCapsuleOutline(radius, height, radialSegments, scene, player2Color);
+
+	const paddleRotationZ = PI / 2;
+	const paddleRotationX = -PI / 4;
+	paddle1.rotation.z = paddleRotationZ;
+	paddle1.rotation.x = paddleRotationX;
+	paddle2.rotation.z = paddleRotationZ;
+	paddle2.rotation.x = paddleRotationX;
+
+	paddle1.position.set(0, fieldHeight + 0.2, 6.5);
+	paddle2.position.set(0, fieldHeight + 0.2, -6.5);
+
+	return { paddle1, paddle2 };
+};
+
+let { paddle1, paddle2 } = createPaddles(scene, fieldHeight);
+
+// Create field lines
+function createHalfCircle(centerX: number, centerZ: number, radius: number, startAngle: number, endAngle: number): BABYLON.Vector3[] {
+	const points: BABYLON.Vector3[] = [];
+	const segments = 32;
+
+	for (let i = 0; i <= segments; i++) {
+		const angle = startAngle + (endAngle - startAngle) * (i / segments);
+		points.push(new BABYLON.Vector3(
+			centerX + radius * Math.cos(angle),
+			fieldHeight + 0.04,
+			centerZ + radius * Math.sin(angle)
+		));
+	}
+	return points;
+}
+
+function createFieldLines(scene: BABYLON.Scene): {
+	fieldLines: BABYLON.LinesMesh,
+	leftHalfCircle: BABYLON.LinesMesh,
+	rightHalfCircle: BABYLON.LinesMesh
+} {
+	const fieldLinePoints: BABYLON.Vector3[] = [
+		// Top edges
+		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, -fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, -fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, -fieldHalf),
+		// Bottom edges
+		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
+		// Vertical connectors
+		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, -fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, -fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, fieldHalf),
+		// Central line
+		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, 0),
+		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, 0)
+	];
+
+	const leftHalfCirclePoints = createHalfCircle(0, -6, 3, 0, PI);
+	const rightHalfCirclePoints = createHalfCircle(0, 6, 3, PI, 2 * PI);
+
+	const fieldLines = BABYLON.MeshBuilder.CreateLines("fieldLines", {points: fieldLinePoints, updatable: false}, scene) as BABYLON.LinesMesh;
+	const leftHalfCircle = BABYLON.MeshBuilder.CreateLines("leftHalfCircle", {points: leftHalfCirclePoints, updatable: false}, scene) as BABYLON.LinesMesh;
+	const rightHalfCircle = BABYLON.MeshBuilder.CreateLines("rightHalfCircle", {points: rightHalfCirclePoints, updatable: false}, scene) as BABYLON.LinesMesh;
+
+	const neonColor = new BABYLON.Color3(0, 1, 1);
+	const lines = [fieldLines, leftHalfCircle, rightHalfCircle];
+	lines.forEach(line => {
+		line.color = neonColor;
+		line.freezeWorldMatrix();
+	});
+
+	return {fieldLines, leftHalfCircle, rightHalfCircle}
+}
+
+const {fieldLines, leftHalfCircle, rightHalfCircle} = createFieldLines(scene);
+
+// Create circles for scoring effects
+function createCircle(radius: number = 0.3): BABYLON.Mesh {
+	const circleTemplate: BABYLON.Mesh = BABYLON.MeshBuilder.CreateDisc("circle", {radius: radius, tessellation: 16, updatable: false}, scene);
+	const circleMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("circleMaterial", scene);
+
+	circleMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+	circleMaterial.freeze();
+	circleTemplate.material = circleMaterial;
+	circleTemplate.rotation.x = PI / 2;
+	circleTemplate.isVisible = false;
+
+	return circleTemplate;
+}
+
+function createCircleGrid(): BABYLON.InstancedMesh[] {
+	const circles: BABYLON.InstancedMesh[] = [];
+	const gridSize: number = 10;
+	const gridDivision: number = 10;
+	const cellSize: number = gridSize / gridDivision;
+	const circleTemplate = createCircle();
+
+	for (let x = -gridSize / 2 + cellSize / 2; x <= gridSize / 2; x += cellSize) {
+		for (let z = -gridSize / 2 + cellSize / 2; z <= gridSize / 2; z += cellSize) {
+			const instance = circleTemplate.createInstance("circle_instance");
+			instance.position.set(x, fieldHeight + 0.02, z);
+			instance.freezeWorldMatrix();
+			circles.push(instance);
+		}
+	}
+	return circles;
+}
+
+let circles: BABYLON.InstancedMesh[] = createCircleGrid();
+
+// Score
+const scoreElement: HTMLDivElement = document.createElement('div');
+scoreElement.style.position = 'absolute';
+scoreElement.style.top = '20px';
+scoreElement.style.left = '50%';
+scoreElement.style.transform = 'translateX(-50%)';
+scoreElement.style.fontSize = '48px';
+scoreElement.style.fontFamily = '"Orbitron", sans-serif';
+scoreElement.style.letterSpacing = '4px';
+scoreElement.style.color = '#0ff';
+scoreElement.style.textShadow = '0 0 3px #0ff, 0 0 5px #0ff, 0 0 8px #00f, 0 0 12px #00f';
+scoreElement.style.display = 'none';
+scoreElement.style.transition = 'transform 0.1s ease-out';
+scoreElement.style.animation = 'neonGlow 1.5s infinite alternate';
+document.body.appendChild(scoreElement);
+
+if (!document.getElementById('neon-style')) {
+	const style: HTMLStyleElement = document.createElement('style');
+	style.id = 'neon-style';
+	style.textContent = `@keyframes neonGlow {
+		0% { text-shadow: 0 0 2px #0ff,  0 0 4px #0ff,  0 0 6px #00f, 0 0 8px #00f; }
+		100% { text-shadow: 0 0 3px #0ff, 0 0 5px #0ff, 0 0 7px #00f, 0 0 10px #00f; }
+	}`;
+	document.head.appendChild(style);
+}
+
+const updateScoreSize = () => {
+	const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
+	scoreElement.style.fontSize = `${48 * scaleFactor}px`;
+	scoreElement.style.top = `${20 * scaleFactor}px`;
+	scoreElement.style.letterSpacing = `${4 * scaleFactor}px`;
+};
+
+function updateScores(): void {
+	scoreElement.textContent = `${score1} - ${score2}`;
+	scoreElement.style.transform = 'translateX(-50%) scale(1.2)';
+	setTimeout(() => {
+		scoreElement.style.transform = 'translateX(-50%) scale(1)';
+	}, 100);
+}
+
+// FPS display
+const fpsDisplay = document.createElement('div');
+fpsDisplay.style.position = 'absolute';
+fpsDisplay.style.top = '10px';
+fpsDisplay.style.left = '10px';
+fpsDisplay.style.color = '#0ff';
+fpsDisplay.style.fontFamily = '"Orbitron", sans-serif';
+fpsDisplay.style.zIndex = '1000';
+document.body.appendChild(fpsDisplay);
+
+// Key display style
+const styleKeys: HTMLStyleElement = document.createElement("style");
+styleKeys.textContent = `
+	.key-display {
+		width: 50px;
+		height: 50px;
+		border-radius: 8px;
+		background: rgba(255, 255, 255, 0.2);
+		color: white;
+		opacity: 0.5;
+		font-size: 24px;
+		font-family: 'Orbitron', sans-serif;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 2px solid rgba(255, 255, 255, 0.4);
+		box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+		transition: transform 0.1s ease-out, background 0.1s ease-out;
+	}
+
+	.left { left: 20px; }
+	.right { right: 20px; }
+
+	.key-pressed {
+		transform: scale(1.1);
+		background: rgba(255, 255, 255, 0.2);
+		border: 2px solid rgba(255, 255, 255, 0.6);
+		box-shadow: 0 0 5px rgba(255, 255, 255, 0.6), 0 0 10px rgba(255, 255, 255, 0.6);
+	}
+`;
+document.head.appendChild(styleKeys);
+
+// Pause menu
+const pauseMenu = document.createElement("div");
 pauseMenu.id = "pause-menu";
 pauseMenu.innerHTML = `
 	<div class="pause-content">
@@ -107,42 +403,495 @@ pauseMenu.innerHTML = `
 				<button id="confirm-no">No</button>
 			</div>
 		</div>
-	</div> `;
+	</div>`;
 document.body.appendChild(pauseMenu);
 
-document.getElementById("home-button")!.addEventListener("click", () => {
-	document.getElementById("home-confirmation")!.style.display = "flex"; // Display confirmation
-});
-document.getElementById("confirm-yes")!.addEventListener("click", () => {
-	location.reload();
-});
-document.getElementById("confirm-no")!.addEventListener("click", () => {
-	document.getElementById("home-confirmation")!.style.display = "none"; // Just hide the confirmation
-});
+// Circle effects
+function setCirclesColor(color: BABYLON.Color3): void {
+	if (circles[0].sourceMesh && circles[0].sourceMesh.material)
+		(circles[0].sourceMesh.material as BABYLON.StandardMaterial).diffuseColor = color;
+}
 
-// Handling the resume button
-document.getElementById("resume-button")!.addEventListener("click", () => {
-	pauseMenu.style.display = "none";
-	countdownContainer.style.display = "none";
-	overlay.style.display = "none";
-	if (spaceAndEnterIsPrint) return;
-	isPaused = false;
-});
+function highlightCircles(playerColor: BABYLON.Color3): void {
+	isPaused = true;
+	setCirclesColor(playerColor);
+	setTimeout(() => {
+		setCirclesColor(new BABYLON.Color3(0, 0, 0));
+	}, 1000);
+}
 
-// Toggle pause with Escape key
-window.addEventListener("keydown", (e) => {
-	if (!isPlaying) return;
-	if (e.code === "Escape") {
-		togglePause();
+// Particle effect for goal
+function highlightGoalEffect(position: BABYLON.Vector3, color: BABYLON.Color4, scene: BABYLON.Scene) {
+	const particleSystem = new BABYLON.ParticleSystem("goalEffect", 300, scene);
+	particleSystem.particleTexture = new BABYLON.Texture("https://assets.babylonjs.com/textures/flare.png", scene);
+
+	const boxEmitter = new BABYLON.BoxParticleEmitter();
+	boxEmitter.direction1 = new BABYLON.Vector3(-1, -1, -1);
+	boxEmitter.direction2 = new BABYLON.Vector3(1, 1, 1);
+	boxEmitter.minEmitBox = new BABYLON.Vector3(-1, -1, -1);
+	boxEmitter.maxEmitBox = new BABYLON.Vector3(1, 1, 1);
+	particleSystem.particleEmitterType = boxEmitter;
+
+	particleSystem.minSize = 0.2;
+	particleSystem.maxSize = 0.4;
+	particleSystem.minLifeTime = 0.5;
+	particleSystem.maxLifeTime = 1.0;
+	particleSystem.minEmitPower = 1;
+	particleSystem.maxEmitPower = 3;
+	particleSystem.updateSpeed = 0.01;
+	particleSystem.emitRate = 0;
+	particleSystem.manualEmitCount = 500;
+
+	particleSystem.color1 = new BABYLON.Color4(color.r, color.g, color.b, 1);
+	particleSystem.color2 = new BABYLON.Color4(color.r, color.g, color.b, 1);
+	particleSystem.colorDead = new BABYLON.Color4(color.r, color.g, color.b, 0.5);
+
+	particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+	particleSystem.emitter = position.clone();
+	particleSystem.gravity = new BABYLON.Vector3(0, -0.5, 0);
+	particleSystem.targetStopDuration = 1.0;
+	particleSystem.disposeOnStop = true;
+
+	particleSystem.start();
+}
+
+// Resizing
+const updateCanvasSize = () => {
+	if (resizePending)
+		return;
+	resizePending = true;
+	requestAnimationFrame(() => {
+		const containerWidth = window.innerWidth;
+		const containerHeight = window.innerHeight;
+
+		canvas.width = containerWidth;
+		canvas.height = containerHeight;
+
+		const aspectRatio = containerWidth / containerHeight;
+		const BASE_FOV = BABYLON.Tools.ToRadians(150);
+		camera.fov = Math.min(BASE_FOV, BASE_FOV / aspectRatio);
+		engine.resize();
+
+		const scaleFactor = Math.min(containerWidth / 1280, containerHeight / 720);
+		document.documentElement.style.setProperty("--scale-factor", scaleFactor.toString());
+
+		updateScoreSize();
+		updateKeySize();
+
+		resizePending = false;
+	});
+};
+
+const updateKeySize = () => {
+	const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
+	document.querySelectorAll(".key-display").forEach((key) => {
+		const element = key as HTMLElement;
+		element.style.width = `${50 * scaleFactor}px`;
+		element.style.height = `${50 * scaleFactor}px`;
+		element.style.fontSize = `${24 * scaleFactor}px`;
+		element.style.borderRadius = `${8 * scaleFactor}px`;
+	});
+};
+
+// Camera effects
+function zoomOutEffect(callback?: () => void): void {
+	if (isZooming)
+		return;
+	isZooming = true;
+	const targetPositionZ = 12;
+	const zoomSpeed = 0.01;
+
+	function zoomOutAnimation(scene: BABYLON.Scene): void {
+		if (camera.position.z < targetPositionZ) {
+			camera.position.z += zoomSpeed;
+			camera.position.y += zoomSpeed * 0.5;
+		} else {
+			camera.position.z = targetPositionZ;
+			scene.onBeforeRenderObservable.removeCallback(zoomOutAnimation);
+			isZooming = false;
+			if (callback)
+				callback();
+		}
 	}
-});
-window.addEventListener("blur", () => {
-	if (!isPlaying || gameIsFinished) return;
-	if (!isPaused) {
-		togglePause();
+	scene.onBeforeRenderObservable.add(zoomOutAnimation);
+}
+
+// Keyboard controls
+function handleKeyDown(event: KeyboardEvent) {
+	const code = event.code;
+
+	if (event.repeat)
+		return;
+
+	if (keyMap.has(code))
+	{
+		const KeyState = keyMap.get(code)!;
+		KeyState.pressed = true;
+
+		if (KeyState.element)
+			KeyState.element.classList.add('key-pressed');
+
+		if (code === 'Space' || code === 'Enter') {
+			if (gameIsFinished)
+				return;
+			hideButtons();
+			isPaused = false;
+		}
+		if (code === "Escape")
+			if (isPlaying)
+				togglePause();
 	}
-});
-function togglePause() { // Pause the game and show the menu
+}
+
+function handleKeyUp(event: KeyboardEvent) {
+	const code = event.code;
+
+	if (keyMap.has(code)) {
+		const KeyState = keyMap.get(code)!;
+		KeyState.pressed = false;
+
+		if (KeyState.element)
+			KeyState.element.classList.remove('key-pressed');
+	}
+}
+
+const layoutDetectionHandler = (e: KeyboardEvent) => {
+	if (e.code === "KeyA") {
+		codeToDetectedKey[e.code] = e.key.toUpperCase();
+
+		keysPrint.forEach((keyConf) => {
+			if (keyConf.key === "A")
+				keyConf.key = codeToDetectedKey["KeyA"];
+		});
+
+		const elements = document.querySelectorAll(".key-display");
+		elements.forEach((el) => {
+			const htmlEl = el as HTMLElement;
+			if (htmlEl.textContent === "A")
+				htmlEl.textContent = codeToDetectedKey["KeyA"];
+		});
+
+		window.removeEventListener("keydown", layoutDetectionHandler);
+	}
+};
+
+function initKeyControls() {
+	const gameKeys = ["KeyA", "KeyD", "ArrowLeft", "ArrowRight", "Escape", "Space", "Enter"];
+
+	gameKeys.forEach(code => {
+		keyMap.set(code, {
+			pressed: false,
+			element: null
+		});
+	});
+
+	keysPrint.forEach(({ key, side, top, code }) => {
+		const keyElement: HTMLDivElement = document.createElement("div");
+		keyElement.textContent = key;
+		keyElement.classList.add("key-display", side);
+		keyElement.style.position = 'absolute';
+		keyElement.style.top = top;
+		keyElement.dataset.key = code
+		document.body.appendChild(keyElement);
+		if (keyMap.has(code))
+			keyMap.get(code)!.element = keyElement;
+	});
+
+	window.addEventListener("keydown", layoutDetectionHandler);
+	window.addEventListener('keydown', handleKeyDown);
+	window.addEventListener('keyup', handleKeyUp);
+	window.addEventListener("blur", () => {
+		if (!isPlaying || gameIsFinished)
+			return;
+		if (!isPaused)
+			togglePause();
+	});
+}
+
+// Ai highlight keys
+function simulatKeyPress(action: number): void {
+	if (keyMap.get("ArrowLeft")?.element)
+		keyMap.get("ArrowLeft")!.element!.classList.remove("key-pressed");
+	if (keyMap.get("ArrowRight")?.element)
+		keyMap.get("ArrowRight")!.element!.classList.remove("key-pressed");
+	if (action === 0 && keyMap.get("ArrowLeft")?.element)
+	{
+		keyMap.get("ArrowLeft")!.pressed = true
+		keyMap.get("ArrowLeft")!.element!.classList.add("key-pressed");
+	}
+	else if (action === 1 && keyMap.get("ArrowRight")?.element)
+	{
+		keyMap.get("ArrowRight")!.pressed = true
+		keyMap.get("ArrowRight")!.element!.classList.add("key-pressed");
+	}
+}
+
+
+// Paddle movement
+function movePaddles(): void {
+	if (pongAIInstance)
+	{
+		const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
+		simulatKeyPress(action);
+	}
+	if (keyMap.get("ArrowLeft")?.pressed && paddle2.position.x < 5)
+		paddle2.position.x += paddleSpeed;
+	if (keyMap.get("ArrowRight")?.pressed && paddle2.position.x > -5)
+		paddle2.position.x -= paddleSpeed;
+
+	if (keyMap.get("KeyA")?.pressed && paddle1.position.x < 5)
+		paddle1.position.x += paddleSpeed;
+	if (keyMap.get("KeyD")?.pressed && paddle1.position.x > -5)
+		paddle1.position.x -= paddleSpeed;
+}
+
+// Collision wall/paddle --> scoring
+function checkCollision(): void {
+	// Paddle1 (green)
+	if (ballSpeed.z > 0 && ball.position.z > 6 && ball.position.z < 7) {
+		if (Math.abs(ball.position.x - paddle1.position.x) < 1.5) {
+			const offset = ball.position.x - paddle1.position.x;
+			const bounceAngle = (offset / 1.5) * maxBounceAngle;
+			const speed = Math.sqrt(ballSpeed.x ** 2 + ballSpeed.z ** 2);
+			ballSpeed.x = speed * Math.sin(bounceAngle);
+			ballSpeed.z = -Math.abs(speed * Math.cos(bounceAngle));
+			numHit++;
+		}
+	}
+
+	// Paddle2 (purple)
+	if (ballSpeed.z < 0 && ball.position.z < -6 && ball.position.z > -7) {
+		if (Math.abs(ball.position.x - paddle2.position.x) < 1.5) {
+			const offset = ball.position.x - paddle2.position.x;
+			const bounceAngle = (offset / 1.5) * maxBounceAngle;
+			const speed = Math.sqrt(ballSpeed.x ** 2 + ballSpeed.z ** 2);
+
+			ballSpeed.x = speed * Math.sin(bounceAngle);
+			ballSpeed.z = Math.abs(speed * Math.cos(bounceAngle));
+			numHit++;
+		}
+	}
+
+	// Increase speed every 2 hits
+	if (!ballSpeedReachedMax && numHit >= 2) {
+		const signX = Math.sign(ballSpeed.x);
+		const signZ = Math.sign(ballSpeed.z);
+
+		ballSpeed.x += signX * speedIncrement;
+		ballSpeed.z += signZ * speedIncrement;
+
+		const absSpeedX = Math.abs(ballSpeed.x);
+		const absSpeedZ = Math.abs(ballSpeed.z);
+
+		if (absSpeedZ > MAX_BALL_SPEED)
+			ballSpeed.z = MAX_BALL_SPEED * signZ;
+		if (absSpeedX > MAX_BALL_SPEED) {
+			ballSpeed.x = MAX_BALL_SPEED * signX;
+			ballSpeedReachedMax = true;
+		}
+		numHit = 0;
+	}
+
+	// Walls collision
+	if (ball.position.x < -6 || ball.position.x > 6)
+		ballSpeed.x = -ballSpeed.x;
+
+	// Score
+	let score = false;
+	if (ball.position.z > 6.5) {
+		score2++;
+		lastScorer = 2;
+		highlightCircles(player2Color);
+		highlightGoalEffect(new BABYLON.Vector3(ball.position.x, ball.position.y, ball.position.z), player2Color4, scene);
+		score = true;
+	}
+	if (ball.position.z < -6.5) {
+		score1++;
+		lastScorer = 1;
+		highlightCircles(player1Color);
+		highlightGoalEffect(new BABYLON.Vector3(ball.position.x, ball.position.y, ball.position.z), player1Color4, scene);
+		score = true;
+	}
+	if (score) {
+		updateScores();
+		reset();
+
+		if (score1 > 9 || score2 > 9) {
+			zoomOutEffect();
+			endGame();
+		}
+	}
+}
+
+// Game state management
+let enterButton: HTMLElement | null = null;
+let spaceButton: HTMLElement | null = null;
+let spaceAndEnterIsPrint = false;
+
+function createButton(text: string, className: string): void {
+	const button = document.createElement('div');
+	button.classList.add('key-display', className);
+	button.textContent = text;
+	document.body.appendChild(button);
+	if (className === 'key-enter') {
+		enterButton = button;
+	} else if (className === 'key-space') {
+		spaceButton = button;
+	}
+	button.style.position = 'absolute';
+	button.style.top = '20%';
+	if (className === 'key-enter') {
+		button.style.left = '40%';
+	} else if (className === 'key-space') {
+		button.style.right = '40%';
+	}
+}
+
+function hideButtons(): void {
+	spaceAndEnterIsPrint = false;
+	if (enterButton) {
+		enterButton.remove();
+		enterButton = null;
+	}
+	if (spaceButton) {
+		spaceButton.remove();
+		spaceButton = null;
+	}
+}
+
+// Game Control
+function reset(): void {
+	paddle1.position.set(0, fieldHeight + 0.2, 6.5);
+	paddle2.position.set(0, fieldHeight + 0.2, -6.5);
+	ball.position.set(0, fieldHeight + 0.2, 0);
+	isZooming = false;
+	camera.position.set(0, 8, 10);
+	paddleSpeed = 0.2;
+	numHit = 0;
+	ballSpeedReachedMax = false;
+
+	if (lastScorer === 1)
+		ballSpeed = { x: 0, z: -0.1 };
+	else if (lastScorer === 2)
+		ballSpeed = { x: 0, z: 0.1 };
+
+	if (score1 === 0 && score2 === 0)
+		return;
+
+	if (score1 !== 10 && score2 !== 10) {
+		createButton('Enter', 'key-enter');
+		createButton('Space', 'key-space');
+		spaceAndEnterIsPrint = true;
+	}
+}
+
+function restartGame(callback?: () => void) {
+	gameIsFinished = false;
+	score1 = 0;
+	score2 = 0;
+	lastScorer = null;
+	isPaused = true;
+	const winnerText = document.querySelector("#winner") as HTMLElement;
+	if(winnerText) winnerText.style.display = "none";
+	const restartButton = document.querySelector("button-endgame");
+	if (restartButton) restartButton.remove();
+	reset();
+	updateScores();
+
+	startCountdown(() => {
+		if (callback)
+			callback();
+	});
+}
+
+function endGame(): void {
+	gameIsFinished = true;
+	isPlaying = false;
+	document.removeEventListener("keydown", handleKeyDown);
+	const winnerText = document.getElementById("winner");
+	const isFinal = isTournament === 1 && isLastTournamentMatch;
+
+	if (winnerText && !isFinal) {
+		winnerText.style.display = "block";
+		const winnerColor = score1 > 9 ? player1Color.toHexString() : player2Color.toHexString();
+		winnerText.style.color = "white";
+		winnerText.style.textShadow = `0 0 5px ${winnerColor}, 0 0 10px ${winnerColor}, 0 0 20px ${winnerColor}`;
+	}
+
+	countdownContainer.style.display = "block";
+	overlay.style.display = "block";
+
+	setTimeout(() => {
+		if (isFinal) {
+			const winnerTournamentText = document.getElementById("winnerTournamentText");
+			winnerTournamentText!.style.display = "block";
+			const winnerName = score1 > 9 ? currentPlayer1 : currentPlayer2;
+			const winnerColor = score1 > 9 ? player1Color.toHexString() : player2Color.toHexString();
+			winnerTournamentText!.style.textShadow = `0 0 5px ${winnerColor}, 0 0 10px ${winnerColor}, 0 0 20px ${winnerColor}`;
+			const message = `WINNER IS ${winnerName}`;
+			const words = message.split(" ");
+			winnerTournamentText!.textContent = "";
+
+			words.forEach((word, index) => {
+				setTimeout(() => {
+					const h1 = document.createElement("h1");
+					h1.textContent = word;
+					h1.classList.add("custom-winner-h1");
+					winnerTournamentText!.appendChild(h1);
+					winnerTournamentText!.appendChild(document.createElement("br"));
+
+					if (index === words.length - 1) {
+						confetti({
+							particleCount: 200,
+							spread: 70,
+							origin: { x: 0.5, y: 0.5 },
+							colors: ['#ff0', '#0f0', '#00f', '#f00', '#ff00ff'],
+						});
+					}
+				}, 500 * index);
+			});
+
+			const totalDelay = 1000 * (words.length + 1);
+			setTimeout(() => {
+				const restartButton = document.createElement("button-endgame");
+				restartButton.textContent = "Home";
+				restartButton.onmouseover = () => {
+					restartButton.style.backgroundColor = "rgb(0, 255, 255)";
+					restartButton.style.color = "white";
+				};
+				restartButton.onmouseout = () => {
+					restartButton.style.backgroundColor = "transparent";
+					restartButton.style.color = "#00ffff";
+				};
+				restartButton.onclick = () => location.reload();
+				document.body.appendChild(restartButton);
+			}, totalDelay);
+		}
+
+		if (!(isTournament === 1 && isFinal)) {
+			const restartButton = document.createElement("button-endgame");
+			if (isTournament === 1 && !isFinal) {
+				restartButton.textContent = "Next Match";
+				restartButton.onclick = () => {
+					const winnerName = score1 > 9 ? currentPlayer1 : currentPlayer2;
+					if (matchEndCallback) {
+						matchEndCallback(winnerName);
+						matchEndCallback = null;
+					}
+					restartGame(() => {
+						startGame();
+					});
+				};
+			} else {
+				restartButton.textContent = "Restart";
+				restartButton.onclick = () => restartGame(() => startGame());
+			}
+			document.body.appendChild(restartButton);
+		}
+	}, 2500);
+}
+
+function togglePause() {
 	isPaused = true;
 	if (isPaused) {
 		pauseMenu.style.display = "block";
@@ -155,30 +904,22 @@ function togglePause() { // Pause the game and show the menu
 	}
 }
 
-////////////////////////////// START PLAY //////////////////////////////
-
-let countdownComplete = false;
-let countdownElement = document.getElementById("countdown") as HTMLSpanElement;
-let goElement = document.getElementById("countdown-go") as HTMLSpanElement;
-let menu = document.getElementById("menu") as HTMLDivElement;
-let isPlaying = false; // Check if the game is playing
-
-// Start the game after the countdown
-function startGame(pongAIInstance?: PongAI): void {
+function startGame(): void {
 	countdownContainer.style.display = "none";
-	isPaused = false; // Start the game
-	isPlaying = true; // Set the game as playing
+	isPaused = false;
+	isPlaying = true;
 	scoreElement.style.display = "block";
 	overlay.style.display = "none";
 }
 
 function startCountdown(callback: () => void): void {
-	menu.style.display = "none"; // Hide menu
-	countdownContainer.style.display = "block"; // Print the countdown
+	menu.style.display = "none";
+	countdownContainer.style.display = "block";
 	countdownElement.style.opacity = "1";
 	goElement.style.opacity = "0";
 	let count = 3;
 	countdownElement.textContent = count.toString();
+
 	function updateCountdown(): void {
 		if (count > 0) {
 			countdownElement.textContent = count.toString();
@@ -187,48 +928,124 @@ function startCountdown(callback: () => void): void {
 		} else {
 			countdownElement.style.opacity = "0";
 			goElement.style.display = "block";
-			goElement.style.opacity = "1"; // Print GO!
+			goElement.style.opacity = "1";
 			goElement.style.animation = "goFlash 2s ease-out forwards";
 			setTimeout(() => {
-				goElement.style.display ="none"; // Hide GO!
+				goElement.style.display = "none";
 				countdownComplete = true;
-				if (callback) callback(); // Start the game adfter the countdown
+				if (callback)
+					callback();
 			}, 2000);
 		}
 	}
 	updateCountdown();
 }
 
-const modeSelection = document.getElementById("mode-selection") as HTMLElement | null;
-document.getElementById("playButton")?.addEventListener("click", () => { // '?' means call only if the element exist, can't be "null" (warning of ts)
-	menu.style.display = "none"; // Hide menu
-	document.getElementById("mode-selection-container")!.style.display = "flex"; // Display the two modes selection
-});
-document.getElementById("aiMode")?.addEventListener("click", () => {
-	modeSelection!.style.display = "none"; // Hide mode selection
-	pongAIInstance = new PongAI();
-	// code of ia launching
-	isPaused = true;
-	startCountdown(() => {
-		startGame(); // On passe ici l’instance d’IA à startGame
-	});
-});
-document.getElementById("humanMode")?.addEventListener("click", () => {
-	modeSelection!.style.display = "none"; // Hide mode selection
-	isPaused = true;
-	startCountdown(startGame);
-});
+// Tournament
+function color3ToCSS(color: BABYLON.Color3): string {
+	const r = Math.round(color.r * 255);
+	const g = Math.round(color.g * 255);
+	const b = Math.round(color.b * 255);
+	return `rgb(${r}, ${g}, ${b})`;
+}
 
-////////////////////////////// TOURNAMENT //////////////////////////////
+function onMatchEnd(callback: (winner: string) => void): void {
+	matchEndCallback = callback;
+}
 
-const tournamentButton = document.getElementById('tournamentButton') as HTMLElement | null;
-const tournamentButtonContainer = document.getElementById('tournament-button-container') as HTMLElement | null;
-const playerCountSelector = document.getElementById('player-count-selector') as HTMLElement | null;
-const playerInputs = document.getElementById('player-inputs') as HTMLElement | null;
-const continueButton = document.getElementById('continueTournament') as HTMLElement | null;
+function showMatchInfo(player1: string, player2: string) {
+	const matchInfo = document.getElementById("match-info");
+	if (!matchInfo) return;
+
+	const cssColor1 = color3ToCSS(player1Color);
+	const cssColor2 = color3ToCSS(player2Color);
+
+	matchInfo.innerHTML = `
+		<span style="color: ${cssColor1}; text-shadow: 0 0 5px ${cssColor1}; font-weight: bold;">${player1}</span>
+		<span style="color: white; text-shadow: 0 0 5px white; font-size: 24px;"> vs </span>
+		<span style="color: ${cssColor2}; margin-left: 5px; text-shadow: 0 0 5px ${cssColor2}; font-weight: bold;">${player2}</span>
+	`;
+	matchInfo.style.display = "block";
+}
+
+function showTournament(players: string[]) {
+	const shuffled = players.sort(() => Math.random() - 0.5);
+	const rounds: string[][] = [];
+	for (let i = 0; i < shuffled.length; i += 2) {
+		rounds.push([shuffled[i], shuffled[i + 1]]);
+	}
+	playerInputs!.style.display = 'none';
+	continueButton!.style.display = 'none';
+	playerCountSelector!.style.display = 'none';
+	const matchList = document.getElementById('match-list');
+	if (matchList) {
+		matchList.innerHTML = '<h2>Upcoming Game :</h2>';
+		const list = document.createElement('ul');
+		list.style.listStyle = 'none';
+		list.style.padding = '0';
+
+		rounds.forEach(([p1, p2], index) => {
+			const item = document.createElement('li');
+			item.textContent = `Match ${index + 1} : ${p1} vs ${p2}`;
+			item.style.marginBottom = '8px';
+			list.appendChild(item);
+		});
+
+		matchList.appendChild(list);
+		const startButton = document.createElement('button');
+		startButton.id = 'start-tournament-button';
+		startButton.textContent = 'Start Tournament';
+		startButton.style.marginTop = '20px';
+		startButton.style.padding = '10px 20px';
+		startButton.style.fontSize = '16px';
+
+		startButton.addEventListener('click', () => {
+			matchList.style.display = 'none';
+			startTournamentGame(rounds);
+		});
+
+		matchList.appendChild(startButton);
+		matchList.style.display = 'block';
+	}
+}
+
+function startTournamentGame(rounds: string[][]) {
+	let currentMatchIndex = 0;
+	const winners: string[] = [];
+	isLastTournamentMatch = rounds.length === 1;
+
+	function playNextMatch() {
+		if (currentMatchIndex >= rounds.length) {
+			startTournamentGame(pairWinners(winners));
+			return;
+		}
+		const [player1, player2] = rounds[currentMatchIndex];
+		currentPlayer1 = player1;
+		currentPlayer2 = player2;
+		showMatchInfo(player1, player2);
+		startCountdown(() => {
+			isTournament = 1;
+			startGame();
+			onMatchEnd((winner: string) => {
+				winners.push(winner);
+				currentMatchIndex++;
+				playNextMatch();
+			});
+		});
+	}
+	playNextMatch();
+}
+
+function pairWinners(players: string[]): string[][] {
+	const shuffled = players.sort(() => Math.random() - 0.5);
+	const rounds: string[][] = [];
+	for (let i = 0; i < shuffled.length; i += 2) {
+		rounds.push([shuffled[i], shuffled[i + 1]]);
+	}
+	return rounds;
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-
 	if (tournamentButton && menu && tournamentButtonContainer && playerCountSelector && playerInputs && continueButton) {
 		tournamentButton.addEventListener('click', function () {
 			menu.style.display = 'none';
@@ -270,6 +1087,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				});
 			}
 		});
+
 		continueButton.addEventListener('click', () => {
 			const allInputs = playerInputs.querySelectorAll('input');
 			const playerNames: string[] = Array.from(allInputs).map(input => input.value.trim());
@@ -281,833 +1099,77 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 });
 
-function showTournament(players: string[]) {
-	// Shuffle the players
-	const shuffled = players.sort(() => Math.random() - 0.5);
-	// Create match pairs
-	const rounds: string[][] = [];
-	for (let i = 0; i < shuffled.length; i += 2) {
-		rounds.push([shuffled[i], shuffled[i + 1]]);
-	}
-	// Hide inputs
-	playerInputs!.style.display = 'none';
-	continueButton!.style.display = 'none';
-	playerCountSelector!.style.display = 'none';
-	// Display matches
-	const matchList = document.getElementById('match-list');
-	if (matchList) {
-		matchList.innerHTML = '<h2>Upcoming Game :</h2>';
-		const list = document.createElement('ul');
-		list.style.listStyle = 'none';
-		list.style.padding = '0';
+// Pause menu / event handlers
+document.getElementById("home-button")!.addEventListener("click", () => {
+	document.getElementById("home-confirmation")!.style.display = "flex"; // Display confirmation
+});
 
-		rounds.forEach(([p1, p2], index) => {
-			const item = document.createElement('li');
-			item.textContent = `Match ${index + 1} : ${p1} vs ${p2}`;
-			item.style.marginBottom = '8px';
-			list.appendChild(item);
-		});
+document.getElementById("confirm-yes")!.addEventListener("click", () => {
+	location.reload();
+});
 
-		matchList.appendChild(list);
-		//  Add a "Start Tournament" button
-		const startButton = document.createElement('button');
-		startButton.id = 'start-tournament-button';
-		startButton.textContent = 'Start Tournament';
-		startButton.style.marginTop = '20px';
-		startButton.style.padding = '10px 20px';
-		startButton.style.fontSize = '16px';
+document.getElementById("confirm-no")!.addEventListener("click", () => {
+	document.getElementById("home-confirmation")!.style.display = "none"; // Just hide the confirmation
+});
 
-		startButton.addEventListener('click', () => {
-			matchList.style.display = 'none';
-			startTournamentGame(rounds);
-		});
+document.getElementById("resume-button")!.addEventListener("click", () => {
+	pauseMenu.style.display = "none";
+	countdownContainer.style.display = "none";
+	overlay.style.display = "none";
+	if (spaceAndEnterIsPrint) return;
+	isPaused = false;
+});
 
-		matchList.appendChild(startButton);
-		matchList.style.display = 'block';
-	}
-}
+document.getElementById("playButton")?.addEventListener("click", () => {
+	menu.style.display = "none";
+	document.getElementById("mode-selection-container")!.style.display = "flex";
+});
 
-let currentPlayer1 = "";
-let currentPlayer2 = "";
-
-function startTournamentGame(rounds: string[][]) {
-	let currentMatchIndex = 0;
-	const winners: string[] = [];
-	isLastTournamentMatch = rounds.length === 1;
-
-	function playNextMatch() {
-		if (currentMatchIndex >= rounds.length) {
-			startTournamentGame(pairWinners(winners));
-			return;
-		}
-		const [player1, player2] = rounds[currentMatchIndex];
-		currentPlayer1 = player1;
-		currentPlayer2 = player2;
-		showMatchInfo(player1, player2);
-		startCountdown(() => {
-			isTournament = 1;
-			startGame();
-			onMatchEnd((winner: string) => {
-				winners.push(winner);
-				currentMatchIndex++;
-				playNextMatch();
-			});
-		});
-	}
-	playNextMatch();
-}
-
-function pairWinners(players: string[]): string[][] {
-	const shuffled = players.sort(() => Math.random() - 0.5);
-	const rounds: string[][] = [];
-	for (let i = 0; i < shuffled.length; i += 2) {
-		rounds.push([shuffled[i], shuffled[i + 1]]);
-	}
-	return rounds;
-}
-
-// Change color babylon to css
-function color3ToCSS(color: BABYLON.Color3): string {
-	const r = Math.round(color.r * 255);
-	const g = Math.round(color.g * 255);
-	const b = Math.round(color.b * 255);
-	return `rgb(${r}, ${g}, ${b})`;
-}
-// Show who is playing
-function showMatchInfo(player1: string, player2: string) {
-	const matchInfo = document.getElementById("match-info");
-	if (!matchInfo) return;
-
-	const cssColor1 = color3ToCSS(player1Color);
-	const cssColor2 = color3ToCSS(player2Color);
-
-	matchInfo.innerHTML = `
-		<span style="color: ${cssColor1}; text-shadow: 0 0 5px ${cssColor1}; font-weight: bold;">${player1}</span>
-		<span style="color: white; text-shadow: 0 0 5px white; font-size: 24px;"> vs </span>
-		<span style="color: ${cssColor2}; margin-left: 5px; text-shadow: 0 0 5px ${cssColor2}; font-weight: bold;">${player2}</span>
-	`;
-	matchInfo.style.display = "block";
-}
-
-////////////////////////////// FIELD //////////////////////////////
-// Field Properties
-const fieldThickness: number = 0.2;
-const fieldSize: { width: number, height: number } = { width: 12, height: 12 };
-// Create the field as a box
-const field: BABYLON.Mesh = BABYLON.MeshBuilder.CreateBox("field", {
-	width: fieldSize.width, height: fieldThickness, depth: fieldSize.height
-}, scene);
-// Assign a material to the field
-const fieldMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("fieldMaterial", scene);
-fieldMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0); // Set a field color
-field.material = fieldMaterial;
-// Position the field slightly above the ground
-field.position.y = fieldThickness / 2 + 0.5;
-// Compute the field height (used for placing elements on top of it)
-const fieldHeight: number = field.position.y + fieldThickness / 2;
-// Create a grid of Circles over the field
-const gridSize: number = 6;
-const gridDivision: number = 6;
-const cellSize: number = gridSize / gridDivision;
-const circles: BABYLON.Mesh[] = [];
-// Function to create a circle mesh
-function createCircle(x: number, z: number, radius: number = 0.3): BABYLON.Mesh {
-	const circle: BABYLON.Mesh = BABYLON.MeshBuilder.CreateDisc("circle", {
-		radius: radius, tessellation: 16	// Higher = smoother circle
-	}, scene);
-	// Assign material
-	const circleMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("circleMaterial", scene);
-	circleMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
-	circle.material = circleMaterial;
-	// Position the circle
-	circle.position.set(x, fieldHeight + 0.02, z);
-	circle.rotation.x = Math.PI / 2; // Rotate to lie flat
-	return circle;
-}
-// Generate the grid of circles
-for (let x = -gridSize / 2 + cellSize / 2; x <= gridSize / 2; x += cellSize) {
-	for (let z = -gridSize / 2 + cellSize / 2; z <= gridSize / 2; z += cellSize) {
-		const circle: BABYLON.Mesh = createCircle(x, z);
-		circles.push(circle);
-	}
-}
-
-
-// Function to highlight the field and pause the game
-function highlightCircles(playerColor: BABYLON.Color3): void {
+document.getElementById("aiMode")?.addEventListener("click", () => {
+	modeSelection!.style.display = "none";
+	pongAIInstance = new PongAI();
 	isPaused = true;
-	// Change circles color only if the material is not null
-	circles.forEach((circle: BABYLON.Mesh) => {
-		if (circle.material) {
-			(circle.material as BABYLON.StandardMaterial).diffuseColor = playerColor;
-		}
-	});
-	// Reset color after 1 sec
-	setTimeout(() => {
-		circles.forEach((circle: BABYLON.Mesh) => {
-			if (circle.material) {
-				(circle.material as BABYLON.StandardMaterial).diffuseColor = new BABYLON.Color3(0, 0, 0);
-			}
-		});
-	}, 1000);
-	// Listen for key press to resume the game
-	window.addEventListener('keydown', handleKeyPress);
-}
-
-// Create neon field lines
-const fieldLinePoints: BABYLON.Vector3[] = [
-	// Top edges
-	new BABYLON.Vector3(-6, fieldHeight + 0.01, -6),
-	new BABYLON.Vector3(6, fieldHeight + 0.01, -6),
-	new BABYLON.Vector3(6, fieldHeight + 0.01, 6),
-	new BABYLON.Vector3(-6, fieldHeight + 0.01, 6),
-	new BABYLON.Vector3(-6, fieldHeight + 0.01, -6),
-	// Bottom edges
-	new BABYLON.Vector3(-6, fieldHeight - fieldThickness, -6),
-	new BABYLON.Vector3(6, fieldHeight - fieldThickness, -6),
-	new BABYLON.Vector3(6, fieldHeight - fieldThickness, 6),
-	new BABYLON.Vector3(-6, fieldHeight - fieldThickness, 6),
-	new BABYLON.Vector3(-6, fieldHeight - fieldThickness, -6),
-	// Vertical connectors
-	new BABYLON.Vector3(-6, fieldHeight + 0.01, -6),
-	new BABYLON.Vector3(-6, fieldHeight - fieldThickness, -6),
-	new BABYLON.Vector3(6, fieldHeight + 0.01, -6),
-	new BABYLON.Vector3(6, fieldHeight - fieldThickness, -6),
-	new BABYLON.Vector3(6, fieldHeight + 0.01, 6),
-	new BABYLON.Vector3(6, fieldHeight - fieldThickness, 6),
-	new BABYLON.Vector3(-6, fieldHeight + 0.01, 6),
-	new BABYLON.Vector3(-6, fieldHeight - fieldThickness, 6),
-	// Central line
-	new BABYLON.Vector3(-6, fieldHeight + 0.01, 0),
-	new BABYLON.Vector3(6, fieldHeight + 0.01, 0)
-];
-// Create the neon field lines
-const fieldLines = BABYLON.MeshBuilder.CreateLines("fieldLines", {
-	points: fieldLinePoints
-}, scene) as BABYLON.LinesMesh;
-// Apply material to make the line glow
-const lineMaterial = new BABYLON.StandardMaterial("lineMaterial", scene);
-lineMaterial.emissiveColor = new BABYLON.Color3(0, 1, 1); // Cyan glow
-fieldLines.color = new BABYLON.Color3(0, 1, 1); // Set Neon Color
-// Function to create a half circle for the field
-function createHalfCircle(centerX: number, centerZ: number, radius: number, startAngle: number, endAngle: number): BABYLON.Vector3[] {
-	const points: BABYLON.Vector3[] = [];
-	const segments = 64;
-	for (let i = 0; i <= segments; i++) {
-		const angle = startAngle + (endAngle - startAngle) * (i / segments);
-		points.push(new BABYLON.Vector3(
-			centerX + radius * Math.cos(angle),
-			fieldHeight + 0.04,
-			centerZ + radius * Math.sin(angle)
-		));
-	}
-	return points;
-}
-// Create left and right half circles
-const leftHalfCirclePoints = createHalfCircle(0, -6, 3, 0, Math.PI);
-const rightHalfCirclePoints = createHalfCircle(0, 6, 3, Math.PI, 2 * Math.PI);
-// Generate lines for half circles
-const leftHalfCircle = BABYLON.MeshBuilder.CreateLines("leftHalfCircle", {
-	points: leftHalfCirclePoints
-}, scene) as BABYLON.LinesMesh;
-const rightHalfCircle = BABYLON.MeshBuilder.CreateLines("rightHalfCircle", {
-	points: rightHalfCirclePoints
-}, scene) as BABYLON.LinesMesh;
-// Apply neon material
-leftHalfCircle.color = new BABYLON.Color3(0, 1, 1);;
-rightHalfCircle.color = new BABYLON.Color3(0, 1, 1);;
-
-////////////////////////////// PADDLE //////////////////////////////
-
-const createCapsuleOutline = (radius: number, height: number, radialSegments: number, scene: BABYLON.Scene, color: BABYLON.Color3, thickness: number = 0.01) => {
-	const lines: BABYLON.Vector3[][] = [];
-	const segmentStep = Math.PI / radialSegments;
-	// Generate normal lines
-	const generateLines = (offsetX: number, offsetZ: number) => {
-		const topHalf: BABYLON.Vector3[] = [];
-		const bottomHalf: BABYLON.Vector3[] = [];
-
-		for (let theta = 0; theta <= Math.PI; theta += segmentStep) {
-			const x = radius * Math.cos(theta) + offsetX;
-			const y = height / 2 + radius * Math.sin(theta);
-			topHalf.push(new BABYLON.Vector3(x, y, offsetZ));
-
-			const x2 = radius * Math.cos(Math.PI - theta) + offsetX;
-			const y2 = -height / 2 - radius * Math.sin(Math.PI - theta);
-			bottomHalf.push(new BABYLON.Vector3(x2, y2, offsetZ));
-		}
-		lines.push(topHalf, bottomHalf);
-		lines.push([
-			new BABYLON.Vector3(radius + offsetX, height / 2, offsetZ),
-			new BABYLON.Vector3(radius + offsetX, -height / 2, offsetZ),
-		]);
-		lines.push([
-			new BABYLON.Vector3(-radius + offsetX, height / 2, offsetZ),
-			new BABYLON.Vector3(-radius + offsetX, -height / 2, offsetZ),
-		]);
-	};
-	// Generate several shifted lines to create thickness
-	generateLines(0, 0);
-	generateLines(thickness, thickness);
-	generateLines(-thickness, -thickness);
-	generateLines(thickness, -thickness);
-	generateLines(-thickness, thickness);
-	// Create Line System
-	const capsuleLines = BABYLON.MeshBuilder.CreateLineSystem("capsule", { lines }, scene);
-	capsuleLines.color = color;
-	return capsuleLines;
-}
-// Create Paddles
-const radius = 0.25;
-const height = 1.5;
-const radialSegments = 64;
-const paddle1 = createCapsuleOutline(radius, height, radialSegments, scene, player1Color);
-const paddle2 = createCapsuleOutline(radius, height, radialSegments, scene, player2Color);
-paddle1.rotation.z = Math.PI / 2;
-paddle1.rotation.x = -Math.PI / 4;
-paddle2.rotation.z = Math.PI / 2;
-paddle2.rotation.x = -Math.PI / 4;
-paddle1.position.set(0, fieldHeight + 0.2, 6.5);
-paddle2.position.set(0, fieldHeight + 0.2, -6.5);
-
-//////////////////////////////// BALL ////////////////////////////////
-
-const ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: 0.4, segments: 64 }, scene);
-const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
-ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0); // Yellow
-ballMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
-ball.material = ballMaterial;
-ball.position = new BABYLON.Vector3(0, fieldHeight + 0.2, 0);
-let ballSpeed: {x: number, z: number} = { x: 0, z: 0.1 };
-let lastScorer: 1 | 2 | null = null;
-const MAX_BALL_SPEED: number = 0.2;
-
-//////////////////////////////// SCORE ////////////////////////////////
-let score1: number = 0, score2: number = 0;
-const scoreElement: HTMLDivElement = document.createElement('div');
-scoreElement.style.position = 'absolute';
-scoreElement.style.top = '20px';
-scoreElement.style.left = '50%';
-scoreElement.style.transform = 'translateX(-50%)';
-scoreElement.style.fontSize = '48px';
-scoreElement.style.fontFamily = '"Orbitron", sans-serif';
-scoreElement.style.letterSpacing = '4px';
-scoreElement.style.color = '#0ff';
-scoreElement.style.textShadow = '0 0 3px #0ff, 0 0 5px #0ff, 0 0 8px #00f, 0 0 12px #00f';
-scoreElement.style.display = 'none';
-scoreElement.style.transition = 'transform 0.1s ease-out'; // Animation for changing score
-document.body.appendChild(scoreElement);
-
-scoreElement.style.animation = 'neonGlow 1.5s infinite alternate'; // Pulsating animation
-if (!document.getElementById('neon-style')) {
-	const style: HTMLStyleElement = document.createElement('style');
-	style.id = 'neon-style';
-	style.textContent = `@keyframes neonGlow {
-		0% { text-shadow: 0 0 2px #0ff,  0 0 4px #0ff,  0 0 6px #00f, 0 0 8px #00f; }
-		100% { text-shadow: 0 0 3px #0ff, 0 0 5px #0ff, 0 0 7px #00f, 0 0 10px #00f; }
-	}`;
-	document.head.appendChild(style);
-}
-
-function updateScores(): void {
-	scoreElement.textContent = `${score1} - ${score2}`;
-	scoreElement.style.transform = 'translateX(-50%) scale(1.2)';
-	setTimeout(() => {
-		scoreElement.style.transform = 'translateX(-50%) scale(1)';
-	}, 100);
-}
-updateScores();
-
-const updateScoreSize = () => {
-	const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
-
-	scoreElement.style.fontSize = `${48 * scaleFactor}px`;
-	scoreElement.style.top = `${20 * scaleFactor}px`;
-	scoreElement.style.letterSpacing = `${4 * scaleFactor}px`;
-};
-
-//////////////////////////////// KEYS PRINT ////////////////////////////////
-// Keys creation
-interface KeyConfig {
-	key: string;
-	side: string;
-	top: string;
-}
-
-const keysPrint: KeyConfig[] = [
-	{ key: "A", side: "left", top: "25%" },  // Position for A
-	{ key: "D", side: "left", top: "40%" },  // Position for D
-	{ key: "←", side: "right", top: "25%" }, // Position for ←
-	{ key: "→", side: "right", top: "40%" }  // Position for →
-];
-
-// We will replace automatically "A" and "D" by what the keyboard gives (ex: Q if AZERTY)
-const codeToDetectedKey: Record<string, string> = {};
-
-const layoutDetectionHandler = (e: KeyboardEvent) => {
-	if (e.code === "KeyA") {
-		codeToDetectedKey[e.code] = e.key.toUpperCase(); // ex: A or Q, we stock it
-
-		// Update dynamic labels in keysPrint
-		keysPrint.forEach((keyConf) => {
-			if (keyConf.key === "A") keyConf.key = codeToDetectedKey["KeyA"]; // Replace A by Q if necessary
-		});
-
-		// Update already created elements
-		const elements = document.querySelectorAll(".key-display");
-		elements.forEach((el) => {
-			const htmlEl = el as HTMLElement;
-			if (htmlEl.textContent === "A") htmlEl.textContent = codeToDetectedKey["KeyA"];
-		});
-
-		// No need to listen anymore
-		window.removeEventListener("keydown", layoutDetectionHandler);
-	}
-};
-
-window.addEventListener("keydown", layoutDetectionHandler);
-
-keysPrint.forEach(({ key, side, top }) => {
-	const keyElement: HTMLDivElement = document.createElement("div");
-	keyElement.textContent = key;
-	keyElement.classList.add("key-display", side);
-	keyElement.style.position = 'absolute';
-	keyElement.style.top = top;
-	document.body.appendChild(keyElement);
-});
-
-// CSS style
-const styleKeys: HTMLStyleElement = document.createElement("style");
-styleKeys.textContent = `
-	.key-display {
-		width: 50px;
-		height: 50px;
-		border-radius: 8px;
-		background: rgba(255, 255, 255, 0.2);
-		color: white;
-		opacity: 0.5;
-		font-size: 24px;
-		font-family: 'Orbitron', sans-serif;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border: 2px solid rgba(255, 255, 255, 0.4);
-		box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
-		transition: transform 0.1s ease-out, background 0.1s ease-out;
-	}
-
-	.left { left: 20px; }
-	.right { right: 20px; }
-
-	.key-pressed {
-		transform: scale(1.1);
-		background: rgba(255, 255, 255, 0.2);
-		border: 2px solid rgba(255, 255, 255, 0.6);
-		box-shadow: 0 0 5px rgba(255, 255, 255, 0.6), 0 0 10px rgba(255, 255, 255, 0.6);
-	}
-`;
-document.head.appendChild(styleKeys);
-
-const updateKeySize = () => {
-	const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
-
-	document.querySelectorAll(".key-display").forEach((key) => {
-		const element = key as HTMLElement;
-		element.style.width = `${50 * scaleFactor}px`;
-		element.style.height = `${50 * scaleFactor}px`;
-		element.style.fontSize = `${24 * scaleFactor}px`;
-		element.style.borderRadius = `${8 * scaleFactor}px`;
-	});
-};
-
-// Visual effect when pressed
-document.addEventListener("keydown", (event: KeyboardEvent) => {
-	const key = event.key;
-	const keyElements = document.querySelectorAll(".key-display");
-
-	keyElements.forEach((element: Element) => {
-		const htmlElement = element as HTMLElement;
-		if (htmlElement.textContent?.toUpperCase() === key.toUpperCase() ||
-			(key === "ArrowLeft" && htmlElement.textContent === "←") ||
-			(key === "ArrowRight" && htmlElement.textContent === "→")) {
-			htmlElement.classList.add("key-pressed");
-		}
-	});
-});
-
-document.addEventListener("keyup", (event: KeyboardEvent) => {
-	const key = event.key;
-	const keyElements = document.querySelectorAll(".key-display");
-
-	keyElements.forEach((element: Element) => {
-		const htmlElement = element as HTMLElement; // Cast to HTMLElement
-		if (htmlElement.textContent?.toUpperCase() === key.toUpperCase() ||
-			(key === "ArrowLeft" && htmlElement.textContent === "←") ||
-			(key === "ArrowRight" && htmlElement.textContent === "→")) {
-			htmlElement.classList.remove("key-pressed");
-		}
-	});
-});
-
-interface KeyState {
-	ArrowRight: boolean;
-	ArrowLeft: boolean;
-	KeyA: boolean;
-	KeyD: boolean;
-}
-
-// Key pressed detection
-const keys: KeyState = { ArrowRight: false, ArrowLeft: false, KeyA: false, KeyD: false };
-window.addEventListener('keydown', (e: KeyboardEvent) => { if (keys.hasOwnProperty(e.code)) keys[e.code as keyof KeyState] = true; });
-window.addEventListener('keyup', (e: KeyboardEvent) => { if (keys.hasOwnProperty(e.code)) keys[e.code as keyof KeyState] = false; });
-// IA detection for keys to shine
-
-function highlight_keys(action: number): void
-{
-	const keyElements = document.querySelectorAll(".key-display");
-	keyElements.forEach((element: Element) => {
-		const htmlElement = element as HTMLElement;
-		if (htmlElement.textContent === "←" || htmlElement.textContent === "→") {
-			htmlElement.classList.remove("key-pressed");
-		}
-	});
-
-	keyElements.forEach((element: Element) => {
-		const htmlElement = element as HTMLElement;
-		if ((action == 0 && htmlElement.textContent === "←") ||
-			(action == 1 && htmlElement.textContent === "→")) {
-			htmlElement.classList.add("key-pressed");
-		}
-	});
-}
-
-// Paddle movement
-let paddleSpeed: number = 0.15;
-function movePaddles(): void {
-	if (pongAIInstance)
-	{
-		const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
-		highlight_keys(action);
-		if (action === 0 && paddle2.position.x < 5)
-			paddle2.position.x += paddleSpeed
-		else if (action === 1 && paddle2.position.x > -5)
-			 paddle2.position.x -= paddleSpeed;
-	}
-	else
-	{
-		if (keys.ArrowLeft && paddle2.position.x < 5)
-			paddle2.position.x += paddleSpeed;
-		if (keys.ArrowRight && paddle2.position.x > -5)
-			paddle2.position.x -= paddleSpeed;
-	}
-
-	if (keys.KeyA && paddle1.position.x < 5)
-		paddle1.position.x += paddleSpeed;
-	if (keys.KeyD && paddle1.position.x > -5)
-		paddle1.position.x -= paddleSpeed;
-}
-
-////////////////////////////// GOAL EFFECT //////////////////////////////
-
-function highlightGoalEffect(position: BABYLON.Vector3, color: BABYLON.Color4, scene: BABYLON.Scene) {
-	const cubeCount = 50;
-	const cubes: {cube: BABYLON.Mesh, velocity: BABYLON.Vector3}[] = [];
-
-	for (let i = 0; i < cubeCount; i++) {
-		// Create a cube
-		const cube = BABYLON.MeshBuilder.CreateBox("cube", {size: 0.3}, scene);
-		cube.position = position.clone(); // Every cube are at the same place
-		// Create material and apply color
-		const material = new BABYLON.StandardMaterial("cubeMaterial", scene);
-		material.diffuseColor = new BABYLON.Color3(color.r, color.g, color.b);
-		material.emissiveColor = new BABYLON.Color3(color.r, color.g, color.b)
-		material.alpha = 1;
-		cube.material = material;
-		// Random speed in all directions
-		const velocity = new BABYLON.Vector3(
-			(Math.random() - 0.5) * 3,  // X
-			(Math.random() - 0.5) * 3,  // Y
-			(Math.random() - 0.5) * 3   // Z
-		);
-		cubes.push({cube, velocity});
-	}
-	// Cube Animation
-	const update = () => {
-		for (const obj of cubes) {
-			obj.cube.position.addInPlace(obj.velocity.scale(0.1)); // Progressive moving
-			obj.velocity.scaleInPlace(0.95); // Progressive slow
-			const material = <BABYLON.StandardMaterial>obj.cube.material; // Récupère le matériau
-			if (material.alpha > 0) {
-				material.alpha -= 0.02; // Decrease alpha for transparency
-			}
-		}
-	};
-	// Animation every 16ms for 60fps
-	const interval = setInterval(update, 16);
-	// Delete cubes after 1sec
-	setTimeout(() => {
-		clearInterval(interval); // Stop the calling of update()
-		for (const obj of cubes) {
-			obj.cube.dispose();
-		}
-	}, 1000);
-}
-
-////////////////////////////// ZOOM //////////////////////////////
-let isZooming = false;
-
-function zoomOutEffect(callback?: () => void): void {
-	if (isZooming) return; // Avoid multiple zooms
-	isZooming = true;
-	const targetPositionZ = 12; // Move the camera
-	const zoomSpeed = 0.01;
-
-	function zoomOutAnimation(scene: BABYLON.Scene): void {
-		if (camera.position.z < targetPositionZ) {
-			camera.position.z += zoomSpeed; // Closer
-			camera.position.y += zoomSpeed * 0.5; // Zoom up
-		} else {
-			camera.position.z = targetPositionZ; // Stop the zoom
-			scene.onBeforeRenderObservable.removeCallback(zoomOutAnimation); // Stop animation
-			isZooming = false;
-			if (callback) callback(); // Call reset after zoom
-		}
-	}
-	scene.onBeforeRenderObservable.add(zoomOutAnimation);
-}
-
-//////////////////////////////// RESET ////////////////////////////////
-
-let enterButton: HTMLElement | null = null;
-let spaceButton: HTMLElement | null = null;
-let spaceAndEnterIsPrint = false;
-
-function reset(): void {
-	paddle1.position.set(0, fieldHeight + 0.2, 6.5);
-	paddle2.position.set(0, fieldHeight + 0.2, -6.5);
-	ball.position.set(0, fieldHeight + 0.2, 0);
-	isZooming = false;
-	camera.position.set(0, 8, 10);
-	paddleSpeed = 0.2;
-	numHit = 0;
-	ballSpeedReachedMax = false
-	if (lastScorer === 1)
-		ballSpeed = { x: 0, z: -0.1 }
-	else if (lastScorer === 2)
-		ballSpeed = { x: 0, z: 0.1 }
-	if (score1 === 0 && score2 === 0)
-		return;
-	if (score1 !== 10 && score2 !== 10) {
-		createButton('Enter', 'key-enter');
-		createButton('Space', 'key-space');
-		spaceAndEnterIsPrint = true;
-		window.addEventListener('keydown', handleKeyPress);
-	}
-}
-function createButton(text: string, className: string): void {
-	const button = document.createElement('div');
-	button.classList.add('key-display', className);
-	button.textContent = text;
-	document.body.appendChild(button);
-	if (className === 'key-enter') {
-		enterButton = button;
-	} else if (className === 'key-space') {
-		spaceButton = button;
-	}
-	button.style.position = 'absolute';
-	button.style.top = '20%';
-	if (className === 'key-enter') {
-		button.style.left = '40%';
-	} else if (className === 'key-space') {
-		button.style.right = '40%';
-	}
-}
-function hideButtons(): void {
-	spaceAndEnterIsPrint = false;
-	if (enterButton) {
-		enterButton.remove();
-		enterButton = null;
-	}
-	if (spaceButton) {
-		spaceButton.remove();
-		spaceButton = null;
-	}
-}
-
-//////////////////////////////// ENDGAME & RESTART ////////////////////////////////
-
-let gameIsFinished = false;
-
-function endGame(): void {
-	gameIsFinished = true;
-	isPlaying = false;
-	document.removeEventListener("keydown", handleKeyPress);
-	const winnerText = document.getElementById("winner");
-	const isFinal = isTournament === 1 && isLastTournamentMatch;
-	if (winnerText && !isFinal) {
-		winnerText.style.display = "block";
-		const winnerColor = score1 > 9 ? player1Color.toHexString() : player2Color.toHexString();
-		winnerText.style.color = "white";
-		winnerText.style.textShadow = `0 0 5px ${winnerColor}, 0 0 10px ${winnerColor}, 0 0 20px ${winnerColor}`;
-	}
-	countdownContainer.style.display = "block";
-	overlay.style.display = "block"; // Show overlay
-	setTimeout(() => {
-		if (isFinal) {
-			const winnerTournamentText = document.getElementById("winnerTournamentText");
-			winnerTournamentText!.style.display = "block";
-			const winnerName = score1 > 9 ? currentPlayer1 : currentPlayer2;
-			const winnerColor = score1 > 9 ? player1Color.toHexString() : player2Color.toHexString();
-			winnerTournamentText!.style.textShadow = `0 0 5px ${winnerColor}, 0 0 10px ${winnerColor}, 0 0 20px ${winnerColor}`;
-			const message = `WINNER IS ${winnerName}`;
-			const words = message.split(" ");
-			winnerTournamentText!.textContent = ""; // Clear previous content
-			words.forEach((word, index) => {
-				setTimeout(() => {
-					const h1 = document.createElement("h1");
-					h1.textContent = word;
-					h1.classList.add("custom-winner-h1");
-					winnerTournamentText!.appendChild(h1); // Add the word
-					winnerTournamentText!.appendChild(document.createElement("br")); // Add a line break
-					if (index === words.length - 1) {
-						confetti({
-							particleCount: 200, // Number of confettis
-							spread: 70,		 // Spread of confettis
-							origin: { x: 0.5, y: 0.5 }, // Origin of confettis
-							colors: ['#ff0', '#0f0', '#00f', '#f00', '#ff00ff'], // Colors of confettis
-						});
-					}
-				}, 500 * index);
-			});
-			const totalDelay = 1000 * (words.length + 1);
-			setTimeout(() => {
-				const restartButton = document.createElement("button-endgame");
-				restartButton.textContent = "Home";
-				restartButton.onmouseover = () => {
-					restartButton.style.backgroundColor = "rgb(0, 255, 255)";
-					restartButton.style.color = "white";
-				};
-				restartButton.onmouseout = () => {
-					restartButton.style.backgroundColor = "transparent";
-					restartButton.style.color = "#00ffff";
-				};
-				restartButton.onclick = () => location.reload();
-				document.body.appendChild(restartButton);
-			}, totalDelay);
-		}
-		if (!(isTournament === 1 && isFinal)) {
-			const restartButton = document.createElement("button-endgame");
-			if (isTournament === 1 && !isFinal) {
-				restartButton.textContent = "Next Match";
-				restartButton.onclick = () => {
-					const winnerName = score1 > 9 ? currentPlayer1 : currentPlayer2;
-					if (matchEndCallback) {
-						matchEndCallback(winnerName);
-						matchEndCallback = null;
-					}
-					restartGame(() => {
-						startGame();
-					});
-				};
-			} else {
-				restartButton.textContent = "Restart";
-				restartButton.onclick = () => restartGame(() => startGame());
-			}
-			document.body.appendChild(restartButton);
-		}
-	}, 2500);
-}
-function handleKeyPress(event: KeyboardEvent): void {
-	if (event.code == 'Space' || event.code == 'Enter') {
-		if (gameIsFinished) return; // If the game is finished we stop the ball
-		hideButtons();
-		isPaused = false; // If the game is not finished, we relaunch the ball
-		window.removeEventListener('keydown', handleKeyPress);
-	}
-}
-function restartGame(callback?: () => void) {
-	gameIsFinished = false;
-	score1 = 0;
-	score2 = 0;
-	lastScorer = null;
-	isPaused = true;
-	const winnerText = document.querySelector("#winner") as HTMLElement;
-	if(winnerText) winnerText.style.display = "none";
-	const restartButton = document.querySelector("button-endgame");
-	if (restartButton) restartButton.remove();
-	reset();
-	updateScores();
-	document.removeEventListener("keydown", handleKeyPress);
-	document.addEventListener("keydown", handleKeyPress);
 	startCountdown(() => {
-		if (callback) callback(); // Launch what we want after the countdown
+		startGame();
 	});
+});
+
+document.getElementById("humanMode")?.addEventListener("click", () => {
+	modeSelection!.style.display = "none";
+	isPaused = true;
+	startCountdown(startGame);
+});
+
+window.addEventListener('resize', () => {
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+	engine.resize();
+});
+
+let frameCount = 0;
+let lastTime = performance.now();
+let fps = 0;
+
+function measureFPS() {
+	frameCount++;
+	const now = performance.now();
+
+	if (now - lastTime >= 1000) {
+		fps = frameCount;
+		frameCount = 0;
+		lastTime = now;
+		fpsDisplay.textContent = `FPS: ${fps}`;
+	}
+
+	requestAnimationFrame(measureFPS);
 }
 
-//////////////////////////////// COLLISION ////////////////////////////////
-
-function checkCollision(): void {
-	// Paddle1 (green)
-	if (ball.position.z > 6 && ball.position.z < 7 && Math.abs(ball.position.x - paddle1.position.x) < 1.5) {
-		const offset = ball.position.x - paddle1.position.x; // Distance from paddle center
-		const maxBounceAngle = Math.PI / 3; // Max 60°
-		const bounceAngle = (offset / 1.5) * maxBounceAngle; // Scale angle based on offset
-
-		const speed = Math.sqrt(ballSpeed.x ** 2 + ballSpeed.z ** 2); // Preserve speed
-		ballSpeed.x = speed * Math.sin(bounceAngle);
-		ballSpeed.z = -Math.abs(speed * Math.cos(bounceAngle)); // Ensure ball moves upward
-		numHit++;
-	}
-	// Paddle2 (purple)
-	if (ball.position.z < -6 && ball.position.z > -7 && Math.abs(ball.position.x - paddle2.position.x) < 1.5) {
-		const offset = ball.position.x - paddle2.position.x; // Distance from paddle center
-		const maxBounceAngle = Math.PI / 3; // Max 45°
-		const bounceAngle = (offset / 1.5) * maxBounceAngle; // Scale angle based on offset
-
-		const speed = Math.sqrt(ballSpeed.x ** 2 + ballSpeed.z ** 2); // Preserve speed
-		ballSpeed.x = speed * Math.sin(bounceAngle);
-		ballSpeed.z = Math.abs(speed * Math.cos(bounceAngle)); // Ensure ball moves downward
-		numHit++;
-	}
-	// Increase speed every 2 hits
-	if (numHit >= 2 && !ballSpeedReachedMax)
-	{
-		ballSpeed.x += Math.sign(ballSpeed.x) * speedIncrement; // Horizontaly
-		ballSpeed.z += Math.sign(ballSpeed.z) * speedIncrement; // Verticaly
-		ballSpeed.x = Math.min(Math.abs(ballSpeed.x), MAX_BALL_SPEED) * Math.sign(ballSpeed.x);
-		ballSpeed.z = Math.min(Math.abs(ballSpeed.z), MAX_BALL_SPEED) * Math.sign(ballSpeed.z);
-		if (Math.abs(ballSpeed.x) === MAX_BALL_SPEED && !ballSpeedReachedMax)
-			ballSpeedReachedMax = true;
-		numHit = 0;
-	}
-	// Walls collision
-	if (ball.position.x < -6 || ball.position.x > 6) {
-		ballSpeed.x *= -1;
-	}
-	// Score
-	if (ball.position.z > 6.5) {
-		score2++;
-		lastScorer = 2;
-		highlightCircles(player2Color);
-		highlightGoalEffect(new BABYLON.Vector3(ball.position.x,ball.position.y,ball.position.z), player2Color4, scene);
-		reset();
-		updateScores();
-	}
-	if (ball.position.z < -6.5) {
-		score1++;
-		lastScorer = 1;
-		highlightCircles(player1Color);
-		highlightGoalEffect(new BABYLON.Vector3(ball.position.x,ball.position.y,ball.position.z), player1Color4, scene);
-		reset();
-		updateScores();
-	}
-	if (score1 > 9 || score2 > 9) {
-		zoomOutEffect();
-		endGame();
-	}
-}
-
-////////////////////////////// LOOP //////////////////////////////
+measureFPS();
+initKeyControls();
+updateCanvasSize();
+const resizeObserver = new ResizeObserver(updateCanvasSize);
+resizeObserver.observe(pongGlobalContainer);
+updateScores();
 
 // Render loop
 engine.runRenderLoop(() => {
@@ -1118,11 +1180,4 @@ engine.runRenderLoop(() => {
 		checkCollision();
 	}
 	scene.render();
-});
-
-// Handle window resizing
-window.addEventListener('resize', () => {
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
-	engine.resize();
 });
