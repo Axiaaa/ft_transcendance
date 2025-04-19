@@ -131,9 +131,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 	sleepScreen.style.alignItems = 'center';
 	sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
 
-	// sleepScreen.style.opacity = '1';
-	// sleepScreen.style.display = 'block';
-
 	let sleepLogo = document.createElement('img');
 	sleepScreen.appendChild(sleepLogo);
 	sleepLogo.src = './img/Utils/windows-xp-logo.png';
