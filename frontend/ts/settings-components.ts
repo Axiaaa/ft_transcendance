@@ -51,6 +51,18 @@ document.addEventListener('DOMContentLoaded', () => {
 		currentWallpaperTitle.style.marginBottom = '5px';
 		currentWallpaperTitle.style.fontWeight = 'bold';
 
+		let currentWallpaperPreview = document.createElement('img');
+		leftColumn.appendChild(currentWallpaperPreview);
+		currentWallpaperPreview.id = 'current-wallpaper-preview';
+		currentWallpaperPreview.classList.add('user-background');
+		currentWallpaperPreview.src = `url(${document.body.style.backgroundImage})` || './img/Login_Screen/default-wallpaper.jpg';
+		currentWallpaperPreview.style.width = '100px';
+		currentWallpaperPreview.style.height = '80px';
+		currentWallpaperPreview.style.border = '1px solid #999';
+		currentWallpaperPreview.style.borderRadius = '3px';
+		currentWallpaperPreview.style.marginBottom = '5px';
+		currentWallpaperPreview.style.objectFit = 'cover';
+
 		let currentWallpaperName = document.createElement('span');
 		leftColumn.appendChild(currentWallpaperName);
 		currentWallpaperName.id = 'current-wallpaper-name';
@@ -75,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		importButton.textContent = 'Change Wallpaper';
 		importButton.style.padding = '5px 10px';
 		importButton.style.marginBottom = '5px';
-		importButton.style.transform = 'translateY(-10px)';
+		importButton.style.transform = 'translateY(+20px)';
 
 		let fileInput = document.createElement('input');
 		rightColumn.appendChild(fileInput);
@@ -116,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		resolutionText.textContent = 'Recommended: 1920x1080';
 		resolutionText.style.color = '#666';
 		resolutionText.style.fontSize = '10px';
-		resolutionText.style.transform = 'translateY(-10px)';
+		resolutionText.style.transform = 'translateY(+20px)';
 
 		let formatText = document.createElement('span');
 		rightColumn.appendChild(formatText);
@@ -124,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		formatText.textContent = 'Accepted formats: PNG, JPG, JPEG';
 		formatText.style.color = '#666';
 		formatText.style.fontSize = '10px';
-		formatText.style.transform = 'translateY(-10px)';
+		formatText.style.transform = 'translateY(+20px)';
 
 		let sizeText = document.createElement('span');
 		rightColumn.appendChild(sizeText);
@@ -132,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		sizeText.textContent = 'Maximum file size: 5 MB';
 		sizeText.style.color = '#666';
 		sizeText.style.fontSize = '10px';
-		sizeText.style.transform = 'translateY(-10px)';
+		sizeText.style.transform = 'translateY(+20px)';
 		wallpaperSettings.appendChild(wallpaperInfo);
 	}
 
@@ -739,6 +751,37 @@ document.addEventListener('DOMContentLoaded', () => {
 			systemRestoreContainer.style.alignItems = 'center';
 
 			let restoreInfo1 = createInformationElement('Restore System', systemRestoreContainer);
+
+			let restoreWarning = document.createElement('div');
+			restoreInfo1.appendChild(restoreWarning);
+			restoreWarning.style.margin = '10px 0';
+
+			let resetExplanation = document.createElement('p');
+			restoreWarning.appendChild(resetExplanation);
+			resetExplanation.textContent = 'Restoring the system will reset your personalization settings, including your custom avatar and wallpaper images.';
+			resetExplanation.style.color = '#666';
+			resetExplanation.style.fontSize = '11px';
+			resetExplanation.style.margin = '5px 0';
+
+			let disclaimerBox = document.createElement('div');
+			restoreWarning.appendChild(disclaimerBox);
+			disclaimerBox.style.backgroundColor = '#FFFFC1';
+			disclaimerBox.style.border = '1px solid #DEDB87';
+			disclaimerBox.style.padding = '8px 10px';
+			disclaimerBox.style.borderRadius = '3px';
+			disclaimerBox.style.marginTop = '5px';
+
+			let warningIcon = document.createElement('span');
+			disclaimerBox.appendChild(warningIcon);
+			warningIcon.innerHTML = '⚠️ ';
+			warningIcon.style.fontWeight = 'bold';
+
+			let disclaimer = document.createElement('span');
+			disclaimerBox.appendChild(disclaimer);
+			disclaimer.textContent = 'WARNING: Your custom images will be permanently deleted and cannot be recovered.';
+			disclaimer.style.color = '#8B0000';
+			disclaimer.style.fontSize = '10px';
+			disclaimer.style.fontWeight = 'bold';
 
 			let restoreSystemButton = document.createElement('button');
 			restoreSystemButton.id = 'restore-system-button';

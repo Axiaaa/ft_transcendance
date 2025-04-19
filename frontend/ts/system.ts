@@ -426,11 +426,15 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 		setTimeout(() => { userAvatars[i].src = currentSrc; }, 10);
 	}
 
-	// Apply cache busting to wallpaper
-	userWallpapers[0].src = addCacheBuster(wallpaperURL);
-	const currentSrc = userWallpapers[0].src;
-	userWallpapers[0].src = "";
-	setTimeout(() => { userWallpapers[0].src = currentSrc; }, 10);
+	// Apply cache busting to wallpaper URLs
+	for (let i = 0; i < userWallpapers.length; i++) {
+		userWallpapers[i].src = addCacheBuster(wallpaperURL);
+		
+		// Force reload by removing and re-adding the image
+		const currentSrc = userWallpapers[i].src;
+		userWallpapers[i].src = "";
+		setTimeout(() => { userWallpapers[i].src = currentSrc; }, 10);
+	}
 };
 
 export async function resetUserImages()
