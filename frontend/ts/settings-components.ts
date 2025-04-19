@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	{
 		let Span = document.createElement('span');
 		Container.appendChild(Span);
-		Span.style.overflow = 'hidden';
+		// Span.style.overflow = 'hidden';
 		Span.style.textOverflow = 'ellipsis';
 		Span.style.whiteSpace = 'nowrap';
 		Span.style.maxWidth = 'calc(100% - 20px)';
@@ -609,7 +609,149 @@ document.addEventListener('DOMContentLoaded', () => {
 			systemVersion.textContent = "Beta 0.7";
 
 			let creators = createFormatedSpan(sysInfo3);
-			creators.textContent = "Jcuzin; Lcamerly; Mcourbon; Aammirat; Yallo";
+			
+			// Create a styled contributors container
+			let contributorsContainer = document.createElement('div');
+			sysInfo3.style.height = '330px';
+			contributorsContainer.style.display = 'flex';
+			contributorsContainer.style.flexDirection = 'column';
+			contributorsContainer.style.gap = '10px';
+			contributorsContainer.style.width = '100%';
+			contributorsContainer.style.maxHeight = '900px';
+			contributorsContainer.style.height = '100%';
+			contributorsContainer.style.overflowY = 'auto';
+			contributorsContainer.style.padding = '5px';
+			contributorsContainer.style.border = '1px solid #B1CCEF';
+			contributorsContainer.style.borderRadius = '3px';
+			contributorsContainer.style.backgroundColor = '#F5F9FF';
+			contributorsContainer.style.height = "fit-content";
+
+			// Contributors data with GitHub profiles and roles
+			const contributorsData = [
+				{
+					username: 'Jcuzin',
+					github: 'https://github.com/Ocyn',
+					role: ' Windows XP UI/UX Designer ',
+					icon: '🖥️'
+				},
+				{
+					username: 'Lcamerly',
+					github: 'https://github.com/Axiaaa',
+					role: 'Backend & DevOps',
+					icon: '🛠️'
+				},
+				{
+					username: 'Mcourbon',
+					github: 'https://github.com/mcourbon',
+					role: 'Pong Game & Tournament Designe',
+					icon: '🎮'
+				},
+				{
+					username: 'Aammirat',
+					github: 'https://github.com/nonomex',
+					role: 'Cybersecurity and API Integration',
+					icon: '🔒'
+				},
+				{
+					username: 'Yallo',
+					github: 'https://github.com/Sarfoula',
+					role: 'AI Opponent & Optimization',
+					icon: '🤖'
+				}
+			];
+
+			// Create each contributor card
+			contributorsData.forEach(contributor => {
+				let card = document.createElement('div');
+				card.style.display = 'flex';
+				card.style.alignItems = 'center';
+				card.style.padding = '5px';
+				card.style.borderBottom = '1px solid #E0E9F5';
+				card.style.transition = 'background-color 0.2s';
+				
+				// Hover effect
+				card.onmouseover = () => { card.style.backgroundColor = '#E5EFFF'; };
+				card.onmouseout = () => { card.style.backgroundColor = 'transparent'; };
+				
+				// Icon
+				let icon = document.createElement('div');
+				icon.textContent = contributor.icon;
+				icon.style.fontSize = '20px';
+				icon.style.width = '30px';
+				icon.style.height = '30px';
+				icon.style.display = 'flex';
+				icon.style.alignItems = 'center';
+				icon.style.justifyContent = 'center';
+				icon.style.backgroundColor = '#0078D7';
+				icon.style.color = 'white';
+				icon.style.borderRadius = '50%';
+				icon.style.marginRight = '10px';
+				card.appendChild(icon);
+				
+				// Content
+				let content = document.createElement('div');
+				content.style.display = 'flex';
+				content.style.flexDirection = 'column';
+				content.style.flex = '1';
+				
+				// Username with GitHub link
+				let usernameLink = document.createElement('a');
+				usernameLink.href = contributor.github;
+				usernameLink.textContent = contributor.username;
+				usernameLink.target = '_blank';
+				usernameLink.style.color = '#0066CC';
+				usernameLink.style.textDecoration = 'none';
+				usernameLink.style.fontWeight = 'bold';
+				usernameLink.style.fontSize = '11px';
+				usernameLink.onmouseover = () => { usernameLink.style.textDecoration = 'underline'; };
+				usernameLink.onmouseout = () => { usernameLink.style.textDecoration = 'none'; };
+				content.appendChild(usernameLink);
+				
+				// Role
+				let role = document.createElement('span');
+				role.textContent = contributor.role;
+				role.style.fontSize = '10px';
+				role.style.color = '#666';
+				content.appendChild(role);
+				
+				card.appendChild(content);
+				
+				// GitHub icon link
+				let githubLink = document.createElement('a');
+				githubLink.href = contributor.github;
+				githubLink.target = '_blank';
+				githubLink.style.marginLeft = 'auto';
+				githubLink.style.display = 'flex';
+				githubLink.style.alignItems = 'center';
+				githubLink.style.justifyContent = 'center';
+				githubLink.title = `Visit ${contributor.username}'s GitHub profile`;
+				
+				let githubIcon = document.createElement('div');
+				githubIcon.textContent = '🔗';
+				githubIcon.style.fontSize = '14px';
+				githubIcon.style.width = '20px';
+				githubIcon.style.height = '20px';
+				githubIcon.style.display = 'flex';
+				githubIcon.style.alignItems = 'center';
+				githubIcon.style.justifyContent = 'center';
+				
+				githubLink.appendChild(githubIcon);
+				card.appendChild(githubLink);
+				
+				contributorsContainer.appendChild(card);
+			});
+
+			// Title for the contributors section
+			let contributorsTitle = document.createElement('div');
+			contributorsTitle.textContent = 'Project Contributors:';
+			contributorsTitle.style.fontSize = '12px';
+			contributorsTitle.style.fontWeight = 'bold';
+			contributorsTitle.style.marginBottom = '5px';
+
+			// Replace the text with our enhanced content
+			creators.textContent = '';
+			creators.appendChild(contributorsTitle);
+			creators.appendChild(contributorsContainer);
 			let creationDate = createFormatedSpan(sysInfo4);
 			creationDate.textContent = "2025-01-12";
 			let lastUpdate = createFormatedSpan(sysInfo5);

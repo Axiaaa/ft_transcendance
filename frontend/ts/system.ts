@@ -55,11 +55,65 @@ export function setFont(inputSize: number, previousSize: number | 0) {
 			sendNotification('Font Size Changed', `Font size reset`, "./img/Utils/font-icon.png");
 }
 
+export function clearBrowserCache() {
+	try {
+		// Clear cookies
+		const cookies = document.cookie.split(';');
+		for (let i = 0; i < cookies.length; i++) {
+			const cookie = cookies[i];
+			const eqPos = cookie.indexOf('=');
+			const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+			document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+		}
+
+		// Clear the browser cache using Cache API
+		if (window.caches) {
+			caches.keys().then(cacheNames => {
+				cacheNames.forEach(cacheName => {
+					caches.delete(cacheName);
+				});
+			});
+		}
+
+		// Clear session storage
+		sessionStorage.clear();
+
+		// Clear local storage
+		localStorage.clear();
+
+		// Clear IndexedDB
+		if (window.indexedDB) {
+			window.indexedDB.databases?.().then(dbs => {
+				dbs.forEach(db => {
+					if (db.name) indexedDB.deleteDatabase(db.name);
+				});
+			});
+		}
+
+		// Unregister service workers
+		if (navigator.serviceWorker) {
+			navigator.serviceWorker.getRegistrations().then(registrations => {
+				for (const registration of registrations) {
+					registration.unregister();
+				}
+			});
+		}
+
+		console.log('Browser cache cleared successfully');
+	} catch (error) {
+		console.error('Error clearing browser cache:', error);
+	}
+	
+	// // Reload the page
+	// location.reload();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
 
 	window.addEventListener('beforeunload', (event) => {
 		event.preventDefault();
 		disconnectUser();
+		clearBrowserCache();
 		return 'You will be disconnected if you reload or leave this page. Are you sure ?';
 	});
 
