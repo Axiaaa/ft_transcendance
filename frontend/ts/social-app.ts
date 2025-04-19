@@ -240,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		contentContainer.style.height = 'calc(100% - 55px)';
 		contentContainer.style.overflow = 'hidden';
 		contentContainer.style.margin = '0px 3px';
-		// contentContainer.style.backgroundColor = 'blue';
 		contentContainer.style.display = 'flex';
 		contentContainer.style.flexDirection = 'column';
 		contentContainer.style.justifyContent = 'left';
