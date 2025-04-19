@@ -405,6 +405,32 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
 	console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
 	userWallpapers[0].src = wallpaperURL;
+	// Add cache busting to force image reload
+	const addCacheBuster = (url: string): string => {
+		const cacheBuster = `?t=${Date.now()}`;
+		if (url.startsWith('blob:')) return url;
+		
+		if (url.includes('?')) {
+			return `${url}&_=${Date.now()}`;
+		}
+		return `${url}${cacheBuster}`;
+	};
+
+	// Apply cache busting to avatar URLs
+	for (let i = 0; i < userAvatars.length; i++) {
+		userAvatars[i].src = addCacheBuster(avatarURL);
+		
+		// Force reload by removing and re-adding the image
+		const currentSrc = userAvatars[i].src;
+		userAvatars[i].src = "";
+		setTimeout(() => { userAvatars[i].src = currentSrc; }, 10);
+	}
+
+	// Apply cache busting to wallpaper
+	userWallpapers[0].src = addCacheBuster(wallpaperURL);
+	const currentSrc = userWallpapers[0].src;
+	userWallpapers[0].src = "";
+	setTimeout(() => { userWallpapers[0].src = currentSrc; }, 10);
 };
 
 export async function resetUserImages()

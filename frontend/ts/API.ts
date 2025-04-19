@@ -62,7 +62,7 @@ async function apiFetch(url: string, options: RequestInit = {}, useJsonContentTy
 	};
 
 	// Only add Content-Type if specified (useful to exclude when using FormData)
-	if (!nojson && useJsonContentType) {
+	if (useJsonContentType) {
 		headers = {
 			...headers,
 			'Content-Type': 'application/json'
@@ -334,9 +334,15 @@ export async function loginUser(username: string, password: string): Promise<Use
 }
 
 export async function uploadFile(userId: number, file: File, fileType: string): Promise<Response | null> {
+	if (file.size > 5 * 1024 * 1024) { // 5MB limit
+		sendNotification('Error file upload', 'File size exceeds 5MB limit', "./img/Utils/error-icon.png");
+		return null;
+	}
+	console.log("File size: " + ((file.size) / 1024 / 1024).toFixed(2) + "MB");
+	console.log("File type: " + file.type);
 	const formData = new FormData();
 	formData.append('file', file);
-	formData.append('metadata', JSON.stringify({ userId, fileType }));
+	// formData.append('metadata', JSON.stringify({ userId, fileType }));
 	try {
 		const response = await apiFetch(`/user_images/${fileType}/${userId}`, {
 			method: 'POST',
@@ -350,11 +356,11 @@ export async function uploadFile(userId: number, file: File, fileType: string): 
 			return response;
 		} else {
 			const error = await response.json();
-			console.error('Error uploading file:', error);
+			console.error('Error Reponse not OK -> uploading file:', error);
 			sendNotification('Error', `Error uploading file: ${error.message || 'Unknown error'}`, "./img/Utils/error-icon.png");
 		}
 	} catch (error) {
-		console.error('Error uploading file:', error);
+		console.error('Error Catched -> uploading file:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		sendNotification('Error', `Error uploading file: ${errorMessage}`, "./img/Utils/error-icon.png");
 	}
