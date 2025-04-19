@@ -1,4 +1,6 @@
+import { get } from "http";
 import { openAppWindow } from "./app-icon.js";
+import { getFriendFromID, getUserById, getUserFriends } from "./API.js";
 
 function createTab(Name: string, Container: HTMLElement): HTMLElement
 {
@@ -181,7 +183,8 @@ function createFriendElement(friend: { name: string, avatar: string, status: str
 	return friendItem;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+
+document.addEventListener('DOMContentLoaded', async () => {
 
 	let Appwindow = document.getElementById('social-app-window') as HTMLElement;
 	if (!Appwindow) return;
@@ -326,6 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				recentFriendsList.style.overflowY = 'auto';
 
 				// API Call needed here to fetch recent friends
+				
 				let sampleFriends = [
 					{ name: 'Alice Cooper', avatar: '#ff9999', status: 'online' },
 					{ name: 'Bob Smith', avatar: '#99ccff', status: 'offline' },
@@ -1403,4 +1407,69 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
+
+
 });
+
+
+// USER ID AND TOKEN
+
+let userToken = sessionStorage.getItem("wxp-token");
+let userId = Number(sessionStorage.getItem("wxp-user-id"));
+if (!userToken || isNaN(userId))
+{
+	alert("User not logged in");
+	userToken = '';
+	userId = 0;
+}
+
+// API PART
+
+async function initializeSocialFeatures() {
+	// Check if user is logged in
+	const checkLoginStatus = () => {
+		return new Promise<boolean>((resolve) => {
+			// Check login status every second
+			const interval = setInterval(() => {
+				const token = sessionStorage.getItem("wxp-token");
+				const id = sessionStorage.getItem("wxp-user-id");
+				
+				if (token && id && !isNaN(Number(id))) {
+					clearInterval(interval);
+					resolve(true);
+				}
+			}, 1000);
+		});
+	};
+{
+	// Wait for user login before initializing social app features
+
+		// Wait until user is logged in
+		await checkLoginStatus();
+		
+		console.log("User is logged in. Initializing social features...");
+		let friendsListData: number[] = [];
+		if (userToken) {
+			friendsListData = await getUserFriends(userToken); // Placeholder function
+		}
+		for (let i = 0; i <  friendsListData.length && i < 3; i++)
+		{
+			let friendId = friendsListData[i];
+			if (userToken) {
+				let friendProfile = await getFriendFromID(userToken, friendId);
+				if (friendProfile) {
+						let friendDetails = {
+							name: friendProfile.username,
+							avatar: friendProfile.avatar,
+							status: friendProfile.is_online ? 'online' : 'offline'
+						}
+						createFriendElement(friendDetails);
+						console.log(friendDetails);
+				}
+			}
+		}
+}
+
+	// Start initialization process
+	initializeSocialFeatures();
+}
