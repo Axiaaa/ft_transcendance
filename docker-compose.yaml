@@ -362,3 +362,12 @@ services:
       - ft_transcendence
     restart: always
 
+  ts-compiler:
+    container_name: ts-compiler
+    build:
+      context: ./services/ts-compiler
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app/frontend
+    networks:
+      - ft_transcendence

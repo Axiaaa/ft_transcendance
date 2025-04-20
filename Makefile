@@ -22,6 +22,7 @@ destroy:
 clean : destroy
 	docker system prune -af
 	docker volume prune -f
+	rm -rf frontend/ts/.build
 		
 re : destroy all
 
