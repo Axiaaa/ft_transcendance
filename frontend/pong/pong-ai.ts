@@ -56,9 +56,9 @@ export class PongAI
 					predictionX += 0.7
 			}
 			let action = 2;
-			if (predictionX > paddleX)
+			if (predictionX > paddleX + 0.01)
 				action = 0;
-			else if (predictionX < paddleX)
+			else if (predictionX < paddleX - 0.01)
 				action = 1;
 			let distance = Math.abs(predictionX - paddleX) / paddleSpeed
 			for (let i = 0; i < distance; i++)
