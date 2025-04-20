@@ -1,17 +1,18 @@
 {
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -p tsconfig.json",
-    "start": "node ./js/index.js"
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@babylonjs/core": "^7.54.0",
-    "@babylonjs/loaders": "^7.54.0",
-    "typescript": "^5.7.3",
-    "typescript-cookie": "^1.0.6",
-    "xp.css": "^0.2.6"
+    "@babylonjs/gui": "6.27.0",
+    "@babylonjs/core": "6.27.0",
+    "@babylonjs/loaders": "6.27.0",
+    "@tensorflow/tfjs": "4.22.0",
+    "typescript": "5.8.3",
+    "typescript-cookie": "1.0.6",
+    "xp.css": "0.2.6"
   },
   "devDependencies": {
-    "@types/node": "^22.13.10"
+    "@types/node": "22.14.1"
   }
 }
