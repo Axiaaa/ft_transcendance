@@ -244,6 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	Searchbar.addEventListener('keypress', (event) => {
 		if (event.key === 'Enter') {
 			Searchbar.blur();
+			Searchbar.value = '';
 			sendNotification('Search', 'Search is not implemented yet', './img/Settings_app/search-icon.png');
 		}
 	});

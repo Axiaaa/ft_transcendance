@@ -11,6 +11,7 @@
 		// 	"game": ["./game"]
 		// },
 		"strict": true,
+		"skipLibCheck": true,  // Désactive la vérification des fichiers de déclaration (.d.ts)
 		// "composite": true    // Décommentez cette ligne
 	},
 	"include": ["ts/*.ts", "pong/*.ts"],
