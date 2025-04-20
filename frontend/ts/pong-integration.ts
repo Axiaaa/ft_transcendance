@@ -3,9 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	let pongWindow = document.getElementById('pong-app-window');
 	if (pongWindow) {
 		pongWindow.style.minWidth = '400px';
-		pongWindow.style.minHeight = '400px';
+		pongWindow.style.minHeight = '250px';
 		pongWindow.style.width = '500px';
-		pongWindow.style.height = '400px';
+		pongWindow.style.height = '300px';
 		let pongAppCanvas = document.getElementById('pong-game-canvas');
 		if (pongAppCanvas) {
 			pongAppCanvas.remove();
