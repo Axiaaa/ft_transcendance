@@ -633,12 +633,12 @@ function movePaddles(): void {
 	{
 		const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
 		simulatKeyPress(action);
+	} else {
+		if (keyMap.get("ArrowLeft")?.pressed && paddle2.position.x < 5)
+			paddle2.position.x += paddleSpeed;
+		if (keyMap.get("ArrowRight")?.pressed && paddle2.position.x > -5)
+			paddle2.position.x -= paddleSpeed;
 	}
-	if (keyMap.get("ArrowLeft")?.pressed && paddle2.position.x < 5)
-		paddle2.position.x += paddleSpeed;
-	if (keyMap.get("ArrowRight")?.pressed && paddle2.position.x > -5)
-		paddle2.position.x -= paddleSpeed;
-
 	if (keyMap.get("KeyA")?.pressed && paddle1.position.x < 5)
 		paddle1.position.x += paddleSpeed;
 	if (keyMap.get("KeyD")?.pressed && paddle1.position.x > -5)
