@@ -4,6 +4,7 @@ import '@babylonjs/loaders';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
 import { PongAI } from './pong-ai.js';
+import { getUser } from "../ts/API.js";
 
 declare var confetti: any;
 let pongAIInstance: PongAI | null = null;
@@ -1123,6 +1124,197 @@ document.getElementById("resume-button")!.addEventListener("click", () => {
 document.getElementById("playButton")?.addEventListener("click", () => {
 	menu.style.display = "none";
 	document.getElementById("mode-selection-container")!.style.display = "flex";
+});
+
+export async function showError(message: string) {
+    const errorBox = document.createElement('div');
+    errorBox.className = 'error-box';
+    errorBox.textContent = message;
+
+	errorBox.style.position = 'absolute';
+	errorBox.style.bottom = '20px';
+	errorBox.style.left = '50%';
+	errorBox.style.transform = 'translateX(-50%)';
+	errorBox.style.padding = '10px';
+	errorBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+	errorBox.style.color = '#0ff';
+	errorBox.style.fontFamily = '"Orbitron", sans-serif';
+	errorBox.style.fontSize = '14px';
+	errorBox.style.textAlign = 'center';
+	errorBox.style.border = '1px solid #0ff';
+	errorBox.style.borderRadius = '4px';
+	errorBox.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.5)';
+	errorBox.style.opacity = '0';
+	errorBox.style.transition = 'opacity 0.5s ease-in-out';
+
+    // Remove any existing error box
+    const existingErrorBox = document.querySelector('.error-box');
+    if (existingErrorBox) {
+        existingErrorBox.remove();
+    }
+
+    // Append the error box to the body
+    document.body.appendChild(errorBox);
+
+    // Fade in the error box
+    setTimeout(() => {
+        errorBox.style.opacity = '1';
+    }, 0);
+
+    // Fade out and remove the error box after 5 seconds
+    setTimeout(() => {
+        errorBox.style.opacity = '0';
+        setTimeout(() => {
+            errorBox.remove();
+        }, 500);
+    }, 5000);
+}
+
+const rankedSelectionContainer = document.createElement("div");
+rankedSelectionContainer.id = "ranked-selection-container";
+rankedSelectionContainer.style.display = "none";
+rankedSelectionContainer.style.position = "absolute";
+rankedSelectionContainer.style.top = "50%";
+rankedSelectionContainer.style.left = "50%";
+rankedSelectionContainer.style.transform = "translate(-50%, -50%)";
+rankedSelectionContainer.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+rankedSelectionContainer.style.padding = "20px";
+rankedSelectionContainer.style.borderRadius = "8px";
+rankedSelectionContainer.style.boxShadow = "0 0 10px rgba(0, 255, 255, 0.5)";
+rankedSelectionContainer.style.color = "#0ff";
+rankedSelectionContainer.style.fontFamily = '"Orbitron", sans-serif';
+
+const rankedform = document.createElement("form");
+rankedform.style.display = "flex";
+rankedform.style.flexDirection = "column";
+rankedform.style.gap = "10px";
+
+const loginLabel = document.createElement("label");
+loginLabel.textContent = "Login:";
+loginLabel.style.fontSize = "16px";
+
+const loginInput = document.createElement("input");
+loginInput.type = "text";
+loginInput.placeholder = "Enter your login";
+loginInput.style.padding = "10px";
+loginInput.style.borderRadius = "4px";
+loginInput.style.border = "1px solid #0ff";
+loginInput.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+loginInput.style.color = "#0ff";
+
+const passwordLabel = document.createElement("label");
+passwordLabel.textContent = "Password:";
+passwordLabel.style.fontSize = "16px";
+
+const passwordInput = document.createElement("input");
+passwordInput.type = "password";
+passwordInput.placeholder = "Enter your password";
+passwordInput.style.padding = "10px";
+passwordInput.style.borderRadius = "4px";
+passwordInput.style.border = "1px solid #0ff";
+passwordInput.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+passwordInput.style.color = "#0ff";
+
+const signInButton = document.createElement("button");
+signInButton.type = "submit";
+signInButton.textContent = "Sign In";
+signInButton.style.padding = "10px";
+signInButton.style.borderRadius = "4px";
+signInButton.style.border = "none";
+signInButton.style.backgroundColor = "#0ff";
+signInButton.style.color = "#000";
+signInButton.style.fontWeight = "bold";
+signInButton.style.cursor = "pointer";
+
+const backButton = document.createElement("button");
+backButton.textContent = "Menu";
+backButton.style.padding = "10px";
+backButton.style.borderRadius = "4px";
+backButton.style.border = "none";
+backButton.style.backgroundColor = "#0ff";
+backButton.style.color = "#000";
+backButton.style.fontWeight = "bold";
+backButton.style.cursor = "pointer";
+backButton.style.marginTop = "10px";
+
+rankedform.appendChild(backButton);
+
+backButton.addEventListener("click", () => {
+	rankedSelectionContainer.style.display = "none";
+	menu.style.display = "block";
+
+	const existingErrorBox = document.querySelector('.error-box');
+	if (existingErrorBox) {
+		existingErrorBox.remove();
+	}
+});
+
+rankedform.appendChild(loginLabel);
+rankedform.appendChild(loginInput);
+rankedform.appendChild(passwordLabel);
+rankedform.appendChild(passwordInput);
+rankedform.appendChild(signInButton);
+
+rankedSelectionContainer.appendChild(rankedform);
+document.body.appendChild(rankedSelectionContainer);
+
+
+//the inception bug is in there
+document.getElementById("rankedSelectionContainer")?.addEventListener("submit", async (event) => {
+	if (event.submitter !== signInButton) {
+		return;
+	}
+	event.preventDefault();
+	if (loginInput && passwordInput) {
+		const username = loginInput.value;
+		const password = passwordInput.value;
+		if (username && password) {
+			try {
+				const existingErrorBox = document.querySelector('.error-box');
+				if (existingErrorBox) {
+					existingErrorBox.remove();
+				}
+				const user = await getUser(username, password);
+				if (user.id === Number(sessionStorage.getItem("wxp_user_id"))) {
+					showError("User already logged in.");
+					loginInput.value = "";
+					passwordInput.value = "";
+					return;
+				}
+				sessionStorage.setItem("wxp_token", user.token);
+				sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
+				loginInput.value = "";
+				passwordInput.value = "";
+				startCountdown(startGame);
+				rankedSelectionContainer.style.display = "none";
+				menu.style.display = "none";
+			} 
+			catch (error) {
+				const existingErrorBox = document.querySelector('.error-box');
+				if (existingErrorBox) {
+					existingErrorBox.remove();
+				}
+				showError("Username or password is incorrect.");
+				loginInput.value = "";
+				passwordInput.value = "";
+			}
+		}
+		else
+		{
+			const existingErrorBox = document.querySelector('.error-box');
+				if (existingErrorBox) {
+					existingErrorBox.remove();
+				}
+				showError("User already logged in.");
+				loginInput.value = "";
+				passwordInput.value = "";
+		}
+	}
+});
+
+document.getElementById("rankedButton")?.addEventListener("click", () => {
+	menu.style.display = "none";
+	document.getElementById("ranked-selection-container")!.style.display = "flex";
 });
 
 document.getElementById("aiMode")?.addEventListener("click", () => {
