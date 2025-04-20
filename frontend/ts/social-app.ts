@@ -1,6 +1,8 @@
 import { get } from "http";
 import { openAppWindow } from "./app-icon.js";
 import { getFriendFromID, getUserById, getUserFriends } from "./API.js";
+import { disconnectUser } from "./start-menu.js";
+import { clearBrowserCache, goToDesktopPage, goToLoginPage } from "./system.js";
 
 function createTab(Name: string, Container: HTMLElement): HTMLElement
 {
@@ -1418,9 +1420,9 @@ let userToken = sessionStorage.getItem("wxp-token");
 let userId = Number(sessionStorage.getItem("wxp-user-id"));
 if (!userToken || isNaN(userId))
 {
-	alert("User not logged in");
-	userToken = '';
-	userId = 0;
+	// alert("User not logged in");
+	clearBrowserCache();
+	goToLoginPage();
 }
 
 // API PART

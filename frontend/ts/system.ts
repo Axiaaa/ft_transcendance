@@ -108,14 +108,15 @@ export function clearBrowserCache() {
 	// location.reload();
 }
 
+window.addEventListener('beforeunload', async (event) => {
+	event.preventDefault();
+	disconnectUser();
+	clearBrowserCache();
+	return 'You will be disconnected if you reload or leave this page. Are you sure ?';
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
 
-	window.addEventListener('beforeunload', (event) => {
-		event.preventDefault();
-		disconnectUser();
-		clearBrowserCache();
-		return 'You will be disconnected if you reload or leave this page. Are you sure ?';
-	});
 
 	let sleepScreen = document.createElement('div');
 	document.body.appendChild(sleepScreen);
