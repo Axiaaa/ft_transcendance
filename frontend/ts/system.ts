@@ -1,10 +1,5 @@
-import { send } from "process";
 import { sendNotification } from "./notification.js";
-import { getCurrentUser, getUserAvatar, getUserBackground, getUserById, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
-import { getUser } from "./API.js";
-import { createUser } from "./API.js";
-import { create } from "domain";
-import { get } from "http";
+import { getCurrentUser, getUserAvatar, getUserBackground, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
 import { disconnectUser } from "./start-menu.js";
 
 
@@ -32,13 +27,96 @@ export function setBodyBackgroundImage(url: string): void {
 	document.body.style.backgroundImage = `url(${url})`;
 }
 
+export function setFont(inputSize: number, previousSize: number | 0) {
+	console.log("Font size changed to: " + inputSize);
+	let inputString = inputSize.toString();
+	let applyButton = document.getElementById('font-size-apply-button') as HTMLButtonElement;
+	if (applyButton.classList[0] && applyButton.classList[0].includes('font-size-applied-'))
+		{
+			previousSize = parseInt(applyButton.classList[0].replace('font-size-applied-', ''));
+			applyButton.classList.remove('font-size-applied-' + previousSize);
+		}
+		applyButton.classList.add('font-size-applied-' + inputString);
+		const allTextElements = document.querySelectorAll('p, span, h1, h2, h3, h4, h5, h6, div, button, input, label, a');
+		allTextElements.forEach(element => {
+			const currentSize = window.getComputedStyle(element).fontSize;
+			const sizeNumber = parseInt(currentSize);
+			if (!isNaN(sizeNumber)) {
+				const newSize = sizeNumber + parseInt(inputString) - previousSize;
+				(element as HTMLElement).style.fontSize = `${newSize}px`;
+				
+			}
+		});
+		if (parseInt(inputString) > 0)
+			sendNotification('Font Size Changed', `Font size increased by ${inputString}px`, "./img/Utils/font-icon.png");
+		else if (parseInt(inputString) < 0)
+			sendNotification('Font Size Changed', `Font size decreased by ${inputString}px`, "./img/Utils/font-icon.png");
+		else
+			sendNotification('Font Size Changed', `Font size reset`, "./img/Utils/font-icon.png");
+}
+
+export function clearBrowserCache() {
+	try {
+		// Clear cookies
+		const cookies = document.cookie.split(';');
+		for (let i = 0; i < cookies.length; i++) {
+			const cookie = cookies[i];
+			const eqPos = cookie.indexOf('=');
+			const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+			document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+		}
+
+		// Clear the browser cache using Cache API
+		if (window.caches) {
+			caches.keys().then(cacheNames => {
+				cacheNames.forEach(cacheName => {
+					caches.delete(cacheName);
+				});
+			});
+		}
+
+		// Clear session storage
+		sessionStorage.clear();
+
+		// Clear local storage
+		localStorage.clear();
+
+		// Clear IndexedDB
+		if (window.indexedDB) {
+			window.indexedDB.databases?.().then(dbs => {
+				dbs.forEach(db => {
+					if (db.name) indexedDB.deleteDatabase(db.name);
+				});
+			});
+		}
+
+		// Unregister service workers
+		if (navigator.serviceWorker) {
+			navigator.serviceWorker.getRegistrations().then(registrations => {
+				for (const registration of registrations) {
+					registration.unregister();
+				}
+			});
+		}
+
+		console.log('Browser cache cleared successfully');
+	} catch (error) {
+		console.error('Error clearing browser cache:', error);
+	}
+	
+	// // Reload the page
+	// location.reload();
+}
+
+window.addEventListener('beforeunload', async (event) => {
+	event.preventDefault();
+	disconnectUser();
+	clearBrowserCache();
+	return 'You will be disconnected if you reload or leave this page. Are you sure ?';
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
 
-	window.addEventListener('beforeunload', (event) => {
-		event.preventDefault();
-		disconnectUser();
-		return 'You will be disconnected if you reload or leave this page. Are you sure ?';
-	});
 
 	let sleepScreen = document.createElement('div');
 	document.body.appendChild(sleepScreen);
@@ -53,9 +131,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 	sleepScreen.style.justifyContent = 'center';
 	sleepScreen.style.alignItems = 'center';
 	sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
-
-	// sleepScreen.style.opacity = '1';
-	// sleepScreen.style.display = 'block';
 
 	let sleepLogo = document.createElement('img');
 	sleepScreen.appendChild(sleepLogo);
@@ -147,7 +222,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 	document.addEventListener('scroll', resetTimer);
 
 	// Start the initial timer
-	resetTimer();
+	let pongAppwindows = document.getElementById('pong-app-window') as HTMLElement;
+	let pongTimerInterval: NodeJS.Timeout | null = null;
+	
+	// Function to handle timer state based on pong window
+	function handleTimerState() {
+		if (pongTimerInterval) {
+			clearInterval(pongTimerInterval);
+			pongTimerInterval = null;
+		}
+		
+		if (pongAppwindows.classList.contains('opened-window')) {
+			// Reset timer immediately and set interval to reset every 5 seconds
+			resetTimer();
+			pongTimerInterval = setInterval(() => {
+				resetTimer();
+				console.log('Timer reset - Pong window is open');
+			}, 5000);
+			console.log('Periodic timer reset activated - Pong window is open');
+		} else {
+			// Normal timer behavior when pong window is closed
+			resetTimer();
+			console.log('Timer activated - Pong window is closed');
+		}
+	}
+
+	// Check initial state
+	handleTimerState();
+			
+	// Observe changes to the pong window class
+	const pongWindowObserver = new MutationObserver((mutations) => {
+		mutations.forEach((mutation) => {
+			if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+				console.log('Pong window class changed');
+				handleTimerState();
+			}
+		});
+	});
+	pongWindowObserver.observe(pongAppwindows, { attributes: true });
 
 	// SANDBOX AREA
 	{
@@ -345,6 +457,36 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
 	console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
 	userWallpapers[0].src = wallpaperURL;
+	// Add cache busting to force image reload
+	const addCacheBuster = (url: string): string => {
+		const cacheBuster = `?t=${Date.now()}`;
+		if (url.startsWith('blob:')) return url;
+		
+		if (url.includes('?')) {
+			return `${url}&_=${Date.now()}`;
+		}
+		return `${url}${cacheBuster}`;
+	};
+
+	// Apply cache busting to avatar URLs
+	for (let i = 0; i < userAvatars.length; i++) {
+		userAvatars[i].src = addCacheBuster(avatarURL);
+		
+		// Force reload by removing and re-adding the image
+		const currentSrc = userAvatars[i].src;
+		userAvatars[i].src = "";
+		setTimeout(() => { userAvatars[i].src = currentSrc; }, 10);
+	}
+
+	// Apply cache busting to wallpaper URLs
+	for (let i = 0; i < userWallpapers.length; i++) {
+		userWallpapers[i].src = addCacheBuster(wallpaperURL);
+		
+		// Force reload by removing and re-adding the image
+		const currentSrc = userWallpapers[i].src;
+		userWallpapers[i].src = "";
+		setTimeout(() => { userWallpapers[i].src = currentSrc; }, 10);
+	}
 };
 
 export async function resetUserImages()
@@ -360,4 +502,44 @@ export async function resetUserImages()
 	}
 	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
 	userWallpapers[0].src = wallpaperURL;
+	// Add cache busting to force image reload
+	const addCacheBuster = (url: string): string => {
+		const cacheBuster = `?t=${Date.now()}`;
+		if (url.startsWith('blob:')) return url;
+		
+		if (url.includes('?')) {
+			return `${url}&_=${Date.now()}`;
+		}
+		return `${url}${cacheBuster}`;
+	}
+	// Apply cache busting to avatar URLs
+	for (let i = 0; i < userAvatars.length; i++) {
+		userAvatars[i].src = addCacheBuster(avatarURL);
+		
+		// Force reload by removing and re-adding the image
+		const currentSrc = userAvatars[i].src;
+		userAvatars[i].src = "";
+		setTimeout(() => { userAvatars[i].src = currentSrc; }, 10);
+	}
+	// Apply cache busting to wallpaper URLs
+	for (let i = 0; i < userWallpapers.length; i++) {
+		userWallpapers[i].src = addCacheBuster(wallpaperURL);
+		
+		// Force reload by removing and re-adding the image
+		const currentSrc = userWallpapers[i].src;
+		userWallpapers[i].src = "";
+		setTimeout(() => { userWallpapers[i].src = currentSrc; }, 10);
+	}
+}
+
+export async function updateAllUserNames()
+{
+	let currentUser = await getCurrentUser(sessionStorage.getItem("wxp_token"));
+	if (currentUser == null)
+		return;
+	let userName = currentUser.username;
+	let userNames = document.getElementsByClassName("user-name-text") as HTMLCollectionOf<HTMLSpanElement>;
+	for (let i = 0; i < userNames.length; i++) {
+		userNames[i].innerText = userName;
+	}
 }

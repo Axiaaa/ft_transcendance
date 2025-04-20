@@ -1,3 +1,4 @@
+import { sendNotification } from "./notification.js";
 import { openAppWindow } from "./app-icon.js";
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -240,6 +241,13 @@ document.addEventListener('DOMContentLoaded', () => {
 	Searchbar.style.fontSize = '12px';
 	Searchbar.style.color = 'black';
 	Searchbar.style.textAlign = 'left';
+	Searchbar.addEventListener('keypress', (event) => {
+		if (event.key === 'Enter') {
+			Searchbar.blur();
+			Searchbar.value = '';
+			sendNotification('Search', 'Search is not implemented yet', './img/Settings_app/search-icon.png');
+		}
+	});
 	SearchButton.addEventListener('click', () => {
 		Searchbar.focus();
 	});
@@ -256,6 +264,11 @@ document.addEventListener('DOMContentLoaded', () => {
 	GoSearchButton.style.cursor = 'pointer';
 	GoSearchButton.style.overflow = 'hidden';
 	GoSearchButton.draggable = false;
+	GoSearchButton.addEventListener('click', () => {
+		Searchbar.value = '';
+		Searchbar.blur();
+		sendNotification('Search', 'Search is not implemented yet', './img/Settings_app/search-icon.png');
+	});
 
 
 	let	leftColumn = document.createElement('div');

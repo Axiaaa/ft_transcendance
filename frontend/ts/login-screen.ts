@@ -1,13 +1,8 @@
-import { getCurrentUser, getUserAvatar, getUserBackground, updateUser } from "./API.js";
-import { Cookies, getCookie, setCookie } from 'typescript-cookie'
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
-import { initHistoryAPI, resetUserImages, updateUserImages } from "./system.js";
+import { initHistoryAPI, resetUserImages, updateAllUserNames, updateUserImages } from "./system.js";
 import { goToDesktopPage } from "./system.js";
-import { goToFormsPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
-import { sign } from "crypto";
-import { Session } from "inspector/promises";
 
 let	titleScreenBackground = document.createElement('div');
 titleScreenBackground.id = 'title-screen-background';
@@ -260,16 +255,17 @@ export async function showError(message: string) {
 											if (existingErrorBox) {
 												existingErrorBox.remove();
 											}
-											const newUser = await createUser({ username, password });
-											sessionStorage.setItem("wxp_token", newUser.token);
-											sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
-											signUpUsername.value = "";
-											signUpPassword.value = "";
-											signUpConfirmPassword.value = "";
-											await resetUserImages();
-											setTimeout(() => {
-												goToDesktopPage();
-											}, 200);
+                      const newUser = await createUser({ username, password });
+                      sessionStorage.setItem("wxp_token", newUser.token);
+                      sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
+                      signUpUsername.value = "";
+                      signUpPassword.value = "";
+                      signUpConfirmPassword.value = "";
+                      await resetUserImages();
+					  await updateAllUserNames();
+                      setTimeout(() => {
+                        goToDesktopPage();
+                      }, 200);
 										}
 										catch (error)
 										{
@@ -364,6 +360,7 @@ export async function showError(message: string) {
 						signInPassword.value = "";
 						await resetUserImages();
 						await updateUserImages();
+						await updateAllUserNames();
 						setTimeout(() => {
 							goToDesktopPage();
 						}, 200);

@@ -9,3 +9,5 @@ ddos.py
 draw.drawio
 .gitignore
 .vscode
+*.js
+*.js.map

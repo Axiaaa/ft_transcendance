@@ -1,4 +1,5 @@
-import { getCurrentUser, updateUser } from "./API.js";
+import { clearBrowserCache, setFont } from "./system.js";
+import { updateUser } from "./API.js";
 import { openAppWindow } from "./app-icon.js";
 
 export function disconnectUser()
@@ -20,6 +21,7 @@ export function disconnectUser()
 			.catch((error) => {
 				console.error('Error updating user status:', error);
 			});
+		setFont(0, 0);
 	}
 }
 
@@ -101,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		shutdownButton.addEventListener('click', (e: MouseEvent) => {
 			alert('Warning: System shutting down\n(It just reloads the page, because... you know, it\'s a web app)');
 			disconnectUser();
+			clearBrowserCache();
 			window.location.reload();
 		});
 	}
@@ -109,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 		logoffButton.addEventListener('click', (e: MouseEvent) => {
 			disconnectUser();
+			clearBrowserCache();
 			loginScreen.style.display = 'block';
 		});
 	}
@@ -116,8 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		let startMenuTop = document.getElementsByClassName('start-menu-top')[0] as HTMLElement;
 		startMenuTop.style.height = '60px';
 		startMenuTop.style.width = '100%';
+		startMenuTop.style.borderRadius = '10px 10px 0px 0px';
 		startMenuTop.addEventListener('mouseenter', (e: MouseEvent) => {
-			startMenuTop.style.backgroundColor = 'rgba(69, 141, 255, 0.31)';
+			startMenuTop.style.backgroundColor = 'rgba(69, 141, 255, 0.45)';
 		});
 		startMenuTop.addEventListener('mouseleave', (e: MouseEvent) => {
 			startMenuTop.style.backgroundColor = 'transparent';
@@ -130,5 +135,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			let userAccountButton = document.getElementById('settings-app-User Account-category') as HTMLElement;
 			userAccountButton.click();
 		});
+	}
+	{
+		let startMenuUsername = document.getElementById('start-menu-username') as HTMLElement;
+		startMenuUsername.style.width = '300px';
+		startMenuUsername.style.height = '25px';
+		startMenuUsername.style.whiteSpace = 'nowrap';
+		startMenuUsername.style.overflow = 'hidden';
+		startMenuUsername.style.textOverflow = 'ellipsis';
+
 	}
 });
