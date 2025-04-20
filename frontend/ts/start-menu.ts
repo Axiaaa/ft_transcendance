@@ -1,4 +1,4 @@
-import { setFont } from "./system.js";
+import { clearBrowserCache, setFont } from "./system.js";
 import { updateUser } from "./API.js";
 import { openAppWindow } from "./app-icon.js";
 
@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		shutdownButton.addEventListener('click', (e: MouseEvent) => {
 			alert('Warning: System shutting down\n(It just reloads the page, because... you know, it\'s a web app)');
 			disconnectUser();
+			clearBrowserCache();
 			window.location.reload();
 		});
 	}
@@ -111,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 		logoffButton.addEventListener('click', (e: MouseEvent) => {
 			disconnectUser();
+			clearBrowserCache();
 			loginScreen.style.display = 'block';
 		});
 	}

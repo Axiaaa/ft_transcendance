@@ -502,6 +502,34 @@ export async function resetUserImages()
 	}
 	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
 	userWallpapers[0].src = wallpaperURL;
+	// Add cache busting to force image reload
+	const addCacheBuster = (url: string): string => {
+		const cacheBuster = `?t=${Date.now()}`;
+		if (url.startsWith('blob:')) return url;
+		
+		if (url.includes('?')) {
+			return `${url}&_=${Date.now()}`;
+		}
+		return `${url}${cacheBuster}`;
+	}
+	// Apply cache busting to avatar URLs
+	for (let i = 0; i < userAvatars.length; i++) {
+		userAvatars[i].src = addCacheBuster(avatarURL);
+		
+		// Force reload by removing and re-adding the image
+		const currentSrc = userAvatars[i].src;
+		userAvatars[i].src = "";
+		setTimeout(() => { userAvatars[i].src = currentSrc; }, 10);
+	}
+	// Apply cache busting to wallpaper URLs
+	for (let i = 0; i < userWallpapers.length; i++) {
+		userWallpapers[i].src = addCacheBuster(wallpaperURL);
+		
+		// Force reload by removing and re-adding the image
+		const currentSrc = userWallpapers[i].src;
+		userWallpapers[i].src = "";
+		setTimeout(() => { userWallpapers[i].src = currentSrc; }, 10);
+	}
 }
 
 export async function updateAllUserNames()
