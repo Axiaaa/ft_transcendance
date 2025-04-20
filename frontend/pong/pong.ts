@@ -614,14 +614,14 @@ function simulatKeyPress(action: number): void {
 		keyMap.get("ArrowLeft")!.element!.classList.remove("key-pressed");
 	if (keyMap.get("ArrowRight")?.element)
 		keyMap.get("ArrowRight")!.element!.classList.remove("key-pressed");
-	if (action === 0 && keyMap.get("ArrowLeft")?.element)
+	if (action === 0 && keyMap.get("ArrowLeft")?.element && paddle2.position.x < 5)
 	{
-		keyMap.get("ArrowLeft")!.pressed = true
+		paddle2.position.x += paddleSpeed;
 		keyMap.get("ArrowLeft")!.element!.classList.add("key-pressed");
 	}
-	else if (action === 1 && keyMap.get("ArrowRight")?.element)
+	else if (action === 1 && keyMap.get("ArrowRight")?.element && paddle2.position.x > -5)
 	{
-		keyMap.get("ArrowRight")!.pressed = true
+		paddle2.position.x -= paddleSpeed;
 		keyMap.get("ArrowRight")!.element!.classList.add("key-pressed");
 	}
 }
@@ -633,7 +633,9 @@ function movePaddles(): void {
 	{
 		const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
 		simulatKeyPress(action);
-	} else {
+	}
+	else 
+	{
 		if (keyMap.get("ArrowLeft")?.pressed && paddle2.position.x < 5)
 			paddle2.position.x += paddleSpeed;
 		if (keyMap.get("ArrowRight")?.pressed && paddle2.position.x > -5)
