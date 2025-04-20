@@ -1,4 +1,3 @@
-import { isAppOpen } from "./taskbar.js";
 import { setIsAppOpen } from "./taskbar.js";
 
 
