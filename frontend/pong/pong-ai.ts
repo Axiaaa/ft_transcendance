@@ -1,6 +1,10 @@
+// @ts-ignore
+const tf = window.tf;
+
+
 export class PongAI
 {
-	private model: tf.LayersModel;
+	private model: any;
 	private isLoaded: boolean = false;
 	private delay: number = 1000;
 	private lastUpdate: number = 0;
