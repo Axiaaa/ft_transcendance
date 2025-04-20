@@ -4,16 +4,16 @@
 		"target": "es5",
 		"module": "es6",
 		"moduleResolution": "node",
-		"outDir": "./ts/.build",
-		"rootDir": "./ts",
-		"baseUrl": "./ts",
+		"outDir": "ts/.build",
+		"rootDir": "./",
+		"baseUrl": "./",
 		// "paths": {
 		// 	"game": ["./game"]
 		// },
 		"strict": true,
 		// "composite": true    // Décommentez cette ligne
 	},
-	"include": ["ts/*.ts"],
+	"include": ["ts/*.ts", "pong/*.ts"],
 	"exclude": ["node_modules"],
 	// "references": [
 	// 	{ "path": "./game" }
