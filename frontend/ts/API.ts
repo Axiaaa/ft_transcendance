@@ -843,3 +843,23 @@ export async function getFriendshipStatus(token: string, otherUsername: string):
 		return 'none';
 	}
 }
+
+export async function ifUsernameExists(username: string): Promise<boolean> {
+	try {
+		const response = await apiFetch(`/users?username=${encodeURIComponent(username)}`);
+		const users: User[] = await response.json();
+		
+		if (users.length > 0) {
+			return true;
+		} else {
+			return false;
+		}
+	} catch (error) {
+		console.error('Error checking if username exists:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to check username existence: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+}

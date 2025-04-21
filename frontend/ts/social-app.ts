@@ -1,8 +1,30 @@
 import { get } from "http";
 import { openAppWindow } from "./app-icon.js";
-import { getFriendFromID, getUserById, getUserFriends } from "./API.js";
+import { acceptFriendRequest, declineFriendRequest, getFriendFromID, getPendingFriendRequests, getPendingFriendRequestsDetails, getUserById, getUserFriends, sendFriendRequest } from "./API.js";
 import { disconnectUser } from "./start-menu.js";
 import { clearBrowserCache, goToDesktopPage, goToLoginPage } from "./system.js";
+
+
+// Function to format pending friend requests for display
+export async function fetchFormattedPendingRequests(userToken: string): Promise<{ id: string, username: string, avatar: string, time: string }[]> {
+	try {
+		// Use the new function to get detailed pending friend requests directly
+		const pendingRequestsDetails = await getPendingFriendRequestsDetails(userToken);
+		
+		// Format the detailed requests into the structure needed by the UI
+		const formattedRequests = pendingRequestsDetails.map(user => ({
+			id: user.id?.toString() || 'unknown',
+			username: user.username,
+			avatar: user.avatar || '#cccccc', // Use default color if no avatar
+			time: 'Recently' // Could implement actual timestamp formatting here
+		}));
+		
+		return formattedRequests;
+	} catch (error) {
+		console.error('Failed to fetch and format pending friend requests:', error);
+		return [];
+	}
+}
 
 function createTab(Name: string, Container: HTMLElement): HTMLElement
 {
@@ -185,8 +207,28 @@ function createFriendElement(friend: { name: string, avatar: string, status: str
 	return friendItem;
 }
 
+export async function removeSocialApp()
+{
+	let appContainer = document.getElementById('social-app-global-container') as HTMLElement;
+	if (appContainer)
+	{
+		appContainer.remove();
+	}
+}
 
-document.addEventListener('DOMContentLoaded', async () => {
+export async function initSocialApp()
+{
+		// USER ID AND TOKEN
+
+let userToken = sessionStorage.getItem("wxp_token");
+let userId = Number(sessionStorage.getItem("wxp_user_id"));
+if (!userToken || isNaN(userId))
+{
+	console.log("Can't find user token or ID, aborting Social App initialization");
+	// alert("User not logged in");
+	clearBrowserCache();
+	goToLoginPage();
+}
 
 	let Appwindow = document.getElementById('social-app-window') as HTMLElement;
 	if (!Appwindow) return;
@@ -242,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		globalContainer.appendChild(contentContainer);
 		contentContainer.id = 'social-app-content-container';
 		contentContainer.style.width = 'calc(100% - 6px)';
-		contentContainer.style.height = 'calc(100% - 55px)';
+		contentContainer.style.height = 'calc(100% - 30px)';
 		contentContainer.style.overflow = 'hidden';
 		contentContainer.style.margin = '0px 3px';
 		contentContainer.style.display = 'flex';
@@ -942,12 +984,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 				// Add friend section
 				let addFriendContainer = document.createElement('div');
 				requestManagementContainer.appendChild(addFriendContainer);
+				addFriendContainer.id = 'socialapp-add-friend-container';
 				addFriendContainer.style.padding = '8px 5px';
 				addFriendContainer.style.borderBottom = '1px solid #e0e0e0';
 
 				// Search user input container
 				let searchUserContainer = document.createElement('div');
 				addFriendContainer.appendChild(searchUserContainer);
+				addFriendContainer.id = 'socialapp-search-user-container';
 				searchUserContainer.style.display = 'flex';
 				searchUserContainer.style.alignItems = 'center';
 				searchUserContainer.style.marginBottom = '8px';
@@ -955,6 +999,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 				// Search input
 				let searchUserInput = document.createElement('input');
 				searchUserContainer.appendChild(searchUserInput);
+				searchUserInput.id = 'socialapp-search-user-input';
 				searchUserInput.type = 'text';
 				searchUserInput.placeholder = 'Enter username to add...';
 				searchUserInput.style.flex = '1';
@@ -966,6 +1011,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 				// Send request button (initially disabled)
 				let sendRequestButton = document.createElement('div');
 				searchUserContainer.appendChild(sendRequestButton);
+				sendRequestButton.id = 'socialapp-send-request-button';
 				sendRequestButton.textContent = 'Add';
 				sendRequestButton.setAttribute('role', 'button');
 				sendRequestButton.setAttribute('tabindex', '0');
@@ -986,6 +1032,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 				// Search results container
 				let searchResultsContainer = document.createElement('div');
 				addFriendContainer.appendChild(searchResultsContainer);
+				searchResultsContainer.id = 'socialapp-search-results-container';
 				searchResultsContainer.style.marginTop = '5px';
 				searchResultsContainer.style.display = 'none';
 
@@ -1019,7 +1066,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 						// API CALL NEEDED: Search for user by username
 						const username = searchUserInput.value.trim();
 						searchUser(username);
-					}, 2000); // Wait for 2 seconds of inactivity
+					}, 500); // Wait for 500ms of inactivity
 				});
 
 				// Function to search for a user
@@ -1028,12 +1075,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 					searchResultsContainer.innerHTML = '';
 					
 					// API CALL NEEDED: Search for user by username
-					// For demo, simulate API call with mock data
-					// In a real implementation, this would be:
-					// fetch('/api/users/search?username=' + username)
-					//   .then(response => response.json())
-					//   .then(handleSearchResult)
-					//   .catch(error => showSearchError(error));
 					
 					// Simulate API response
 					setTimeout(() => {
@@ -1125,16 +1166,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 				sendRequestButton.addEventListener('click', () => {
 					if (currentSearchResult && sendRequestButton.getAttribute('data-disabled') === 'false') {
 						// API CALL NEEDED: Send friend request
-						// In a real implementation:
-						// fetch('/api/friends/request', {
-						//   method: 'POST',
-						//   headers: { 'Content-Type': 'application/json' },
-						//   body: JSON.stringify({ userId: currentSearchResult.id })
-						// })
-						//   .then(response => response.json())
-						//   .then(handleRequestSent)
-						//   .catch(error => showRequestError(error));
-						
+						if (userToken) {
+							sendFriendRequest(userToken, currentSearchResult.username);
+							console.log(`Friend request sent to ${currentSearchResult.username}`);
+						}
+						else
+							alert('User token not found. Please log in again.');
 						// Simulate successful request
 						searchResultsContainer.innerHTML = '';
 						searchResultsContainer.style.display = 'block';
@@ -1159,6 +1196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 				// Pending Friend Requests Section
 				let pendingRequestsContainer = document.createElement('div');
 				requestsContent.appendChild(pendingRequestsContainer);
+				pendingRequestsContainer.id = 'socialapp-pending-requests-container';
 				pendingRequestsContainer.style.width = 'calc(100% - 10px)';
 				pendingRequestsContainer.style.margin = '5px';
 				pendingRequestsContainer.style.marginTop = '10px';
@@ -1184,10 +1222,122 @@ document.addEventListener('DOMContentLoaded', async () => {
 				pendingRequestsTitle.textContent = 'Pending Friend Requests';
 				pendingRequestsTitle.style.paddingLeft = '5px';
 
+				// Add a refresh button for pending requests
+				let refreshRequestsContainer = document.createElement('div');
+				pendingRequestsContainer.appendChild(refreshRequestsContainer);
+				refreshRequestsContainer.style.display = 'flex';
+				refreshRequestsContainer.style.justifyContent = 'flex-end';
+				refreshRequestsContainer.style.padding = '5px';
+				refreshRequestsContainer.style.borderBottom = '1px solid #e0e0e0';
+
+				let refreshButton = document.createElement('div');
+				refreshRequestsContainer.appendChild(refreshButton);
+				refreshButton.id = 'socialapp-refresh-requests-button';
+				refreshButton.textContent = '🔄 Refresh';
+				refreshButton.style.fontSize = '10px';
+				refreshButton.style.padding = '2px 6px';
+				refreshButton.style.border = '1px solid #a0a0a0';
+				refreshButton.style.borderRadius = '2px';
+				refreshButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+				refreshButton.style.cursor = 'pointer';
+				refreshButton.setAttribute('role', 'button');
+				refreshButton.setAttribute('tabindex', '0');
+
+				refreshButton.addEventListener('mouseenter', () => {
+					refreshButton.style.backgroundImage = 'linear-gradient(#f5f5f5, #e5e5e5)';
+				});
+
+				refreshButton.addEventListener('mouseleave', () => {
+					refreshButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+				});
+
+				
+
+				// Add request count indicator
+				let requestCountLabel = document.createElement('div');
+				refreshRequestsContainer.insertBefore(requestCountLabel, refreshButton);
+				requestCountLabel.id = 'socialapp-requests-count';
+				requestCountLabel.textContent = 'Requests: 0';
+				requestCountLabel.style.fontSize = '10px';
+				requestCountLabel.style.marginRight = '8px';
+				requestCountLabel.style.color = '#555555';
+				requestCountLabel.style.alignSelf = 'center';
+
+				// Function to update request count
+				const updateRequestCount = (count: number) => {
+					const countLabel = document.getElementById('socialapp-requests-count');
+					if (countLabel) {
+						countLabel.textContent = `Requests: ${count}`;
+						// Make it bold and colored if there are requests
+						if (count > 0) {
+							countLabel.style.fontWeight = 'bold';
+							countLabel.style.color = '#003399';
+						} else {
+							countLabel.style.fontWeight = 'normal';
+							countLabel.style.color = '#555555';
+						}
+					}
+				};
+
+				// Finally, update the refresh button code:
+				refreshButton.addEventListener('click', async () => {
+					// Visual feedback - change button text while loading
+					refreshButton.textContent = '⌛ Loading...';
+					refreshButton.style.backgroundImage = 'linear-gradient(#e0e0e0, #d0d0d0)';
+					refreshButton.style.cursor = 'wait';
+					
+					// Clear existing requests
+					let requestsList = document.getElementById('socialapp-pending-requests-list');
+					if (requestsList) {
+						requestsList.innerHTML = '';
+					}
+					
+					try {
+						// Use the new function to fetch formatted pending requests
+						let pendingRequests: { id: string, username: string, avatar: string, time: string }[] = [];
+						
+						if (userToken) {
+							pendingRequests = await fetchFormattedPendingRequests(userToken);
+						}
+						
+						// Display pending requests or empty state message
+						if (pendingRequests.length === 0) {
+							let emptyMessage = document.createElement('div');
+							requestsList?.appendChild(emptyMessage);
+							emptyMessage.textContent = 'No pending friend requests.';
+							emptyMessage.style.padding = '10px';
+							emptyMessage.style.textAlign = 'center';
+							emptyMessage.style.color = '#888888';
+							emptyMessage.style.fontSize = '11px';
+							emptyMessage.style.fontStyle = 'italic';
+						} else {
+							updateRequestCount(pendingRequests.length);
+							pendingRequests.forEach(request => {
+								createRequestItem(request);
+							});
+						}
+					} catch (error) {
+						console.error('Failed to refresh friend requests:', error);
+						// Show error in the requestsList
+						let errorMessage = document.createElement('div');
+						requestsList?.appendChild(errorMessage);
+						errorMessage.textContent = 'Failed to load friend requests. Please try again.';
+						errorMessage.style.padding = '10px';
+						errorMessage.style.textAlign = 'center';
+						errorMessage.style.color = '#cc0000';
+						errorMessage.style.fontSize = '11px';
+					} finally {
+						// Reset button state
+						refreshButton.textContent = '🔄 Refresh';
+						refreshButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+						refreshButton.style.cursor = 'pointer';
+					}
+				});
+
 				// Create the requests list container
 				let requestsList = document.createElement('div');
 				pendingRequestsContainer.appendChild(requestsList);
-				requestsList.id = 'pending-requests-list';
+				requestsList.id = 'socialapp-pending-requests-list';
 				requestsList.style.overflowY = 'auto';
 				requestsList.style.flex = '1';
 				requestsList.style.maxHeight = '200px';
@@ -1196,6 +1346,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 				const createRequestItem = (request: { id: string, username: string, avatar: string, time: string }): HTMLElement => {
 					let requestItem = document.createElement('div');
 					requestsList.appendChild(requestItem);
+					requestItem.id = 'socialapp-request-item-' + request.id;
 					requestItem.style.display = 'flex';
 					requestItem.style.alignItems = 'center';
 					requestItem.style.padding = '8px 5px';
@@ -1237,6 +1388,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 					
 					// Accept button
 					let acceptButton = document.createElement('div');
+					acceptButton.id = 'socialapp-accept-request-button-' + request.id;
 					actionButtons.appendChild(acceptButton);
 					acceptButton.innerHTML = '✓';
 					acceptButton.style.marginRight = '5px';
@@ -1261,12 +1413,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 					acceptButton.addEventListener('click', () => {
 						// API CALL NEEDED: Accept friend request
-						// fetch('/api/friends/request/accept', {
-						//   method: 'POST',
-						//   headers: { 'Content-Type': 'application/json' },
-						//   body: JSON.stringify({ requestId: request.id })
-						// })
-						
+						if (userToken)
+							acceptFriendRequest(userToken, request.username);
 						// Remove the request from the list
 						requestItem.remove();
 						
@@ -1277,6 +1425,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 					// Decline button
 					let declineButton = document.createElement('div');
 					actionButtons.appendChild(declineButton);
+					declineButton.id = 'socialapp-decline-request-button-' + request.id;
 					declineButton.innerHTML = '✗';
 					declineButton.style.padding = '2px 5px';
 					declineButton.style.fontSize = '10px';
@@ -1299,12 +1448,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 					declineButton.addEventListener('click', () => {
 						// API CALL NEEDED: Decline friend request
-						// fetch('/api/friends/request/decline', {
-						//   method: 'POST',
-						//   headers: { 'Content-Type': 'application/json' },
-						//   body: JSON.stringify({ requestId: request.id })
-						// })
-						
+						if (userToken)
+							declineFriendRequest(userToken, request.username);
 						// Remove the request from the list
 						requestItem.remove();
 					});
@@ -1316,6 +1461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 				const showNotification = (message: string, type: 'success' | 'error') => {
 					let notification = document.createElement('div');
 					requestsContent.appendChild(notification);
+					notification.id = 'socialapp-' + type + '-notification';
 					notification.textContent = message;
 					notification.style.position = 'absolute';
 					notification.style.bottom = '10px';
@@ -1346,25 +1492,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 					}, 3000);
 				}
 
-				// Load pending requests
-				// API CALL NEEDED: Fetch pending friend requests
-				// In a real implementation:
-				// fetch('/api/friends/requests/pending')
-				//   .then(response => response.json())
-				//   .then(requests => {
-				//     requests.forEach(request => createRequestItem(request));
-				//   })
-				//   .catch(error => console.error('Error fetching requests:', error));
+				// Load pending requests from API
+				let pendingRequests: { id: string, username: string, avatar: string, time: string }[] = [];
+				
+				if (userToken) {
+					pendingRequests = await fetchFormattedPendingRequests(userToken);
+				}
 
-				// Sample data for demo purposes
-				const sampleRequests = [
-					{ id: 'req1', username: 'ProGamer123', avatar: '#ff9999', time: '2 hours ago' },
-					{ id: 'req2', username: 'CoolDude42', avatar: '#99ccff', time: 'Yesterday' },
-					{ id: 'req3', username: 'GameMaster99', avatar: '#ffcc99', time: '3 days ago' }
-				];
-
-				// Create empty state message
-				if (sampleRequests.length === 0) {
+				// Display pending requests or empty state message
+				if (pendingRequests.length === 0) {
 					let emptyMessage = document.createElement('div');
 					requestsList.appendChild(emptyMessage);
 					emptyMessage.textContent = 'No pending friend requests.';
@@ -1374,8 +1510,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 					emptyMessage.style.fontSize = '11px';
 					emptyMessage.style.fontStyle = 'italic';
 				} else {
-					// Create request items
-					sampleRequests.forEach(request => {
+					pendingRequests.forEach(request => {
 						createRequestItem(request);
 					});
 				}
@@ -1409,69 +1544,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 		}
 	}
 
-
-
-});
-
-
-// USER ID AND TOKEN
-
-let userToken = sessionStorage.getItem("wxp-token");
-let userId = Number(sessionStorage.getItem("wxp-user-id"));
-if (!userToken || isNaN(userId))
-{
-	// alert("User not logged in");
-	clearBrowserCache();
-	goToLoginPage();
-}
-
-// API PART
-
-async function initializeSocialFeatures() {
-	// Check if user is logged in
-	const checkLoginStatus = () => {
-		return new Promise<boolean>((resolve) => {
-			// Check login status every second
-			const interval = setInterval(() => {
-				const token = sessionStorage.getItem("wxp-token");
-				const id = sessionStorage.getItem("wxp-user-id");
-				
-				if (token && id && !isNaN(Number(id))) {
-					clearInterval(interval);
-					resolve(true);
-				}
-			}, 1000);
-		});
-	};
-{
-	// Wait for user login before initializing social app features
-
-		// Wait until user is logged in
-		await checkLoginStatus();
-		
-		console.log("User is logged in. Initializing social features...");
-		let friendsListData: number[] = [];
-		if (userToken) {
-			friendsListData = await getUserFriends(userToken); // Placeholder function
-		}
-		for (let i = 0; i <  friendsListData.length && i < 3; i++)
-		{
-			let friendId = friendsListData[i];
-			if (userToken) {
-				let friendProfile = await getFriendFromID(userToken, friendId);
-				if (friendProfile) {
-						let friendDetails = {
-							name: friendProfile.username,
-							avatar: friendProfile.avatar,
-							status: friendProfile.is_online ? 'online' : 'offline'
-						}
-						createFriendElement(friendDetails);
-						console.log(friendDetails);
-				}
-			}
-		}
-}
-
-	// Start initialization process
-	initializeSocialFeatures();
+	console.log("User is logged in. Initializing social features...");
+		// {
+		// 	// Home Recent Activity Section
+		// 	let friendsListData: number[] = [];
+		// 	if (userToken) {
+		// 		friendsListData = await getUserFriends(userToken); // Placeholder function
+		// 	}
+		// 	for (let i = 0; i <  friendsListData.length && i < 3; i++)
+		// 	{
+		// 		let friendId = friendsListData[i];
+		// 		if (userToken) {
+		// 			let friendProfile = await getFriendFromID(userToken, friendId);
+		// 			if (friendProfile) {
+		// 					let friendDetails = {
+		// 						name: friendProfile.username,
+		// 						avatar: friendProfile.avatar,
+		// 						status: friendProfile.is_online ? 'online' : 'offline'
+		// 					}
+		// 					createFriendElement(friendDetails);
+		// 					console.log(friendDetails);
+		// 			}
+		// 		}
+		// 	}
+		// }
 }

@@ -13,6 +13,31 @@ declare module "fastify" {
   }
 }
 
+/**
+ * Sets up user-related routes for the Fastify instance.
+ * 
+ * @param server - The Fastify instance to register routes with
+ * 
+ * @remarks
+ * This function sets up the following routes:
+ * 
+ * - `GET /users`: Retrieve all users in the system
+ * - `GET /users/:token`: Get a specific user by their token
+ * - `GET /users/login`: Authenticate a user with username and password (query parameters)
+ * - `POST /users/login`: Create a new user
+ * - `PATCH /users/:token`: Update a user's information
+ * - `DELETE /users/:token`: Delete a user
+ * - `GET /users/:token/friends`: Get a user's friends
+ * - `POST /users/:token/friends`: Add a friend to a user
+ * - `DELETE /users/:token/friends/:friend_username`: Remove a friend from a user's friend list
+ * - `GET /users/:token/pending_friends`: Get a user's pending friend requests
+ * - `POST /users/:token/pending_friends`: Add a pending friend request
+ * - `DELETE /users/:token/pending_friends/:friend_username`: Remove a pending friend request
+ * 
+ * All routes include appropriate rate limiting and error handling.
+ * 
+ * @returns A Promise that resolves when all routes have been registered
+ */
 export async function userRoutes(server : FastifyInstance) {
 
     server.route({
