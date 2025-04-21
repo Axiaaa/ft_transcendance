@@ -1,10 +1,20 @@
 export function throttle(func: Function) {
-	let inThrottle: boolean;
+	let lastArgs: any[] | null = null;
+	let frameFlag: boolean = false;
+
 	return function(this: any, ...args: any[]) {
-		if (!inThrottle) {
-			func.apply(this, args);
-			inThrottle = true;
-			setTimeout(() => inThrottle = false, 16);
+		lastArgs = args;
+
+		if (!frameFlag) {
+			frameFlag = true;
+
+			requestAnimationFrame(() => {
+				if (lastArgs) {
+					func.apply(this, lastArgs);
+					lastArgs = null;
+				}
+				frameFlag = false;
+			});
 		}
 	};
 }

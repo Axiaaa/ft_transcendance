@@ -110,8 +110,8 @@ const light: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light", ne
 light.intensity = 0.8;
 const pipeline: BABYLON.DefaultRenderingPipeline = new BABYLON.DefaultRenderingPipeline("defaultPipeline", true, scene, [camera]);
 pipeline.bloomEnabled = true;
-pipeline.bloomThreshold = 0.8;
-pipeline.bloomKernel = 32;
+pipeline.bloomThreshold = 0.4;
+pipeline.bloomKernel = 16;
 
 // Create field
 function createField(scene: BABYLON.Scene): BABYLON.Mesh {
@@ -143,6 +143,7 @@ function createBall(): BABYLON.Mesh {
 	const ballMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
 	ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0);
 	ballMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
+	ballMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
 	ballMaterial.freeze();
 
 	const ball: BABYLON.Mesh = BABYLON.MeshBuilder.CreateSphere("ball", {diameter: 0.4, segments: 8}, scene);
@@ -209,7 +210,7 @@ let { paddle1, paddle2 } = createPaddles(scene, fieldHeight);
 // Create field lines
 function createHalfCircle(centerX: number, centerZ: number, radius: number, startAngle: number, endAngle: number): BABYLON.Vector3[] {
 	const points: BABYLON.Vector3[] = [];
-	const segments = 32;
+	const segments = 16;
 
 	for (let i = 0; i <= segments; i++) {
 		const angle = startAngle + (endAngle - startAngle) * (i / segments);
@@ -352,15 +353,6 @@ function updateScores(): void {
 	}, 100);
 }
 
-// FPS display
-const fpsDisplay = document.createElement('div');
-fpsDisplay.style.position = 'absolute';
-fpsDisplay.style.top = '10px';
-fpsDisplay.style.left = '10px';
-fpsDisplay.style.color = '#0ff';
-fpsDisplay.style.fontFamily = '"Orbitron", sans-serif';
-fpsDisplay.style.zIndex = '1000';
-document.body.appendChild(fpsDisplay);
 
 // Key display style
 const styleKeys: HTMLStyleElement = document.createElement("style");
@@ -426,8 +418,7 @@ function highlightCircles(playerColor: BABYLON.Color3): void {
 	}, 1000);
 }
 
-// Particle effect for goal
-function highlightGoalEffect(position: BABYLON.Vector3, color: BABYLON.Color4, scene: BABYLON.Scene) {
+function createGoalEffect(color: BABYLON.Color4, scene: BABYLON.Scene): BABYLON.ParticleSystem {
 	const particleSystem = new BABYLON.ParticleSystem("goalEffect", 300, scene);
 	particleSystem.particleTexture = new BABYLON.Texture("https://assets.babylonjs.com/textures/flare.png", scene);
 
@@ -453,12 +444,21 @@ function highlightGoalEffect(position: BABYLON.Vector3, color: BABYLON.Color4, s
 	particleSystem.colorDead = new BABYLON.Color4(color.r, color.g, color.b, 0.5);
 
 	particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
-	particleSystem.emitter = position.clone();
 	particleSystem.gravity = new BABYLON.Vector3(0, -0.5, 0);
 	particleSystem.targetStopDuration = 1.0;
 	particleSystem.disposeOnStop = true;
 
-	particleSystem.start();
+	return particleSystem;
+}
+
+const paddle1ParticleEffect = createGoalEffect(player1Color4, scene);
+const paddle2ParticleEffect = createGoalEffect(player2Color4, scene);
+
+function highlightGoalEffect(particleSystem: BABYLON.ParticleSystem, position: BABYLON.Vector3) {
+	particleSystem.emitter = position.clone();
+	let clone = particleSystem.clone(particleSystem.name, particleSystem.emitter);
+	clone.start()
+	setTimeout(() => clone.stop(), 1000);
 }
 
 // Resizing
@@ -476,7 +476,7 @@ const updateCanvasSize = throttle(() => {
 		const aspectRatio = containerWidth / containerHeight;
 		const BASE_FOV = BABYLON.Tools.ToRadians(150);
 		camera.fov = Math.min(BASE_FOV, BASE_FOV / aspectRatio);
-		engine.resize();
+		engine.resize(true);
 
 		const scaleFactor = Math.min(containerWidth / 1280, containerHeight / 720);
 		document.documentElement.style.setProperty("--scale-factor", scaleFactor.toString());
@@ -710,14 +710,14 @@ function checkCollision(): void {
 		score2++;
 		lastScorer = 2;
 		highlightCircles(player2Color);
-		highlightGoalEffect(new BABYLON.Vector3(ball.position.x, ball.position.y, ball.position.z), player2Color4, scene);
+		highlightGoalEffect(paddle1ParticleEffect, new BABYLON.Vector3(ball.position.x, ball.position.y, ball.position.z));
 		score = true;
 	}
 	if (ball.position.z < -6.5) {
 		score1++;
 		lastScorer = 1;
 		highlightCircles(player1Color);
-		highlightGoalEffect(new BABYLON.Vector3(ball.position.x, ball.position.y, ball.position.z), player1Color4, scene);
+		highlightGoalEffect(paddle2ParticleEffect, new BABYLON.Vector3(ball.position.x, ball.position.y, ball.position.z));
 		score = true;
 	}
 	if (score) {
@@ -1154,6 +1154,15 @@ window.addEventListener('resize', () => {
 	engine.resize();
 });
 
+// FPS display
+const fpsDisplay = document.createElement('div');
+fpsDisplay.style.position = 'absolute';
+fpsDisplay.style.top = '10px';
+fpsDisplay.style.left = '10px';
+fpsDisplay.style.color = '#0ff';
+fpsDisplay.style.fontFamily = '"Orbitron", sans-serif';
+fpsDisplay.style.zIndex = '1000';
+document.body.appendChild(fpsDisplay);
 let frameCount = 0;
 let lastTime = performance.now();
 let fps = 0;

@@ -14,7 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		windowBody.style.backgroundColor = 'black';
 		let pongAppIframe = document.createElement('iframe');
 		pongAppIframe.id = 'pong-game-iframe';
-		pongAppIframe.src = '/frontend/pong/index.html';
+		pongAppIframe.src = '../pong/index.html';
+
+        pongAppIframe.loading = "lazy";
+        pongAppIframe.setAttribute('importance', 'high');
+
 		pongAppIframe.width = '100%';
 		pongAppIframe.height = '95%';
 		pongAppIframe.style.height = '95%';

@@ -41,8 +41,8 @@ function createApp(appname: string, content?: HTMLElement): HTMLDivElement
 	App.style.minHeight = '300px';
 	App.style.width = '500px';
 	App.style.height = '400px';
-	App.style.left = '5%';
-	App.style.top = '5%';
+	App.style.left = '30%';
+	App.style.top = '30%';
 
 	let titleBar = document.createElement('div');
 	titleBar.classList.add('title-bar');

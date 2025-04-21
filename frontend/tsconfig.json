@@ -4,9 +4,9 @@
 		"target": "es5",
 		"module": "es6",
 		"moduleResolution": "node",
-		"outDir": ".build",
-		"rootDir": "./",
 		"baseUrl": "./",
+		"outDir": "./.build",
+		"rootDir": "./",
 		"strict": true,
 		"skipLibCheck": true,  // Désactive la vérification des fichiers de déclaration (.d.ts)
 		// "composite": true    // Décommentez cette ligne
