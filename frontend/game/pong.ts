@@ -1260,10 +1260,8 @@ document.body.appendChild(rankedSelectionContainer);
 
 
 //the inception bug is in there
-document.getElementById("rankedSelectionContainer")?.addEventListener("submit", async (event) => {
-	if (event.submitter !== signInButton) {
-		return;
-	}
+document.getElementById("signInButton")?.addEventListener("submit", async (event) => {
+	if (event.submitter == signInButton) {
 	event.preventDefault();
 	if (loginInput && passwordInput) {
 		const username = loginInput.value;
@@ -1274,21 +1272,21 @@ document.getElementById("rankedSelectionContainer")?.addEventListener("submit", 
 				if (existingErrorBox) {
 					existingErrorBox.remove();
 				}
-				const user = await getUser(username, password);
-				if (user.id === Number(sessionStorage.getItem("wxp_user_id"))) {
+				const Second_user = await getUser(username, password);
+				if (Second_user.id === Number(sessionStorage.getItem("wxp_user_id"))) {
 					showError("User already logged in.");
 					loginInput.value = "";
 					passwordInput.value = "";
 					return;
 				}
-				sessionStorage.setItem("wxp_token", user.token);
-				sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
+				sessionStorage.setItem("second_wxp_token", Second_user.token);
+				sessionStorage.setItem("second_wxp_user_id", Second_user.id != null ? Second_user.id.toString() : "");
 				loginInput.value = "";
 				passwordInput.value = "";
 				startCountdown(startGame);
 				rankedSelectionContainer.style.display = "none";
 				menu.style.display = "none";
-			} 
+			}
 			catch (error) {
 				const existingErrorBox = document.querySelector('.error-box');
 				if (existingErrorBox) {
@@ -1298,17 +1296,8 @@ document.getElementById("rankedSelectionContainer")?.addEventListener("submit", 
 				loginInput.value = "";
 				passwordInput.value = "";
 			}
-		}
-		else
-		{
-			const existingErrorBox = document.querySelector('.error-box');
-				if (existingErrorBox) {
-					existingErrorBox.remove();
-				}
-				showError("User already logged in.");
-				loginInput.value = "";
-				passwordInput.value = "";
-		}
+		 }
+	}
 	}
 });
 
