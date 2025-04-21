@@ -1,11 +1,11 @@
-import { sys } from "../node_modules/typescript/lib/typescript.js";
 import { sendNotification } from "./notification.js";
-import { deleteUserAvatar, deleteUserBackground, getUserBackground, updateUser } from "./API.js";
+import { deleteUserAvatar, deleteUserBackground, updateUser } from "./API.js";
 
 import { getUserAvatar, uploadFile } from "./API.js";
 import { updateUserImages } from "./login-screen.js";
+import { setFont } from "./system.js";
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
 
 
 	let categoryContainer = document.getElementById('settings-app-category-container') as HTMLElement;
@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 	
 	{
 		let wallpaperSettings = document.getElementById('settings-app-Wallpaper-setting') as HTMLElement;
-
+		if (!wallpaperSettings)
+			console.log('Wallpaper settings element not found');
 		const documentBody = getComputedStyle(document.body);
 		let actualWallpaper = documentBody.getPropertyValue('background-image')
 			.split('/')
@@ -50,6 +51,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 		currentWallpaperTitle.style.marginBottom = '5px';
 		currentWallpaperTitle.style.fontWeight = 'bold';
 
+		let currentWallpaperPreview = document.createElement('img');
+		leftColumn.appendChild(currentWallpaperPreview);
+		currentWallpaperPreview.id = 'current-wallpaper-preview';
+		currentWallpaperPreview.classList.add('user-background');
+		currentWallpaperPreview.src = `url(${document.body.style.backgroundImage})` || './img/Login_Screen/default-wallpaper.jpg';
+		currentWallpaperPreview.style.width = '100px';
+		currentWallpaperPreview.style.height = '80px';
+		currentWallpaperPreview.style.border = '1px solid #999';
+		currentWallpaperPreview.style.borderRadius = '3px';
+		currentWallpaperPreview.style.marginBottom = '5px';
+		currentWallpaperPreview.style.objectFit = 'cover';
+
 		let currentWallpaperName = document.createElement('span');
 		leftColumn.appendChild(currentWallpaperName);
 		currentWallpaperName.id = 'current-wallpaper-name';
@@ -74,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		importButton.textContent = 'Change Wallpaper';
 		importButton.style.padding = '5px 10px';
 		importButton.style.marginBottom = '5px';
+		importButton.style.transform = 'translateY(+20px)';
 
 		let fileInput = document.createElement('input');
 		rightColumn.appendChild(fileInput);
@@ -114,9 +128,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 		resolutionText.textContent = 'Recommended: 1920x1080';
 		resolutionText.style.color = '#666';
 		resolutionText.style.fontSize = '10px';
-		resolutionText.style.padding = '5px';
+		resolutionText.style.transform = 'translateY(+20px)';
 
+		let formatText = document.createElement('span');
+		rightColumn.appendChild(formatText);
+		formatText.id = 'wallpaper-format-text';
+		formatText.textContent = 'Accepted formats: PNG, JPG, JPEG';
+		formatText.style.color = '#666';
+		formatText.style.fontSize = '10px';
+		formatText.style.transform = 'translateY(+20px)';
 
+		let sizeText = document.createElement('span');
+		rightColumn.appendChild(sizeText);
+		sizeText.id = 'wallpaper-size-text';
+		sizeText.textContent = 'Maximum file size: 5 MB';
+		sizeText.style.color = '#666';
+		sizeText.style.fontSize = '10px';
+		sizeText.style.transform = 'translateY(+20px)';
 		wallpaperSettings.appendChild(wallpaperInfo);
 	}
 
@@ -130,7 +158,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 	//		Font Size Settings
 
 	let fontSizeSettings = document.getElementById('settings-app-Font Size-setting') as HTMLElement;
-
 	let fontSizeSettingsContainer = document.createElement('div');
 	fontSizeSettings.appendChild(fontSizeSettingsContainer);
 	fontSizeSettingsContainer.id = 'font-size-settings-container';
@@ -151,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	exampleText.style.position = 'absolute';
 	exampleText.style.right = '35px';
 	exampleText.style.top = '5px';
-	exampleText.style.left = 'calc(100% - 170px)';
+	exampleText.style.left = 'calc(100% - 125px)';
 	exampleText.style.fontSize = `15px`;
 	exampleText.style.maxHeight = '50px';
 	exampleText.style.overflow = 'hidden';
@@ -170,13 +197,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 	let minSize = document.createElement('label');
 	fontSizeSlider.appendChild(minSize);
 	minSize.htmlFor = 'range26';
-	minSize.textContent = '-5px';
+	minSize.textContent = '-3px';
 	let range = document.createElement('input');
 	fontSizeSlider.appendChild(range);
 	range.id = 'range26';
 	range.type = 'range';
-	range.min = '-5';
-	range.max = '5';
+	range.min = '-3';
+	range.max = '3';
 	range.value = '0';
 	range.addEventListener('input', () => {
 		const newSize = 15 + parseInt(range.value);
@@ -186,9 +213,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 	let maxSize = document.createElement('label');
 	fontSizeSlider.appendChild(maxSize);
 	maxSize.htmlFor = 'range27';
-	maxSize.textContent = '+5px';
+	maxSize.textContent = '+3px';
 
 
+	
 
 	let applyButton = document.createElement('button');
 	fontSizeInfo.appendChild(applyButton);
@@ -196,33 +224,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 	applyButton.textContent = 'Apply';
 	applyButton.style.padding = '5px 5px';
 	applyButton.style.marginLeft = '10px';
-	applyButton.style.left = 'calc(100% - 160px)';
+	applyButton.style.left = 'calc(100% - 125px)';
 	applyButton.style.position = 'absolute';
 	applyButton.style.top = '35px';
 	let previousSize = 0;
 	applyButton.addEventListener('click', () => {
-		if (applyButton.classList[0] && applyButton.classList[0].includes('font-size-applied-'))
-		{
-			previousSize = parseInt(applyButton.classList[0].replace('font-size-applied-', ''));
-			applyButton.classList.remove('font-size-applied-' + previousSize);
-		}
-		applyButton.classList.add('font-size-applied-' + range.value);
-		const allTextElements = document.querySelectorAll('p, span, h1, h2, h3, h4, h5, h6, div, button, input, label, a');
-		allTextElements.forEach(element => {
-			const currentSize = window.getComputedStyle(element).fontSize;
-			const sizeNumber = parseInt(currentSize);
-			if (!isNaN(sizeNumber)) {
-				const newSize = sizeNumber + parseInt(range.value) - previousSize;
-				(element as HTMLElement).style.fontSize = `${newSize}px`;
-				
-			}
-		});
-		if (parseInt(range.value) > 0)
-			sendNotification('Font Size Changed', `Font size increased by ${range.value}px`, "./img/Utils/font-icon.png");
-		else if (parseInt(range.value) < 0)
-			sendNotification('Font Size Changed', `Font size decreased by ${range.value}px`, "./img/Utils/font-icon.png");
-		else
-			sendNotification('Font Size Changed', `Font size reset`, "./img/Utils/font-icon.png");
+		setFont(parseInt(range.value), previousSize);
 	});
 
 
@@ -295,6 +302,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		importButton.textContent = 'Change Avatar';
 		importButton.style.padding = '5px 10px';
 		importButton.style.marginBottom = '5px';
+		importButton.style.transform = 'translateY(-10px)';
 
 		let fileInput = document.createElement('input');
 		rightColumn.appendChild(fileInput);
@@ -337,8 +345,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 		resolutionText.textContent = 'Recommended: 256x256';
 		resolutionText.style.color = '#666';
 		resolutionText.style.fontSize = '10px';
-		resolutionText.style.padding = '5px';
+		resolutionText.style.transform = 'translateY(-10px)';
 
+		let formatText = document.createElement('span');
+		rightColumn.appendChild(formatText);
+		formatText.id = 'avatar-format-text';
+		formatText.textContent = 'Accepted formats: PNG, JPG, JPEG';
+		formatText.style.color = '#666';
+		formatText.style.fontSize = '10px';
+		formatText.style.transform = 'translateY(-10px)';
+
+		let sizeText = document.createElement('span');
+		rightColumn.appendChild(sizeText);
+		sizeText.id = 'avatar-size-text';
+		sizeText.textContent = 'Maximum file size: 5 MB';
+		sizeText.style.color = '#666';
+		sizeText.style.fontSize = '10px';
+		sizeText.style.transform = 'translateY(-10px)';
 		UserAccountAvatar.appendChild(avatarInfo);
 	}
 
@@ -544,7 +567,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	{
 		let Span = document.createElement('span');
 		Container.appendChild(Span);
-		Span.style.overflow = 'hidden';
+		// Span.style.overflow = 'hidden';
 		Span.style.textOverflow = 'ellipsis';
 		Span.style.whiteSpace = 'nowrap';
 		Span.style.maxWidth = 'calc(100% - 20px)';
@@ -586,7 +609,149 @@ document.addEventListener('DOMContentLoaded', async () => {
 			systemVersion.textContent = "Beta 0.7";
 
 			let creators = createFormatedSpan(sysInfo3);
-			creators.textContent = "Jcuzin; Lcamerly; Mcourbon; Aammirat; Yallo";
+			
+			// Create a styled contributors container
+			let contributorsContainer = document.createElement('div');
+			sysInfo3.style.height = '330px';
+			contributorsContainer.style.display = 'flex';
+			contributorsContainer.style.flexDirection = 'column';
+			contributorsContainer.style.gap = '10px';
+			contributorsContainer.style.width = '100%';
+			contributorsContainer.style.maxHeight = '900px';
+			contributorsContainer.style.height = '100%';
+			contributorsContainer.style.overflowY = 'auto';
+			contributorsContainer.style.padding = '5px';
+			contributorsContainer.style.border = '1px solid #B1CCEF';
+			contributorsContainer.style.borderRadius = '3px';
+			contributorsContainer.style.backgroundColor = '#F5F9FF';
+			contributorsContainer.style.height = "fit-content";
+
+			// Contributors data with GitHub profiles and roles
+			const contributorsData = [
+				{
+					username: 'Jcuzin',
+					github: 'https://github.com/Ocyn',
+					role: ' Windows XP UI/UX Designer ',
+					icon: '🖥️'
+				},
+				{
+					username: 'Lcamerly',
+					github: 'https://github.com/Axiaaa',
+					role: 'Backend & DevOps',
+					icon: '🛠️'
+				},
+				{
+					username: 'Mcourbon',
+					github: 'https://github.com/mcourbon',
+					role: 'Pong Game & Tournament Designe',
+					icon: '🎮'
+				},
+				{
+					username: 'Aammirat',
+					github: 'https://github.com/nonomex',
+					role: 'Cybersecurity and API Integration',
+					icon: '🔒'
+				},
+				{
+					username: 'Yallo',
+					github: 'https://github.com/Sarfoula',
+					role: 'AI Opponent & Optimization',
+					icon: '🤖'
+				}
+			];
+
+			// Create each contributor card
+			contributorsData.forEach(contributor => {
+				let card = document.createElement('div');
+				card.style.display = 'flex';
+				card.style.alignItems = 'center';
+				card.style.padding = '5px';
+				card.style.borderBottom = '1px solid #E0E9F5';
+				card.style.transition = 'background-color 0.2s';
+				
+				// Hover effect
+				card.onmouseover = () => { card.style.backgroundColor = '#E5EFFF'; };
+				card.onmouseout = () => { card.style.backgroundColor = 'transparent'; };
+				
+				// Icon
+				let icon = document.createElement('div');
+				icon.textContent = contributor.icon;
+				icon.style.fontSize = '20px';
+				icon.style.width = '30px';
+				icon.style.height = '30px';
+				icon.style.display = 'flex';
+				icon.style.alignItems = 'center';
+				icon.style.justifyContent = 'center';
+				icon.style.backgroundColor = '#0078D7';
+				icon.style.color = 'white';
+				icon.style.borderRadius = '50%';
+				icon.style.marginRight = '10px';
+				card.appendChild(icon);
+				
+				// Content
+				let content = document.createElement('div');
+				content.style.display = 'flex';
+				content.style.flexDirection = 'column';
+				content.style.flex = '1';
+				
+				// Username with GitHub link
+				let usernameLink = document.createElement('a');
+				usernameLink.href = contributor.github;
+				usernameLink.textContent = contributor.username;
+				usernameLink.target = '_blank';
+				usernameLink.style.color = '#0066CC';
+				usernameLink.style.textDecoration = 'none';
+				usernameLink.style.fontWeight = 'bold';
+				usernameLink.style.fontSize = '11px';
+				usernameLink.onmouseover = () => { usernameLink.style.textDecoration = 'underline'; };
+				usernameLink.onmouseout = () => { usernameLink.style.textDecoration = 'none'; };
+				content.appendChild(usernameLink);
+				
+				// Role
+				let role = document.createElement('span');
+				role.textContent = contributor.role;
+				role.style.fontSize = '10px';
+				role.style.color = '#666';
+				content.appendChild(role);
+				
+				card.appendChild(content);
+				
+				// GitHub icon link
+				let githubLink = document.createElement('a');
+				githubLink.href = contributor.github;
+				githubLink.target = '_blank';
+				githubLink.style.marginLeft = 'auto';
+				githubLink.style.display = 'flex';
+				githubLink.style.alignItems = 'center';
+				githubLink.style.justifyContent = 'center';
+				githubLink.title = `Visit ${contributor.username}'s GitHub profile`;
+				
+				let githubIcon = document.createElement('div');
+				githubIcon.textContent = '🔗';
+				githubIcon.style.fontSize = '14px';
+				githubIcon.style.width = '20px';
+				githubIcon.style.height = '20px';
+				githubIcon.style.display = 'flex';
+				githubIcon.style.alignItems = 'center';
+				githubIcon.style.justifyContent = 'center';
+				
+				githubLink.appendChild(githubIcon);
+				card.appendChild(githubLink);
+				
+				contributorsContainer.appendChild(card);
+			});
+
+			// Title for the contributors section
+			let contributorsTitle = document.createElement('div');
+			contributorsTitle.textContent = 'Project Contributors:';
+			contributorsTitle.style.fontSize = '12px';
+			contributorsTitle.style.fontWeight = 'bold';
+			contributorsTitle.style.marginBottom = '5px';
+
+			// Replace the text with our enhanced content
+			creators.textContent = '';
+			creators.appendChild(contributorsTitle);
+			creators.appendChild(contributorsContainer);
 			let creationDate = createFormatedSpan(sysInfo4);
 			creationDate.textContent = "2025-01-12";
 			let lastUpdate = createFormatedSpan(sysInfo5);
@@ -603,26 +768,93 @@ document.addEventListener('DOMContentLoaded', async () => {
 				lastUpdateText = "2025-01-12"; // Fallback date if fetch fails
 				lastUpdate.textContent = lastUpdateText;
 			});
+			let githubRepoContainer = document.createElement('div');
+			githubRepoContainer.style.display = 'flex';
+			githubRepoContainer.style.flexDirection = 'column';
+			githubRepoContainer.style.width = '100%';
+
+			// GitHub link with icon
+			let githubLinkRow = document.createElement('div');
+			githubLinkRow.style.display = 'flex';
+			githubLinkRow.style.alignItems = 'center';
+			githubLinkRow.style.marginBottom = '10px';
+			sysInfo6.style.height = "200px";
+
+			// GitHub icon
+			let githubIcon = document.createElement('div');
+			githubIcon.innerHTML = `
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: #333;">
+					<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+				</svg>
+			`;
+			githubLinkRow.appendChild(githubIcon);
+
+			// GitHub link with enhanced styling
 			let githubRepoURL = document.createElement('a');
 			githubRepoURL.href = 'https://github.com/Axiaaa/ft_transcendance';
-			githubRepoURL.textContent = 'Open on Github';
-			githubRepoURL.target = '_blank'; // Add this line to open in new tab
-			githubRepoURL.style.color = '#007bff';
+			githubRepoURL.textContent = 'ft_transcendance on GitHub';
+			githubRepoURL.target = '_blank';
+			githubRepoURL.style.color = '#0078d7';
 			githubRepoURL.style.textDecoration = 'none';
+			githubRepoURL.style.fontWeight = 'bold';
+			githubRepoURL.style.fontSize = '12px';
+			githubRepoURL.style.marginLeft = '10px';
+			githubRepoURL.style.padding = '5px 10px';
+			githubRepoURL.style.border = '1px solid #d8e6f2';
+			githubRepoURL.style.borderRadius = '3px';
+			githubRepoURL.style.backgroundImage = 'linear-gradient(to bottom, #f0f7ff, #d8e6f2)';
+			githubRepoURL.style.boxShadow = '0 1px 1px rgba(0, 0, 0, 0.1)';
+
+			// Hover effect
+			githubRepoURL.onmouseover = () => {
+				githubRepoURL.style.backgroundImage = 'linear-gradient(to bottom, #d8e6f2, #c0d8eb)';
+				githubRepoURL.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.2)';
+			};
+			githubRepoURL.onmouseout = () => {
+				githubRepoURL.style.backgroundImage = 'linear-gradient(to bottom, #f0f7ff, #d8e6f2)';
+				githubRepoURL.style.boxShadow = '0 1px 1px rgba(0, 0, 0, 0.1)';
+			};
+
+			githubLinkRow.appendChild(githubRepoURL);
+			githubRepoContainer.appendChild(githubLinkRow);
+
+			// Project information in Windows XP style infobox
+			let projectInfo = document.createElement('div');
+			projectInfo.style.fontSize = '11px';
+			projectInfo.style.backgroundColor = '#f9f9ff';
+			projectInfo.style.border = '1px solid #d0d0ee';
+			projectInfo.style.borderRadius = '3px';
+			projectInfo.style.padding = '8px 10px';
+			projectInfo.style.marginTop = '5px';
+			projectInfo.innerHTML = `
+				<div style="margin-bottom:5px; word-wrap: break-word;"><b>Project Description:</b> Pong game with WinXP style</div>
+				<div style="margin-bottom:5px; word-wrap: break-word;"><b>Technologies:</b> TypeScript, Node.js, SQLite, BabylonJS</div>
+				<div style="word-wrap: break-word;"><b>Project Status:</b> In active development</div>
+			`;
+			projectInfo.style.width = 'calc(100% - 22px)';
+			projectInfo.style.overflowWrap = 'break-word';
+			githubRepoContainer.appendChild(projectInfo);
+
+			// View Stats button (simulated)
+			let statsButton = document.createElement('button');
+			statsButton.textContent = 'View Project Stats';
+			statsButton.style.marginTop = '10px';
+			statsButton.style.padding = '3px 8px';
+			statsButton.style.fontSize = '10px';
+			statsButton.onclick = () => {
+				window.open('https://github.com/Axiaaa/ft_transcendance/graphs/contributors', '_blank');
+			};
+			githubRepoContainer.appendChild(statsButton);
+
 			let githubRepo = createFormatedSpan(sysInfo6);
-			githubRepo.appendChild(githubRepoURL);
+			githubRepo.style.margin = '0';
+			githubRepo.style.maxWidth = 'none';
+			githubRepo.appendChild(githubRepoContainer);
 
 			let license = createFormatedSpan(sysInfo7);
-			let licensePromise = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/license')
-			.then(response => response.json())
-			.then(data => {
-				return data.license?.name || 'License information not available';
-			})
-			.catch(error => {
-				console.error('Error fetching license:', error);
-				return 'License information not available';
-			});
-			licensePromise.then(licenseText => license.textContent = licenseText);
+			license.textContent = "License information not yet available";
+			license.style.color = "#777777"; // Grey color for unavailable information
+			license.style.fontStyle = "italic";
 
 			sysInfo1.appendChild(systemName);
 			sysInfo2.appendChild(systemVersion);
@@ -649,22 +881,40 @@ document.addEventListener('DOMContentLoaded', async () => {
 			currentVersion.textContent = "Beta 0.7";
 			let systemCategoryButton = document.getElementById('settings-app-System-category') as HTMLElement;
 			systemCategoryButton.onclick = () => {
-				let currentVersionText = fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
-				.then(response => response.json())
-				.then(data => {
-					let version = data.tag_name;
-					if (version.startsWith('0.')) {
-						version = 'Beta ' + version;
-					}
-					currentVersion.textContent = version;
-					return version;
-				})
-				.catch(error => {
-					console.error('Error fetching current version:', error);
-					let fallbackVersion = 'Beta 0.7';
-					currentVersion.textContent = fallbackVersion;
-					return fallbackVersion;
-				});
+				// Fetch commit count from the GitHub API
+				fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/commits?per_page=1')
+					.then(response => {
+						// Get total commit count from the Link header
+						const linkHeader = response.headers.get('Link');
+						let totalCommits = 0;
+						
+						if (linkHeader) {
+							const matches = linkHeader.match(/page=(\d+)>; rel="last"/);
+							if (matches && matches[1]) {
+								totalCommits = parseInt(matches[1], 10);
+							}
+						}
+						
+						// If we couldn't get the count, use a fallback
+						if (totalCommits === 0) {
+							throw new Error('Could not determine commit count');
+						}
+						
+						// Generate version number: major.minor.patch
+						const major = Math.floor(totalCommits / 100);
+						const minor = Math.floor((totalCommits % 100) / 10);
+						const patch = totalCommits % 10;
+						
+						const versionString = `${major}.${minor}.${patch}`;
+						currentVersion.textContent = versionString;
+						return versionString;
+					})
+					.catch(error => {
+						console.error('Error calculating version number:', error);
+						const fallbackVersion = '0.7.0';
+						currentVersion.textContent = fallbackVersion;
+						return fallbackVersion;
+					});
 			};
 
 			let latestVersionStatus = createFormatedSpan(updateInfo2);
@@ -674,28 +924,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 			latestVersionStatusCheckButton.onclick = () => {
 				latestVersionStatusCheckButton.textContent = 'Checking...';
 				latestVersionStatusCheckButton.disabled = true;
-				// fetch('https://api.github.com/repos/Axiaaa/ft_transcendance/releases/latest')
-				// .then(response => response.json())
-				// .then(data => {
-				// 	latestVersionStatusText = data.tag_name;
-				// 	console.log('Latest version:', latestVersionStatusText);
-				// 	latestVersionStatus.textContent = latestVersionStatusText;
-				// 	if (!latestVersionStatusText || latestVersionStatusText.includes('API rate limit exceeded')) {
-				// 		sendNotification('Error', 'Failed to check version', "./img/Utils/error-icon.png");
-				// 	} else if (latestVersionStatusText === currentVersion.textContent) {
-				// 		sendNotification('System Update', 'System is up to date', "./img/Utils/update-icon.png");
-				// 	} else {
-				// 		sendNotification('System Update', 'New version available', "./img/Utils/update-icon.png");
-				// 	}
-				// 	latestVersionStatusCheckButton.textContent = 'Check for Updates';
-				// })
-				// .catch(error => {
-				// 	console.error('Error fetching latest version:', error);
-				// 	latestVersionStatusText = "Beta 0.7"; // Fallback version if fetch fails
-				// 	latestVersionStatus.textContent = latestVersionStatusText;
-				// 	sendNotification('Error', 'Failed to check for updates', "./img/Utils/error-icon.png");
-				// 	latestVersionStatusCheckButton.textContent = 'Check for Updates';
-				// });
 				setTimeout(() => latestVersionStatusCheckButton.disabled = false, 3000);
 				latestVersionStatusCheckButton.textContent = 'Check for Updates';
 			};
@@ -720,6 +948,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 			let restoreInfo1 = createInformationElement('Restore System', systemRestoreContainer);
 
+			let restoreWarning = document.createElement('div');
+			restoreInfo1.appendChild(restoreWarning);
+			restoreWarning.style.margin = '10px 0';
+
+			let resetExplanation = document.createElement('p');
+			restoreWarning.appendChild(resetExplanation);
+			resetExplanation.textContent = 'Restoring the system will reset your personalization settings, including your custom avatar and wallpaper images.';
+			resetExplanation.style.color = '#666';
+			resetExplanation.style.fontSize = '11px';
+			resetExplanation.style.margin = '5px 0';
+
+			let disclaimerBox = document.createElement('div');
+			restoreWarning.appendChild(disclaimerBox);
+			disclaimerBox.style.backgroundColor = '#FFFFC1';
+			disclaimerBox.style.border = '1px solid #DEDB87';
+			disclaimerBox.style.padding = '8px 10px';
+			disclaimerBox.style.borderRadius = '3px';
+			disclaimerBox.style.marginTop = '5px';
+
+			let warningIcon = document.createElement('span');
+			disclaimerBox.appendChild(warningIcon);
+			warningIcon.innerHTML = '⚠️ ';
+			warningIcon.style.fontWeight = 'bold';
+
+			let disclaimer = document.createElement('span');
+			disclaimerBox.appendChild(disclaimer);
+			disclaimer.textContent = 'WARNING: Your custom images will be permanently deleted and cannot be recovered.';
+			disclaimer.style.color = '#8B0000';
+			disclaimer.style.fontSize = '10px';
+			disclaimer.style.fontWeight = 'bold';
+
 			let restoreSystemButton = document.createElement('button');
 			restoreSystemButton.id = 'restore-system-button';
 			restoreInfo1.appendChild(restoreSystemButton);
@@ -737,6 +996,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 						// For now, we will just simulate the restore process
 						deleteUserAvatar(Number(sessionStorage.getItem('wxp_user_id')));
 						deleteUserBackground(Number(sessionStorage.getItem('wxp_user_id')));
+						setFont(0, 0);
 						sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
 					});
 					
@@ -1338,7 +1598,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 	}
 
 });
-function getElementByClassName(arg0: string) {
-	throw new Error("Function not implemented.");
-}
 
+	// // SANDBOX ZONE 
+	// {
+	// 	setTimeout(() => {
+	// 		let wallpaperSettings = document.getElementById('settings-app-Wallpaper-setting') as HTMLElement;
+	// 		if (!wallpaperSettings)
+	// 			console.log('Wallpaper settings element not found, again.......');
+	// 		else
+	// 			console.log('Wallpaper settings element found WTFFF ???');
+	// 	}, 0);
+
+	// }

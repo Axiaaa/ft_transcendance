@@ -40,7 +40,7 @@ function apiFetch(url_1) {
         // const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
         let headers = Object.assign({ 'Authorization': `Bearer ${sessionStorage.getItem('wxp_token')}` }, options.headers);
         // Only add Content-Type if specified (useful to exclude when using FormData)
-        if (!nojson && useJsonContentType) {
+        if (useJsonContentType) {
             headers = Object.assign(Object.assign({}, headers), { 'Content-Type': 'application/json' });
         }
         console.log('API Fetch:', `${API_CONFIG.baseUrl}${url}`, options);
@@ -311,9 +311,15 @@ export function loginUser(username, password) {
 }
 export function uploadFile(userId, file, fileType) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            sendNotification('Error file upload', 'File size exceeds 5MB limit', "./img/Utils/error-icon.png");
+            return null;
+        }
+        console.log("File size: " + ((file.size) / 1024 / 1024).toFixed(2) + "MB");
+        console.log("File type: " + file.type);
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('metadata', JSON.stringify({ userId, fileType }));
+        // formData.append('metadata', JSON.stringify({ userId, fileType }));
         try {
             const response = yield apiFetch(`/user_images/${fileType}/${userId}`, {
                 method: 'POST',
@@ -327,12 +333,12 @@ export function uploadFile(userId, file, fileType) {
             }
             else {
                 const error = yield response.json();
-                console.error('Error uploading file:', error);
+                console.error('Error Reponse not OK -> uploading file:', error);
                 sendNotification('Error', `Error uploading file: ${error.message || 'Unknown error'}`, "./img/Utils/error-icon.png");
             }
         }
         catch (error) {
-            console.error('Error uploading file:', error);
+            console.error('Error Catched -> uploading file:', error);
             const errorMessage = error instanceof Error ? error.message : String(error);
             sendNotification('Error', `Error uploading file: ${errorMessage}`, "./img/Utils/error-icon.png");
         }
@@ -460,6 +466,361 @@ export function getUserBackground(userId) {
                 sendNotification('API Error', `Failed to fetch background: ${errorMessage}`, './img/Utils/API-icon.png');
             }
             throw error;
+        }
+    });
+}
+/*
+#### Friend List Functions
+These functions handle friend list operations such as getting friends, sending requests, accepting/declining requests, and removing friends.
+*/
+/**
+ * Gets the friend list of a user
+ * @param token - The token of the user
+ * @returns Promise with an array of user IDs representing friends
+ */
+export function getUserFriends(token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const response = yield apiFetch(`/users/${token}/friends`);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    // Empty friend list or user not found
+                    return [];
+                }
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const friendIds = yield response.json();
+            return friendIds;
+        }
+        catch (error) {
+            console.error('Error fetching user friends:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (typeof sendNotification === 'function') {
+                sendNotification('API Error', `Failed to fetch friends: ${errorMessage}`, './img/Utils/API-icon.png');
+            }
+            throw error;
+        }
+    });
+}
+/**
+ * Gets a specific friend by their ID
+ * @param token - The token of the user
+ * @param friendId - The ID of the friend to retrieve
+ * @returns Promise with the User object of the friend
+ * @throws Error if the specified ID is not in the user's friend list
+ */
+export function getFriendFromID(token, friendId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // First, check if the ID is in the user's friend list
+            const friendIds = yield getUserFriends(token);
+            if (!friendIds.includes(friendId)) {
+                throw new Error(`User ID ${friendId} is not in your friend list`);
+            }
+            // Then get the user details for that ID
+            const response = yield apiFetch(`/users/${friendId}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch friend: ${response.status}`);
+            }
+            return yield response.json();
+        }
+        catch (error) {
+            console.error('Error fetching friend by ID:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (typeof sendNotification === 'function') {
+                sendNotification('API Error', `Failed to fetch friend: ${errorMessage}`, './img/Utils/API-icon.png');
+            }
+            throw error;
+        }
+    });
+}
+/**
+ * Gets the pending friend requests of a user
+ * @param token - The token of the user
+ * @returns Promise with an array of user IDs representing pending friend requests
+ */
+export function getPendingFriendRequests(token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const response = yield apiFetch(`/users/${token}/pending_friends`);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    // Empty pending list or user not found
+                    return [];
+                }
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const pendingIds = yield response.json();
+            return pendingIds;
+        }
+        catch (error) {
+            console.error('Error fetching pending friend requests:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (typeof sendNotification === 'function') {
+                sendNotification('API Error', `Failed to fetch pending requests: ${errorMessage}`, './img/Utils/API-icon.png');
+            }
+            throw error;
+        }
+    });
+}
+/**
+ * Gets detailed information about all pending friend requests
+ * @param token - The token of the user
+ * @returns Promise with an array of User objects representing pending friend requests
+ */
+export function getPendingFriendRequestsDetails(token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // First get the list of pending friend IDs
+            const pendingIds = yield getPendingFriendRequests(token);
+            if (pendingIds.length === 0) {
+                return [];
+            }
+            // Then fetch details for each pending friend
+            const pendingDetailsPromises = pendingIds.map((id) => __awaiter(this, void 0, void 0, function* () {
+                const response = yield apiFetch(`/users/${id}`);
+                if (!response.ok) {
+                    console.warn(`Could not fetch details for pending friend ID ${id}`);
+                    return null;
+                }
+                return yield response.json();
+            }));
+            const pendingDetails = yield Promise.all(pendingDetailsPromises);
+            return pendingDetails.filter((friend) => friend !== null);
+        }
+        catch (error) {
+            console.error('Error fetching pending friend details:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (typeof sendNotification === 'function') {
+                sendNotification('API Error', `Failed to fetch pending friend details: ${errorMessage}`, './img/Utils/API-icon.png');
+            }
+            throw error;
+        }
+    });
+}
+/**
+ * Sends a friend request to another user
+ * @param token - The token of the sender
+ * @param targetUsername - The username of the user to send the request to
+ * @returns Promise indicating success
+ */
+export function sendFriendRequest(token, targetUsername) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const response = yield apiFetch(`/users/${token}/pending_friends`, {
+                method: 'POST',
+                body: JSON.stringify({ friend_username: targetUsername })
+            });
+            if (!response.ok) {
+                const errorData = yield response.json();
+                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+            }
+            if (typeof sendNotification === 'function') {
+                sendNotification('Friend Request', `Friend request sent to ${targetUsername}`, './img/Utils/friend-icon.png');
+            }
+        }
+        catch (error) {
+            console.error('Error sending friend request:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (typeof sendNotification === 'function') {
+                sendNotification('API Error', `Failed to send friend request: ${errorMessage}`, './img/Utils/API-icon.png');
+            }
+            throw error;
+        }
+    });
+}
+/**
+ * Accepts a friend request from another user
+ * @param token - The token of the accepting user
+ * @param senderUsername - The username of the user who sent the request
+ * @returns Promise indicating success
+ */
+export function acceptFriendRequest(token, senderUsername) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // First, remove from pending list
+            const deleteResponse = yield apiFetch(`/users/${token}/pending_friends/${senderUsername}`, {
+                method: 'DELETE'
+            });
+            if (!deleteResponse.ok) {
+                const errorData = yield deleteResponse.json();
+                throw new Error(errorData.error || `HTTP error! Status: ${deleteResponse.status}`);
+            }
+            // Then add to friend list
+            const addResponse = yield apiFetch(`/users/${token}/friends`, {
+                method: 'POST',
+                body: JSON.stringify({ friend_username: senderUsername })
+            });
+            if (!addResponse.ok) {
+                const errorData = yield addResponse.json();
+                throw new Error(errorData.error || `HTTP error! Status: ${addResponse.status}`);
+            }
+            if (typeof sendNotification === 'function') {
+                sendNotification('Friend Request', `You are now friends with ${senderUsername}`, './img/Utils/friend-icon.png');
+            }
+        }
+        catch (error) {
+            console.error('Error accepting friend request:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (typeof sendNotification === 'function') {
+                sendNotification('API Error', `Failed to accept friend request: ${errorMessage}`, './img/Utils/API-icon.png');
+            }
+            throw error;
+        }
+    });
+}
+/**
+ * Declines a friend request from another user
+ * @param token - The token of the declining user
+ * @param senderUsername - The username of the user who sent the request
+ * @returns Promise indicating success
+ */
+export function declineFriendRequest(token, senderUsername) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // Simply remove from pending list
+            const response = yield apiFetch(`/users/${token}/pending_friends/${senderUsername}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) {
+                const errorData = yield response.json();
+                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+            }
+            if (typeof sendNotification === 'function') {
+                sendNotification('Friend Request', `Friend request from ${senderUsername} declined`, './img/Utils/friend-icon.png');
+            }
+        }
+        catch (error) {
+            console.error('Error declining friend request:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (typeof sendNotification === 'function') {
+                sendNotification('API Error', `Failed to decline friend request: ${errorMessage}`, './img/Utils/API-icon.png');
+            }
+            throw error;
+        }
+    });
+}
+/**
+ * Removes a friend from the user's friend list
+ * @param token - The token of the user
+ * @param friendUsername - The username of the friend to remove
+ * @returns Promise indicating success
+ */
+export function removeFriend(token, friendUsername) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const response = yield apiFetch(`/users/${token}/friends/${friendUsername}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) {
+                const errorData = yield response.json();
+                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+            }
+            if (typeof sendNotification === 'function') {
+                sendNotification('Friend Removed', `${friendUsername} has been removed from your friends`, './img/Utils/friend-icon.png');
+            }
+        }
+        catch (error) {
+            console.error('Error removing friend:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (typeof sendNotification === 'function') {
+                sendNotification('API Error', `Failed to remove friend: ${errorMessage}`, './img/Utils/API-icon.png');
+            }
+            throw error;
+        }
+    });
+}
+/**
+ * Gets detailed information about all friends
+ * @param token - The token of the user
+ * @returns Promise with an array of User objects representing friends
+ */
+export function getUserFriendsDetails(token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // First get the list of friend IDs
+            const friendIds = yield getUserFriends(token);
+            if (friendIds.length === 0) {
+                return [];
+            }
+            // Then fetch details for each friend
+            const friendDetailsPromises = friendIds.map((id) => __awaiter(this, void 0, void 0, function* () {
+                const response = yield apiFetch(`/users/${id}`);
+                if (!response.ok) {
+                    console.warn(`Could not fetch details for friend ID ${id}`);
+                    return null;
+                }
+                return yield response.json();
+            }));
+            const friendDetails = yield Promise.all(friendDetailsPromises);
+            return friendDetails.filter((friend) => friend !== null);
+        }
+        catch (error) {
+            console.error('Error fetching friend details:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (typeof sendNotification === 'function') {
+                sendNotification('API Error', `Failed to fetch friend details: ${errorMessage}`, './img/Utils/API-icon.png');
+            }
+            throw error;
+        }
+    });
+}
+/**
+ * Checks if a user is in the friend list
+ * @param token - The token of the user
+ * @param usernameToCheck - The username to check
+ * @returns Promise with a boolean indicating if the user is a friend
+ */
+export function isUserFriend(token, usernameToCheck) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const friends = yield getUserFriendsDetails(token);
+            return friends.some((friend) => friend.username === usernameToCheck);
+        }
+        catch (error) {
+            console.error('Error checking if user is friend:', error);
+            return false;
+        }
+    });
+}
+/**
+ * Checks if a user has a pending friend request
+ * @param token - The token of the user
+ * @param usernameToCheck - The username to check
+ * @returns Promise with a boolean indicating if the user has a pending request
+ */
+export function hasPendingFriendRequest(token, usernameToCheck) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const pendingFriends = yield getPendingFriendRequestsDetails(token);
+            return pendingFriends.some(friend => friend.username === usernameToCheck);
+        }
+        catch (error) {
+            console.error('Error checking if user has pending request:', error);
+            return false;
+        }
+    });
+}
+/**
+ * Gets the friendship status with another user
+ * @param token - The token of the user
+ * @param otherUsername - The username of the other user
+ * @returns Promise with the friendship status
+ */
+export function getFriendshipStatus(token, otherUsername) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            if (yield isUserFriend(token, otherUsername)) {
+                return 'friend';
+            }
+            if (yield hasPendingFriendRequest(token, otherUsername)) {
+                return 'pending';
+            }
+            return 'none';
+        }
+        catch (error) {
+            console.error('Error getting friendship status:', error);
+            return 'none';
         }
     });
 }

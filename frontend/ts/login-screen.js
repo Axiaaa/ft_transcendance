@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
-import { initHistoryAPI, resetUserImages, updateUserImages } from "./system.js";
+import { initHistoryAPI, resetUserImages, updateAllUserNames, updateUserImages } from "./system.js";
 import { goToDesktopPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
 let titleScreenBackground = document.createElement('div');
@@ -238,6 +238,7 @@ export function showError(message) {
                                             signUpPassword.value = "";
                                             signUpConfirmPassword.value = "";
                                             yield resetUserImages();
+                                            yield updateAllUserNames();
                                             setTimeout(() => {
                                                 goToDesktopPage();
                                             }, 200);
@@ -334,6 +335,7 @@ export function showError(message) {
                         signInPassword.value = "";
                         yield resetUserImages();
                         yield updateUserImages();
+                        yield updateAllUserNames();
                         setTimeout(() => {
                             goToDesktopPage();
                         }, 200);

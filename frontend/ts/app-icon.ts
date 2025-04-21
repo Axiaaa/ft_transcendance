@@ -1,6 +1,5 @@
-import { isAppOpen } from "./taskbar.js";
 import { setIsAppOpen } from "./taskbar.js";
-
+import { throttle } from "./utils.js";
 
 export function openAppWindow(appName: string, rawName?:string ): void {
 	let appWindow = document.getElementById(appName + '-window') as HTMLElement;
@@ -42,9 +41,9 @@ function createApp(appname: string, content?: HTMLElement): HTMLDivElement
 	App.style.minHeight = '300px';
 	App.style.width = '500px';
 	App.style.height = '400px';
-	App.style.left = '5%';
-	App.style.top = '5%';
-	
+	App.style.left = '30%';
+	App.style.top = '30%';
+
 	let titleBar = document.createElement('div');
 	titleBar.classList.add('title-bar');
 	App.appendChild(titleBar);
@@ -100,7 +99,8 @@ function disableImgDragging() {
 
 function renderWindowContent(App: HTMLElement)
 {
-	if (!App) return;
+	if (!App)
+		return;
 	requestAnimationFrame(() => {
 		App.style.width = 'calc(100% - 6px)';
 		App.style.boxSizing = 'border-box';
@@ -121,19 +121,19 @@ document.addEventListener('DOMContentLoaded', () =>
 	pongCanvas.id = 'pong-game-canvas';
 	let pongAppWindow = document.getElementById('pong-app-window') as HTMLElement;
 	renderWindowContent(pongCanvas);
-	
+
 	pongCanvas.style.position = 'absolute';
 	pongCanvas.style.backgroundColor = 'black';
 	console.log("App created: Id: " + pongApp.id + " Class: " + pongApp.className);
-	
+
 	let settingsApp = createApp('settings');
 	renderWindowContent(settingsApp.children[1].children[0] as HTMLElement);
 	console.log("App created: Id: " + settingsApp.id + " Class: " + settingsApp.className);
-	
+
 	let terminalApp = createApp('terminal');
 	renderWindowContent(terminalApp.children[1].children[0] as HTMLElement);
 	console.log("App created: Id: " + terminalApp.id + " Class: " + terminalApp.className);
-	
+
 	let ExplorerApp = createApp('internet explorer');
 	let ExplorerContent = ExplorerApp.children[1] as HTMLElement;
 	let ExplorerContentTemp = document.createElement('img');
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () =>
 			appicon.style.zIndex = '1000';
 		});
 
-		document.addEventListener('mousemove', (e: MouseEvent) => {
+		document.addEventListener('mousemove', throttle((e: MouseEvent) => {
 			if (isDragging) {
 				appicon.style.left = `${e.clientX - offsetX}px`;
 				appicon.style.top = `${e.clientY - offsetY}px`;
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () =>
 					appicon.style.top = `${window.innerHeight - 30 - appicon.offsetHeight}px`;
 				}
 			}
-		});
+		}));
 
 		document.addEventListener('mouseup', () => {
 			if (isDragging) {

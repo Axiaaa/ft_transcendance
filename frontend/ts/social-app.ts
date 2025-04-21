@@ -1,5 +1,8 @@
-import { toNamespacedPath } from "path";
+import { get } from "http";
 import { openAppWindow } from "./app-icon.js";
+import { getFriendFromID, getUserById, getUserFriends } from "./API.js";
+import { disconnectUser } from "./start-menu.js";
+import { clearBrowserCache, goToDesktopPage, goToLoginPage } from "./system.js";
 
 function createTab(Name: string, Container: HTMLElement): HTMLElement
 {
@@ -182,7 +185,8 @@ function createFriendElement(friend: { name: string, avatar: string, status: str
 	return friendItem;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+
+document.addEventListener('DOMContentLoaded', async () => {
 
 	let Appwindow = document.getElementById('social-app-window') as HTMLElement;
 	if (!Appwindow) return;
@@ -241,7 +245,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		contentContainer.style.height = 'calc(100% - 55px)';
 		contentContainer.style.overflow = 'hidden';
 		contentContainer.style.margin = '0px 3px';
-		// contentContainer.style.backgroundColor = 'blue';
 		contentContainer.style.display = 'flex';
 		contentContainer.style.flexDirection = 'column';
 		contentContainer.style.justifyContent = 'left';
@@ -328,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				recentFriendsList.style.overflowY = 'auto';
 
 				// API Call needed here to fetch recent friends
+				
 				let sampleFriends = [
 					{ name: 'Alice Cooper', avatar: '#ff9999', status: 'online' },
 					{ name: 'Bob Smith', avatar: '#99ccff', status: 'offline' },
@@ -404,7 +408,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 				let usernameElement = document.createElement('div');
 				userInfoContainer.appendChild(usernameElement);
-				usernameElement.textContent = 'Xxx_D4rkS4suke36_xxX'; // Placeholder
+				let usernameh2 = document.createElement('h2');
+				usernameh2.classList.add('user-name-text');
+				usernameh2.textContent = 'Xxx_D4rkS4suke36_xxX'; // Placeholder
+				usernameh2.style.fontSize = '12px';
+				usernameh2.style.fontWeight = 'bold';
+				usernameh2.style.margin = '0';
+				usernameh2.style.padding = '0';
+				usernameh2.style.color = '#000';
+				usernameh2.style.lineHeight = '1.2';
+				usernameh2.style.overflow = 'hidden';
+				usernameh2.style.maxWidth = '100%';
+				usernameh2.style.overflowWrap = 'break-word';
+				usernameh2.style.wordBreak = 'break-word';
+				usernameh2.style.maxWidth = 'calc(100% - 2px)';
+				usernameh2.style.marginBottom = '5px';
+				usernameh2.style.textAlign = 'left';
+				usernameElement.appendChild(usernameh2);
 				usernameElement.style.maxWidth = 'calc(100% - 2px)';
 				usernameElement.style.overflowWrap = 'break-word';
 				usernameElement.style.wordBreak = 'break-word';
@@ -1389,4 +1409,69 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
+
+
 });
+
+
+// USER ID AND TOKEN
+
+let userToken = sessionStorage.getItem("wxp-token");
+let userId = Number(sessionStorage.getItem("wxp-user-id"));
+if (!userToken || isNaN(userId))
+{
+	// alert("User not logged in");
+	clearBrowserCache();
+	goToLoginPage();
+}
+
+// API PART
+
+async function initializeSocialFeatures() {
+	// Check if user is logged in
+	const checkLoginStatus = () => {
+		return new Promise<boolean>((resolve) => {
+			// Check login status every second
+			const interval = setInterval(() => {
+				const token = sessionStorage.getItem("wxp-token");
+				const id = sessionStorage.getItem("wxp-user-id");
+				
+				if (token && id && !isNaN(Number(id))) {
+					clearInterval(interval);
+					resolve(true);
+				}
+			}, 1000);
+		});
+	};
+{
+	// Wait for user login before initializing social app features
+
+		// Wait until user is logged in
+		await checkLoginStatus();
+		
+		console.log("User is logged in. Initializing social features...");
+		let friendsListData: number[] = [];
+		if (userToken) {
+			friendsListData = await getUserFriends(userToken); // Placeholder function
+		}
+		for (let i = 0; i <  friendsListData.length && i < 3; i++)
+		{
+			let friendId = friendsListData[i];
+			if (userToken) {
+				let friendProfile = await getFriendFromID(userToken, friendId);
+				if (friendProfile) {
+						let friendDetails = {
+							name: friendProfile.username,
+							avatar: friendProfile.avatar,
+							status: friendProfile.is_online ? 'online' : 'offline'
+						}
+						createFriendElement(friendDetails);
+						console.log(friendDetails);
+				}
+			}
+		}
+}
+
+	// Start initialization process
+	initializeSocialFeatures();
+}

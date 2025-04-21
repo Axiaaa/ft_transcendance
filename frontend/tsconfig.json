@@ -4,18 +4,13 @@
 		"target": "es5",
 		"module": "es6",
 		"moduleResolution": "node",
-		"outDir": "./ts/.build",
-		"rootDir": "./ts",
-		"baseUrl": "./ts",
-		// "paths": {
-		// 	"game": ["./game"]
-		// },
+		"baseUrl": "./",
+		"outDir": "./.build",
+		"rootDir": "./",
 		"strict": true,
+		"skipLibCheck": true,  // Désactive la vérification des fichiers de déclaration (.d.ts)
 		// "composite": true    // Décommentez cette ligne
 	},
-	"include": ["ts/*.ts"],
+	"include": ["ts/*.ts", "pong/*.ts"],
 	"exclude": ["node_modules"],
-	// "references": [
-	// 	{ "path": "./game" }
-	// ]
 }

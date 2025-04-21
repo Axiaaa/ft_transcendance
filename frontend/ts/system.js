@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { sendNotification } from "./notification.js";
 import { getCurrentUser, getUserAvatar, getUserBackground, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
 import { disconnectUser } from "./start-menu.js";
+import { throttle } from "./utils.js";
 let userBackground = document.createElement('img');
 userBackground.id = 'user-background';
 userBackground.className = 'user-background';
@@ -31,12 +32,86 @@ userBackground.style.display = 'block';
 export function setBodyBackgroundImage(url) {
     document.body.style.backgroundImage = `url(${url})`;
 }
-document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, void 0, function* () {
-    window.addEventListener('beforeunload', (event) => {
-        event.preventDefault();
-        disconnectUser();
-        return 'You will be disconnected if you reload or leave this page. Are you sure ?';
+export function setFont(inputSize, previousSize) {
+    console.log("Font size changed to: " + inputSize);
+    let inputString = inputSize.toString();
+    let applyButton = document.getElementById('font-size-apply-button');
+    if (applyButton.classList[0] && applyButton.classList[0].includes('font-size-applied-')) {
+        previousSize = parseInt(applyButton.classList[0].replace('font-size-applied-', ''));
+        applyButton.classList.remove('font-size-applied-' + previousSize);
+    }
+    applyButton.classList.add('font-size-applied-' + inputString);
+    const allTextElements = document.querySelectorAll('p, span, h1, h2, h3, h4, h5, h6, div, button, input, label, a');
+    allTextElements.forEach(element => {
+        const currentSize = window.getComputedStyle(element).fontSize;
+        const sizeNumber = parseInt(currentSize);
+        if (!isNaN(sizeNumber)) {
+            const newSize = sizeNumber + parseInt(inputString) - previousSize;
+            element.style.fontSize = `${newSize}px`;
+        }
     });
+    if (parseInt(inputString) > 0)
+        sendNotification('Font Size Changed', `Font size increased by ${inputString}px`, "./img/Utils/font-icon.png");
+    else if (parseInt(inputString) < 0)
+        sendNotification('Font Size Changed', `Font size decreased by ${inputString}px`, "./img/Utils/font-icon.png");
+    else
+        sendNotification('Font Size Changed', `Font size reset`, "./img/Utils/font-icon.png");
+}
+export function clearBrowserCache() {
+    var _a, _b;
+    try {
+        // Clear cookies
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i];
+            const eqPos = cookie.indexOf('=');
+            const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+            document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+        }
+        // Clear the browser cache using Cache API
+        if (window.caches) {
+            caches.keys().then(cacheNames => {
+                cacheNames.forEach(cacheName => {
+                    caches.delete(cacheName);
+                });
+            });
+        }
+        // Clear session storage
+        sessionStorage.clear();
+        // Clear local storage
+        localStorage.clear();
+        // Clear IndexedDB
+        if (window.indexedDB) {
+            (_b = (_a = window.indexedDB).databases) === null || _b === void 0 ? void 0 : _b.call(_a).then(dbs => {
+                dbs.forEach(db => {
+                    if (db.name)
+                        indexedDB.deleteDatabase(db.name);
+                });
+            });
+        }
+        // Unregister service workers
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (const registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+        console.log('Browser cache cleared successfully');
+    }
+    catch (error) {
+        console.error('Error clearing browser cache:', error);
+    }
+    // // Reload the page
+    // location.reload();
+}
+window.addEventListener('beforeunload', (event) => __awaiter(void 0, void 0, void 0, function* () {
+    event.preventDefault();
+    disconnectUser();
+    clearBrowserCache();
+    return 'You will be disconnected if you reload or leave this page. Are you sure ?';
+}));
+document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, void 0, function* () {
     let sleepScreen = document.createElement('div');
     document.body.appendChild(sleepScreen);
     sleepScreen.id = 'sleep-screen';
@@ -50,8 +125,6 @@ document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, vo
     sleepScreen.style.justifyContent = 'center';
     sleepScreen.style.alignItems = 'center';
     sleepScreen.style.transition = 'opacity 1s ease-in, opacity 0.5s ease-out';
-    // sleepScreen.style.opacity = '1';
-    // sleepScreen.style.display = 'block';
     let sleepLogo = document.createElement('img');
     sleepScreen.appendChild(sleepLogo);
     sleepLogo.src = './img/Utils/windows-xp-logo.png';
@@ -131,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, vo
         }), INACTIVE_TIMEOUT);
     }
     // Reset timer on mouse movement
-    document.addEventListener('mousemove', resetTimer);
+    document.addEventListener('mousemove', throttle(resetTimer));
     // Reset timer on mouse clicks
     document.addEventListener('click', resetTimer);
     // Reset timer on key press
@@ -139,7 +212,41 @@ document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, vo
     // Reset timer on scroll
     document.addEventListener('scroll', resetTimer);
     // Start the initial timer
-    resetTimer();
+    let pongAppwindows = document.getElementById('pong-app-window');
+    let pongTimerInterval = null;
+    // Function to handle timer state based on pong window
+    function handleTimerState() {
+        if (pongTimerInterval) {
+            clearInterval(pongTimerInterval);
+            pongTimerInterval = null;
+        }
+        if (pongAppwindows.classList.contains('opened-window')) {
+            // Reset timer immediately and set interval to reset every 5 seconds
+            resetTimer();
+            pongTimerInterval = setInterval(() => {
+                resetTimer();
+                console.log('Timer reset - Pong window is open');
+            }, 5000);
+            console.log('Periodic timer reset activated - Pong window is open');
+        }
+        else {
+            // Normal timer behavior when pong window is closed
+            resetTimer();
+            console.log('Timer activated - Pong window is closed');
+        }
+    }
+    // Check initial state
+    handleTimerState();
+    // Observe changes to the pong window class
+    const pongWindowObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                console.log('Pong window class changed');
+                handleTimerState();
+            }
+        });
+    });
+    pongWindowObserver.observe(pongAppwindows, { attributes: true });
     // SANDBOX AREA
     {
         // let CurrentUser = await getUserById(1);
@@ -314,6 +421,32 @@ export function updateUserImages(fileAvatar, fileWallpaper) {
         let userWallpapers = document.getElementsByClassName("user-background");
         console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
         userWallpapers[0].src = wallpaperURL;
+        // Add cache busting to force image reload
+        const addCacheBuster = (url) => {
+            const cacheBuster = `?t=${Date.now()}`;
+            if (url.startsWith('blob:'))
+                return url;
+            if (url.includes('?')) {
+                return `${url}&_=${Date.now()}`;
+            }
+            return `${url}${cacheBuster}`;
+        };
+        // Apply cache busting to avatar URLs
+        for (let i = 0; i < userAvatars.length; i++) {
+            userAvatars[i].src = addCacheBuster(avatarURL);
+            // Force reload by removing and re-adding the image
+            const currentSrc = userAvatars[i].src;
+            userAvatars[i].src = "";
+            setTimeout(() => { userAvatars[i].src = currentSrc; }, 10);
+        }
+        // Apply cache busting to wallpaper URLs
+        for (let i = 0; i < userWallpapers.length; i++) {
+            userWallpapers[i].src = addCacheBuster(wallpaperURL);
+            // Force reload by removing and re-adding the image
+            const currentSrc = userWallpapers[i].src;
+            userWallpapers[i].src = "";
+            setTimeout(() => { userWallpapers[i].src = currentSrc; }, 10);
+        }
     });
 }
 ;
@@ -330,5 +463,43 @@ export function resetUserImages() {
         }
         let userWallpapers = document.getElementsByClassName("user-background");
         userWallpapers[0].src = wallpaperURL;
+        // Add cache busting to force image reload
+        const addCacheBuster = (url) => {
+            const cacheBuster = `?t=${Date.now()}`;
+            if (url.startsWith('blob:'))
+                return url;
+            if (url.includes('?')) {
+                return `${url}&_=${Date.now()}`;
+            }
+            return `${url}${cacheBuster}`;
+        };
+        // Apply cache busting to avatar URLs
+        for (let i = 0; i < userAvatars.length; i++) {
+            userAvatars[i].src = addCacheBuster(avatarURL);
+            // Force reload by removing and re-adding the image
+            const currentSrc = userAvatars[i].src;
+            userAvatars[i].src = "";
+            setTimeout(() => { userAvatars[i].src = currentSrc; }, 10);
+        }
+        // Apply cache busting to wallpaper URLs
+        for (let i = 0; i < userWallpapers.length; i++) {
+            userWallpapers[i].src = addCacheBuster(wallpaperURL);
+            // Force reload by removing and re-adding the image
+            const currentSrc = userWallpapers[i].src;
+            userWallpapers[i].src = "";
+            setTimeout(() => { userWallpapers[i].src = currentSrc; }, 10);
+        }
+    });
+}
+export function updateAllUserNames() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let currentUser = yield getCurrentUser(sessionStorage.getItem("wxp_token"));
+        if (currentUser == null)
+            return;
+        let userName = currentUser.username;
+        let userNames = document.getElementsByClassName("user-name-text");
+        for (let i = 0; i < userNames.length; i++) {
+            userNames[i].innerText = userName;
+        }
     });
 }

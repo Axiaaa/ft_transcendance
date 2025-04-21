@@ -1,11 +1,12 @@
 import { setIsAppOpen } from "./taskbar.js";
+import { throttle } from "./utils.js";
 
 function resetWindows(windowElement: HTMLElement) {
 		windowElement.style.display = 'none';
 		windowElement.style.width = '500px';
 		windowElement.style.height = '400px';
-		windowElement.style.left = '5%';
-		windowElement.style.top = '5%';
+		windowElement.style.left = '30%';
+		windowElement.style.top = '30%';
 		windowElement.style.zIndex = "24";
 }
 
@@ -14,8 +15,8 @@ function maximize(windowElement: HTMLElement, isMaximised: boolean): boolean {
 	if (isMaximised) {
 		windowElement.style.width = '500px';
 		windowElement.style.height = '400px';
-		windowElement.style.left = '0px';
-		windowElement.style.top = '0px';
+		windowElement.style.left = '30%';
+		windowElement.style.top = '30%';
 		isMaximised = false;
 	}
 	else {
@@ -53,7 +54,7 @@ function windowResize(isResizing: boolean, window: Window, windowElement: HTMLEl
 		const newHeight = e.clientY - windowElement.offsetTop + 5;
 		const minWidth = 300;
 		const minHeight = 200;
-		
+
 		windowElement.style.width = `${Math.max(newWidth, minWidth)}px`;
 		windowElement.style.height = `${Math.max(newHeight, minHeight)}px`;
 
@@ -65,7 +66,6 @@ function windowResize(isResizing: boolean, window: Window, windowElement: HTMLEl
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	
 	let Windows = document.getElementsByClassName('window');
 	console.log('Found ' + Windows.length + ' windows:');
 	Array.from(Windows).forEach((window, index) => {
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		let maximiseButton = windowElement.children[0].children[1].children[1] as HTMLElement;
 
-		
+
 		maximiseButton.addEventListener('click', () => {
 			isMaximised = maximize(windowElement, isMaximised);
 		});
@@ -123,6 +123,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		windowHeader.addEventListener('mousedown', (e: MouseEvent) => {
 			isDragging = true;
+			const iframe = windowElement.querySelector('iframe');
+			if (iframe)
+				iframe.style.pointerEvents = 'none';
+	
 			offsetX = e.clientX - windowElement.offsetLeft;
 			offsetY = e.clientY - windowElement.offsetTop;
 		});
@@ -135,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			windowElement.style.zIndex = "25";
 		});
 
-		document.addEventListener('mousemove', (e: MouseEvent) => {
+		document.addEventListener('mousemove', throttle((e: MouseEvent) => {
 			if (isDragging) {
 				windowElement.style.left = `${e.clientX - offsetX}px`;
 				windowElement.style.top = `${e.clientY - offsetY}px`;
@@ -152,9 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
 					windowElement.style.top = `${window.innerHeight - windowElement.offsetHeight}px`;
 				}
 			}
-		});
+		}));
 		windowHeader.addEventListener('mouseup', () => {
 			isDragging = false;
+			const iframe = windowElement.querySelector('iframe');
+			if (iframe)
+				iframe.style.pointerEvents = 'auto';
 		});
 
 
@@ -176,12 +183,19 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 		resizeHandle.addEventListener('mousedown', () => {
 			isResizing = true;
+			const iframe = windowElement.querySelector('iframe');
+			if (iframe)
+				iframe.style.pointerEvents = 'none';	
 		});
-		document.addEventListener('mousemove', (e: MouseEvent) => {
+		document.addEventListener('mousemove', throttle((e: MouseEvent) => {
 			windowResize(isResizing, window, windowElement, e);
-		});
+		}));
 		resizeHandle.addEventListener('mouseup', () => {
 			isResizing = false;
+			const iframe = windowElement.querySelector('iframe');
+			if (iframe) {
+				iframe.style.pointerEvents = 'auto';
+			}		
 		});
 		let windowsContent = windowElement.children[1].children[0] as HTMLElement;
 		if (windowsContent) {
@@ -194,6 +208,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		document.addEventListener('mouseup', () => {
 			isDragging = false;
 			isResizing = false;
+			const iframes = document.querySelectorAll('iframe');
+			iframes.forEach(iframe => {
+				iframe.style.pointerEvents = 'auto';
+			});		
 		});
 
 	}

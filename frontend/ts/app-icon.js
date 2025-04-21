@@ -1,4 +1,5 @@
 import { setIsAppOpen } from "./taskbar.js";
+import { throttle } from "./utils.js";
 export function openAppWindow(appName, rawName) {
     let appWindow = document.getElementById(appName + '-window');
     console.log('Searching ' + appName + " = " + appWindow);
@@ -37,8 +38,8 @@ function createApp(appname, content) {
     App.style.minHeight = '300px';
     App.style.width = '500px';
     App.style.height = '400px';
-    App.style.left = '5%';
-    App.style.top = '5%';
+    App.style.left = '30%';
+    App.style.top = '30%';
     let titleBar = document.createElement('div');
     titleBar.classList.add('title-bar');
     App.appendChild(titleBar);
@@ -150,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             offsetY = e.clientY - appicon.offsetTop;
             appicon.style.zIndex = '1000';
         });
-        document.addEventListener('mousemove', (e) => {
+        document.addEventListener('mousemove', throttle((e) => {
             if (isDragging) {
                 appicon.style.left = `${e.clientX - offsetX}px`;
                 appicon.style.top = `${e.clientY - offsetY}px`;
@@ -167,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     appicon.style.top = `${window.innerHeight - 30 - appicon.offsetHeight}px`;
                 }
             }
-        });
+        }));
         document.addEventListener('mouseup', () => {
             if (isDragging) {
                 // Ajustement à la grille
