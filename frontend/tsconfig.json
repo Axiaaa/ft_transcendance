@@ -5,12 +5,10 @@
 		"module": "es6",
 		"moduleResolution": "node",
 		"baseUrl": "./",
-		"outDir": "./.build",
-		"rootDir": "./",
+		"outDir": ".build",
 		"strict": true,
-		"skipLibCheck": true,  // Désactive la vérification des fichiers de déclaration (.d.ts)
-		// "composite": true    // Décommentez cette ligne
+		"skipLibCheck": true
 	},
-	"include": ["ts/*.ts", "pong/*.ts"],
+	"include": ["ts/**/*.ts", "pong/**/*.ts"],
 	"exclude": ["node_modules"],
 }
