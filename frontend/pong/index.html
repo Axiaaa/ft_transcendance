@@ -425,6 +425,31 @@
                     font-family: 'Orbitron', sans-serif;
                     font-size: 40px;
                 }
+                    
+                #back-to-menu-from-play, #back-to-menu-from-tournament, #back-to-player-selection-from-start-tournament {
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    position: absolute;
+                    top: 90%;
+                    left: 10%;
+                    transform: translate(-50%, -50%);
+                    background: transparent;
+                    border: 2px solid white;
+                    border-radius: calc(10px * var(--scale-factor));
+                    padding: 5px 30px 10px 30px;
+                    color: white;
+                    font-size: 24px;
+                    font-family: 'Orbitron', sans-serif;
+                    text-align: center;
+                    cursor: pointer;
+                    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+                    transition: 0.2s ease-out;
+                }
+                #back-to-menu-from-play:hover, #back-to-menu-from-tournament:hover {
+                    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+                    transform: translate(-50%, -50%) scale(1.1);
+                }
             `;
             document.head.appendChild(style);
         </script>
@@ -445,7 +470,7 @@
     </head>
 
     <body>
-        <script type="module" src="/.build/pong/pong.js"></script>
+        <script type="module" src="pong.js"></script>
         <canvas id="canvas"></canvas>
         <div id="pong-global-container">
             <div id="match-info"></div>
@@ -479,6 +504,9 @@
                 <div id="match-list"></div>
             </div>
             <div id="winnerTournamentText"></div>
+            <button id="back-to-menu-from-play">←</button>
+            <button id="back-to-menu-from-tournament">←</button>
+            <button id="back-to-player-selection-from-start-tournament">←</button>
         </div>
     </body>
 
