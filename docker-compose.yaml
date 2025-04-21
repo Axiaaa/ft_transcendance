@@ -369,3 +369,4 @@ services:
         - ./frontend:/app/frontend
       networks:
         - ft_transcendence
+      restart: "no"

@@ -1,4 +1,4 @@
 #!/bin/sh
 
 npm install
-npx tsc --watch
+npx tsc
