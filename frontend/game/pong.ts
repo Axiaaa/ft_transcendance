@@ -1273,7 +1273,7 @@ document.getElementById("signInButton")?.addEventListener("submit", async (event
 					existingErrorBox.remove();
 				}
 				const Second_user = await getUser(username, password);
-				if (Second_user.id === Number(sessionStorage.getItem("wxp_user_id"))) {
+				if (Second_user && Second_user.id === Number(sessionStorage.getItem("wxp_user_id"))) {
 					showError("User already logged in.");
 					loginInput.value = "";
 					passwordInput.value = "";

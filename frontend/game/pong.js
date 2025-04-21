@@ -1094,7 +1094,7 @@ document.body.appendChild(rankedSelectionContainer);
                         existingErrorBox.remove();
                     }
                     const Second_user = yield getUser(username, password);
-                    if (Second_user.id === Number(sessionStorage.getItem("wxp_user_id"))) {
+                    if (Second_user && Second_user.id === Number(sessionStorage.getItem("wxp_user_id"))) {
                         showError("User already logged in.");
                         loginInput.value = "";
                         passwordInput.value = "";
