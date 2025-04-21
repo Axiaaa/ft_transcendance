@@ -95,6 +95,9 @@ const continueButton = document.getElementById('continueTournament') as HTMLElem
 const backToMenuFromPlay = document.getElementById('back-to-menu-from-play') as HTMLElement | null;
 const backToMenuFromTournament = document.getElementById('back-to-menu-from-tournament') as HTMLElement | null;
 const backToPlayerSelectionFromStartTournament = document.getElementById('back-to-player-selection-from-start-tournament') as HTMLElement | null;
+const backToMenuFromRanked = document.getElementById('back-to-menu-from-ranked') as HTMLElement | null;
+const rankedButton = document.getElementById('rankedButton') as HTMLElement | null;
+const rankedSelectionContainer = document.getElementById('ranked-selection-container') as HTMLElement | null;
 
 // Babylon
 const engine: BABYLON.Engine = new BABYLON.Engine(canvas, true);
@@ -738,8 +741,9 @@ function checkCollision(): void {
 let enterButton: HTMLElement | null = null;
 let spaceButton: HTMLElement | null = null;
 let spaceAndEnterIsPrint = false;
+let buttonHasBeenCreated = false;
 
-function createButton(text: string, className: string): void {
+function createButtonOnce(text: string, className: string): void {
 	const button = document.createElement('div');
 	button.classList.add('key-display', className);
 	button.textContent = text;
@@ -756,18 +760,18 @@ function createButton(text: string, className: string): void {
 	} else if (className === 'key-space') {
 		button.style.right = '40%';
 	}
+	buttonHasBeenCreated = true;
+}
+
+function showButtons() {
+	enterButton!.style.display = 'flex';
+	spaceButton!.style.display = 'flex';
 }
 
 function hideButtons(): void {
 	spaceAndEnterIsPrint = false;
-	if (enterButton) {
-		enterButton.remove();
-		enterButton = null;
-	}
-	if (spaceButton) {
-		spaceButton.remove();
-		spaceButton = null;
-	}
+	enterButton!.style.display = 'none';
+	spaceButton!.style.display = 'none';
 }
 
 // Game Control
@@ -790,8 +794,12 @@ function reset(): void {
 		return;
 
 	if (score1 !== 10 && score2 !== 10) {
-		createButton('Enter', 'key-enter');
-		createButton('Space', 'key-space');
+		if (!buttonHasBeenCreated) {
+			createButtonOnce('Enter', 'key-enter');
+			createButtonOnce('Space', 'key-space');
+		} else {
+			showButtons();
+		}
 		spaceAndEnterIsPrint = true;
 	}
 }
@@ -951,6 +959,16 @@ function startCountdown(callback: () => void): void {
 	}
 	updateCountdown();
 }
+
+rankedButton?.addEventListener("click", () => {
+	menu.style.display = "none";
+    backToMenuFromRanked!.style.display = "flex";
+});
+
+backToMenuFromRanked?.addEventListener("click", () => {
+	backToMenuFromRanked!.style.display = "none";
+	menu.style.display = "block";
+});
 
 // Tournament
 function color3ToCSS(color: BABYLON.Color3): string {
