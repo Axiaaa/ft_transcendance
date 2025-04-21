@@ -5,10 +5,19 @@ import { disconnectUser } from "./start-menu.js";
 import { clearBrowserCache, goToDesktopPage, goToLoginPage } from "./system.js";
 
 
-// Function to format pending friend requests for display
+
+/**
+ * Fetches and formats pending friend requests for the current user.
+ * 
+ * This function retrieves pending friend request details using the provided user token,
+ * and transforms them into a format suitable for UI display with user information.
+ * 
+ * @param userToken - The authentication token of the current user
+ * @returns A promise that resolves to an array of formatted friend requests with id, username, avatar, and time
+ * @throws Will catch errors internally and return an empty array
+ */
 export async function fetchFormattedPendingRequests(userToken: string): Promise<{ id: string, username: string, avatar: string, time: string }[]> {
 	try {
-		// Use the new function to get detailed pending friend requests directly
 		const pendingRequestsDetails = await getPendingFriendRequestsDetails(userToken);
 		
 		// Format the detailed requests into the structure needed by the UI
@@ -1544,28 +1553,4 @@ if (!userToken || isNaN(userId))
 		}
 	}
 
-	console.log("User is logged in. Initializing social features...");
-		// {
-		// 	// Home Recent Activity Section
-		// 	let friendsListData: number[] = [];
-		// 	if (userToken) {
-		// 		friendsListData = await getUserFriends(userToken); // Placeholder function
-		// 	}
-		// 	for (let i = 0; i <  friendsListData.length && i < 3; i++)
-		// 	{
-		// 		let friendId = friendsListData[i];
-		// 		if (userToken) {
-		// 			let friendProfile = await getFriendFromID(userToken, friendId);
-		// 			if (friendProfile) {
-		// 					let friendDetails = {
-		// 						name: friendProfile.username,
-		// 						avatar: friendProfile.avatar,
-		// 						status: friendProfile.is_online ? 'online' : 'offline'
-		// 					}
-		// 					createFriendElement(friendDetails);
-		// 					console.log(friendDetails);
-		// 			}
-		// 		}
-		// 	}
-		// }
 }

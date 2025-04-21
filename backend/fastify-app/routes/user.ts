@@ -340,7 +340,7 @@ export async function userRoutes(server : FastifyInstance) {
             return;
         }
         if (user.pending_friend_list.find(f => f === friend.id) == undefined) {
-            const req_message = await user.addPendingFriend(friend.id);
+            const req_message = await friend.addPendingFriend(user.id);
             req_message === null ? reply.code(201).send({ id : user.id}) : reply.code(409).send({ error : req_message });
             return;
         } else  
