@@ -366,8 +366,6 @@ services:
         context: ./services/ts-compiler
         dockerfile: Dockerfile
       volumes:
-        - ./frontend:/frontend
-        - /frontend/node_modules
+        - ./frontend:/app/frontend
       networks:
         - ft_transcendence
-      restart: unless-stopped
