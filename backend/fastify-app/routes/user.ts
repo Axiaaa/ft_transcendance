@@ -49,8 +49,16 @@ export async function userRoutes(server : FastifyInstance) {
         handler: async (request, reply) => {
             const users = db.prepare('SELECT * FROM users').all();
             const result = await Promise.all(users.map(async (tmp: any) => {
-                const user = await getUserFromDb( { id: tmp.id });
-                return user !== null ? user : null;
+                const user = await getUserFromDb({ id: tmp.id });
+                if (user !== null) {
+                    return {
+                        username: user.username,
+                        avatar: user.avatar,
+                        is_online : user.is_online,
+                        id : user.id,
+                    };
+                }
+                return null;
             })).then(users => users.filter(user => user !== null));
             
             if (result.length === 0) {

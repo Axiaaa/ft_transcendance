@@ -5,8 +5,8 @@ import path from "path";
 import { sha256 } from "js-sha256";
 import crypto from "crypto";
 
-export const DEFAULT_AVATAR_URL : string = "https://zizi.fr";
-export const DEFAULT_BACKGROUND_URL : string = "https://zizi.fr";
+export const DEFAULT_AVATAR_URL : string = "default";
+export const DEFAULT_BACKGROUND_URL : string = "default";
 
 export class User implements User {
 
