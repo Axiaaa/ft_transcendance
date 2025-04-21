@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () =>
 	pongApp.children[1].appendChild(pongCanvas);
 	pongCanvas.id = 'pong-game-canvas';
 	let pongAppWindow = document.getElementById('pong-app-window') as HTMLElement;
-	renderWindowContent(pongCanvas);
+	renderWindowContent(pongCanvas as unknown as HTMLElement);
 
 	pongCanvas.style.position = 'absolute';
 	pongCanvas.style.backgroundColor = 'black';

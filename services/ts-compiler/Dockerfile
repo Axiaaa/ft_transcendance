@@ -1,7 +1,11 @@
-FROM node:23.7.0
+FROM node:20-alpine
 
 WORKDIR /app/frontend
 
 RUN npm install -g typescript
 
-CMD ["npx", "tsc", "--watch"]
+COPY entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
