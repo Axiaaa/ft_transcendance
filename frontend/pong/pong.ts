@@ -90,6 +90,9 @@ const tournamentButtonContainer = document.getElementById('tournament-button-con
 const playerCountSelector = document.getElementById('player-count-selector') as HTMLElement | null;
 const playerInputs = document.getElementById('player-inputs') as HTMLElement | null;
 const continueButton = document.getElementById('continueTournament') as HTMLElement | null;
+const backToMenuFromPlay = document.getElementById('back-to-menu-from-play') as HTMLElement | null;
+const backToMenuFromTournament = document.getElementById('back-to-menu-from-tournament') as HTMLElement | null;
+const backToPlayerSelectionFromStartTournament = document.getElementById('back-to-player-selection-from-start-tournament') as HTMLElement | null;
 
 // Babylon
 const engine: BABYLON.Engine = new BABYLON.Engine(canvas, true);
@@ -1003,11 +1006,21 @@ function showTournament(players: string[]) {
 
 		startButton.addEventListener('click', () => {
 			matchList.style.display = 'none';
+			backToPlayerSelectionFromStartTournament!.style.display = 'none';
 			startTournamentGame(rounds);
 		});
 
 		matchList.appendChild(startButton);
 		matchList.style.display = 'block';
+		backToPlayerSelectionFromStartTournament!.style.display = 'block';
+		backToPlayerSelectionFromStartTournament!.onclick = () => {
+			matchList!.style.display = 'none';
+			backToPlayerSelectionFromStartTournament!.style.display = 'none';
+			playerInputs!.style.display = 'flex';
+			playerCountSelector!.style.display = 'flex';
+			backToMenuFromTournament!.style.display = 'flex';
+			continueButton!.style.display = 'block';
+		};
 	}
 }
 
@@ -1052,6 +1065,15 @@ document.addEventListener('DOMContentLoaded', function() {
 		tournamentButton.addEventListener('click', function () {
 			menu.style.display = 'none';
 			tournamentButtonContainer.style.display = 'flex';
+			backToMenuFromTournament!.style.display = 'flex';
+		});
+
+		backToMenuFromTournament?.addEventListener("click", () => {
+			menu.style.display = "block";
+			tournamentButtonContainer.style.display = "none";
+			backToMenuFromTournament!.style.display = "none";
+			playerInputs.innerHTML = "";
+			continueButton.style.display = "none";
 		});
 
 		playerCountSelector.addEventListener('click', function (e) {
@@ -1091,6 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 
 		continueButton.addEventListener('click', () => {
+			backToMenuFromTournament!.style.display = 'none';
 			const allInputs = playerInputs.querySelectorAll('input');
 			const playerNames: string[] = Array.from(allInputs).map(input => input.value.trim());
 
@@ -1125,9 +1148,17 @@ document.getElementById("resume-button")!.addEventListener("click", () => {
 document.getElementById("playButton")?.addEventListener("click", () => {
 	menu.style.display = "none";
 	document.getElementById("mode-selection-container")!.style.display = "flex";
+	document.getElementById("back-to-menu-from-play")!.style.display = "flex";
+});
+
+backToMenuFromPlay?.addEventListener("click", () => {
+	menu.style.display = "block";
+	document.getElementById("mode-selection-container")!.style.display = "none";
+	backToMenuFromPlay!.style.display = "none";
 });
 
 document.getElementById("aiMode")?.addEventListener("click", () => {
+	backToMenuFromPlay!.style.display = "none";
 	modeSelection!.style.display = "none";
 	pongAIInstance = new PongAI();
 	isPaused = true;
@@ -1137,6 +1168,7 @@ document.getElementById("aiMode")?.addEventListener("click", () => {
 });
 
 document.getElementById("humanMode")?.addEventListener("click", () => {
+	backToMenuFromPlay!.style.display = "none";
 	modeSelection!.style.display = "none";
 	isPaused = true;
 	startCountdown(startGame);
