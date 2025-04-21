@@ -15,8 +15,6 @@ networks:
       name: ft_transcendence
       driver: bridge
 
-
-
 services:
 
 ###########################################################################
@@ -34,7 +32,7 @@ services:
       - ${NGINX_PORT}:443
     volumes:
       - certs:/etc/nginx/certs
-      - ./frontend/:/usr/share/nginx/html
+      - ./frontend:/usr/share/nginx/html
       - img_storage:/server/img_storage
     networks:
       - ft_transcendence
@@ -363,11 +361,12 @@ services:
     restart: always
 
   ts-compiler:
-    container_name: ts-compiler
-    build:
-      context: ./services/ts-compiler
-      dockerfile: Dockerfile
-    volumes:
-      - ./frontend:/app/frontend
-    networks:
-      - ft_transcendence
+      container_name: ts-compiler
+      build:
+        context: ./services/ts-compiler
+        dockerfile: Dockerfile
+      volumes:
+        - ./frontend:/app/frontend
+      networks:
+        - ft_transcendence
+      restart: "no"
