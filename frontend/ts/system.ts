@@ -4,6 +4,7 @@ import { disconnectUser } from "./start-menu.js";
 import { initSocialApp, removeSocialApp } from "./social-app.js";
 
 
+import { throttle } from "./utils.js";
 
 let userBackground = document.createElement('img');
 userBackground.id = 'user-background';
@@ -45,7 +46,6 @@ export function setFont(inputSize: number, previousSize: number | 0) {
 			if (!isNaN(sizeNumber)) {
 				const newSize = sizeNumber + parseInt(inputString) - previousSize;
 				(element as HTMLElement).style.fontSize = `${newSize}px`;
-				
 			}
 		});
 		if (parseInt(inputString) > 0)
@@ -104,7 +104,7 @@ export function clearBrowserCache() {
 	} catch (error) {
 		console.error('Error clearing browser cache:', error);
 	}
-	
+
 	// // Reload the page
 	// location.reload();
 }
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	sleepLogo.style.height = '100px';
 	sleepLogo.style.position = 'absolute';
 	sleepLogo.style.padding = '0 10px';
-	
+
 	function animateLogo(Logo: HTMLElement)
 	{
 		if (!Logo) return
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		let y = screenBorderTop;
 		let dx = (Math.floor(Math.random() * 9) + 1) / 10;
 		if (Math.random() < 0.5) dx = -dx;
-		
+
 		let dy = (Math.floor(Math.random() * 9) + 1) / 10;
 		if (Math.random() < 0.5) dy = -dy;
 		console.log("SleepScreen X/Y direction" + dx + "/" + dy);
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 				dy *= -1;
 		}, interval);
 	}
-	
+
 	animateLogo(sleepLogo);
 
 
@@ -186,12 +186,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 	function resetTimer() {
 		// Clear any existing timeout
 		clearTimeout(timeoutId);
-		
+
 		// Reset screen state immediately
 		sleepScreen.style.opacity = '0';
 		sleepScreen.style.display = 'none';
 		sleepLogo.style.display = 'none';
-		
+
 		// Set new timeout
 		timeoutId = setTimeout(async () => {
 			try {
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	}
 
 	// Reset timer on mouse movement
-	document.addEventListener('mousemove', resetTimer);
+	document.addEventListener('mousemove', throttle(resetTimer));
 	// Reset timer on mouse clicks
 	document.addEventListener('click', resetTimer);
 	// Reset timer on key press
@@ -225,14 +225,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 	// Start the initial timer
 	let pongAppwindows = document.getElementById('pong-app-window') as HTMLElement;
 	let pongTimerInterval: NodeJS.Timeout | null = null;
-	
+
 	// Function to handle timer state based on pong window
 	function handleTimerState() {
 		if (pongTimerInterval) {
 			clearInterval(pongTimerInterval);
 			pongTimerInterval = null;
 		}
-		
+
 		if (pongAppwindows.classList.contains('opened-window')) {
 			// Reset timer immediately and set interval to reset every 5 seconds
 			resetTimer();
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// Check initial state
 	handleTimerState();
-			
+
 	// Observe changes to the pong window class
 	const pongWindowObserver = new MutationObserver((mutations) => {
 		mutations.forEach((mutation) => {
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
 			try {
-				
+
 			const currentUserToken = sessionStorage.getItem('wxp_token');
 			let currentUser = await getCurrentUser(currentUserToken);
 			if (currentUser) {
@@ -296,7 +296,7 @@ export function initHistoryAPI() {
 	const loginState = { page: 1 };
 	history.pushState(loginState, '', '/login');
 	history.replaceState(loginState, '', '/login');
-	
+
 	// Handle back/forward navigation
 	window.addEventListener('popstate', (event) => {
 		if (event.state) {
@@ -322,12 +322,12 @@ export function initHistoryAPI() {
 	console.log('History API initialized');
 }
 
-function goToPage() 
+function goToPage()
 {
 	{
 		let goToLogin = document.getElementsByClassName('go-to-login') as HTMLCollectionOf<HTMLElement>;
 		for (let i = 0; i < goToLogin.length; i++) {
-			
+
 			const gotologin = goToLogin[i];
 			gotologin.addEventListener('click', () => {
 				goToLoginPage(true);
@@ -379,7 +379,7 @@ export function goToDesktopPage(pushState: boolean = true)
 	const desktopState = { page: 3 };
 	const loginScreen = document.getElementsByClassName('login-screen')[0] as HTMLElement;
 	const forms = document.getElementsByClassName('login-screen-formulary')[0] as HTMLElement;
-	
+
 	if (pushState)
 	{
 		history.pushState(desktopState, '', '/desktop');
@@ -392,12 +392,12 @@ export function goToDesktopPage(pushState: boolean = true)
 	console.log('Navigated to desktop page');
 }
 
-export function goToFormsPage(pushState: boolean = true) 
+export function goToFormsPage(pushState: boolean = true)
 {
 	const formsState = { page: 2 };
 	const loginScreen = document.getElementsByClassName('login-screen')[0] as HTMLElement;
 	const forms = document.getElementsByClassName('login-screen-formulary')[0] as HTMLElement;
-	
+
 	if (pushState)
 	{
 		history.pushState(formsState, '', '/forms');
@@ -432,7 +432,7 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 		}
 	}
 	let userAvatars = document.getElementsByClassName("avatar-preview") as HTMLCollectionOf<HTMLImageElement>;
-	
+
 	console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
 
 	for (let i = 0; i < userAvatars.length; i++) {
@@ -454,7 +454,7 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 			wallpaperURL = "./img/Desktop/linus-wallpaper.jpg";
 		}
 	}
-		
+
 	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
 	console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
 	userWallpapers[0].src = wallpaperURL;
@@ -462,7 +462,7 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 	const addCacheBuster = (url: string): string => {
 		const cacheBuster = `?t=${Date.now()}`;
 		if (url.startsWith('blob:')) return url;
-		
+
 		if (url.includes('?')) {
 			return `${url}&_=${Date.now()}`;
 		}
@@ -472,7 +472,7 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 	// Apply cache busting to avatar URLs
 	for (let i = 0; i < userAvatars.length; i++) {
 		userAvatars[i].src = addCacheBuster(avatarURL);
-		
+
 		// Force reload by removing and re-adding the image
 		const currentSrc = userAvatars[i].src;
 		userAvatars[i].src = "";
@@ -482,7 +482,7 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 	// Apply cache busting to wallpaper URLs
 	for (let i = 0; i < userWallpapers.length; i++) {
 		userWallpapers[i].src = addCacheBuster(wallpaperURL);
-		
+
 		// Force reload by removing and re-adding the image
 		const currentSrc = userWallpapers[i].src;
 		userWallpapers[i].src = "";
@@ -507,7 +507,7 @@ export async function resetUserImages()
 	const addCacheBuster = (url: string): string => {
 		const cacheBuster = `?t=${Date.now()}`;
 		if (url.startsWith('blob:')) return url;
-		
+
 		if (url.includes('?')) {
 			return `${url}&_=${Date.now()}`;
 		}
@@ -516,7 +516,7 @@ export async function resetUserImages()
 	// Apply cache busting to avatar URLs
 	for (let i = 0; i < userAvatars.length; i++) {
 		userAvatars[i].src = addCacheBuster(avatarURL);
-		
+
 		// Force reload by removing and re-adding the image
 		const currentSrc = userAvatars[i].src;
 		userAvatars[i].src = "";
@@ -525,7 +525,7 @@ export async function resetUserImages()
 	// Apply cache busting to wallpaper URLs
 	for (let i = 0; i < userWallpapers.length; i++) {
 		userWallpapers[i].src = addCacheBuster(wallpaperURL);
-		
+
 		// Force reload by removing and re-adding the image
 		const currentSrc = userWallpapers[i].src;
 		userWallpapers[i].src = "";

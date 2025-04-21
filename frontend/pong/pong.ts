@@ -4,6 +4,8 @@ import '@babylonjs/loaders';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
 import { PongAI } from './pong-ai.js';
+import { throttle } from '../ts/utils.js'
+import { match } from 'assert';
 
 declare var confetti: any;
 let pongAIInstance: PongAI | null = null;
@@ -29,7 +31,7 @@ let paddleSpeed: number = 0.15;
 let resizePending = false;
 
 // Field
-const fieldThickness: number = 0.2;
+const fieldThickness: number = 0.5;
 const fieldSize: { width: number, height: number } = { width: 12, height: 12 };
 const fieldHalf = fieldSize.width / 2
 
@@ -90,6 +92,9 @@ const tournamentButtonContainer = document.getElementById('tournament-button-con
 const playerCountSelector = document.getElementById('player-count-selector') as HTMLElement | null;
 const playerInputs = document.getElementById('player-inputs') as HTMLElement | null;
 const continueButton = document.getElementById('continueTournament') as HTMLElement | null;
+const backToMenuFromPlay = document.getElementById('back-to-menu-from-play') as HTMLElement | null;
+const backToMenuFromTournament = document.getElementById('back-to-menu-from-tournament') as HTMLElement | null;
+const backToPlayerSelectionFromStartTournament = document.getElementById('back-to-player-selection-from-start-tournament') as HTMLElement | null;
 
 // Babylon
 const engine: BABYLON.Engine = new BABYLON.Engine(canvas, true);
@@ -108,8 +113,8 @@ const light: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light", ne
 light.intensity = 0.8;
 const pipeline: BABYLON.DefaultRenderingPipeline = new BABYLON.DefaultRenderingPipeline("defaultPipeline", true, scene, [camera]);
 pipeline.bloomEnabled = true;
-pipeline.bloomThreshold = 0.8;
-pipeline.bloomKernel = 32;
+pipeline.bloomThreshold = 0.4;
+pipeline.bloomKernel = 16;
 
 // Create field
 function createField(scene: BABYLON.Scene): BABYLON.Mesh {
@@ -141,6 +146,7 @@ function createBall(): BABYLON.Mesh {
 	const ballMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
 	ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0);
 	ballMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
+	ballMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
 	ballMaterial.freeze();
 
 	const ball: BABYLON.Mesh = BABYLON.MeshBuilder.CreateSphere("ball", {diameter: 0.4, segments: 8}, scene);
@@ -207,7 +213,7 @@ let { paddle1, paddle2 } = createPaddles(scene, fieldHeight);
 // Create field lines
 function createHalfCircle(centerX: number, centerZ: number, radius: number, startAngle: number, endAngle: number): BABYLON.Vector3[] {
 	const points: BABYLON.Vector3[] = [];
-	const segments = 32;
+	const segments = 16;
 
 	for (let i = 0; i <= segments; i++) {
 		const angle = startAngle + (endAngle - startAngle) * (i / segments);
@@ -258,6 +264,10 @@ function createFieldLines(scene: BABYLON.Scene): {
 	const fieldLines = BABYLON.MeshBuilder.CreateLines("fieldLines", {points: fieldLinePoints, updatable: false}, scene) as BABYLON.LinesMesh;
 	const leftHalfCircle = BABYLON.MeshBuilder.CreateLines("leftHalfCircle", {points: leftHalfCirclePoints, updatable: false}, scene) as BABYLON.LinesMesh;
 	const rightHalfCircle = BABYLON.MeshBuilder.CreateLines("rightHalfCircle", {points: rightHalfCirclePoints, updatable: false}, scene) as BABYLON.LinesMesh;
+
+	fieldLines.freezeWorldMatrix();
+	leftHalfCircle.freezeWorldMatrix();
+	rightHalfCircle.freezeWorldMatrix();
 
 	const neonColor = new BABYLON.Color3(0, 1, 1);
 	const lines = [fieldLines, leftHalfCircle, rightHalfCircle];
@@ -346,15 +356,6 @@ function updateScores(): void {
 	}, 100);
 }
 
-// FPS display
-const fpsDisplay = document.createElement('div');
-fpsDisplay.style.position = 'absolute';
-fpsDisplay.style.top = '10px';
-fpsDisplay.style.left = '10px';
-fpsDisplay.style.color = '#0ff';
-fpsDisplay.style.fontFamily = '"Orbitron", sans-serif';
-fpsDisplay.style.zIndex = '1000';
-document.body.appendChild(fpsDisplay);
 
 // Key display style
 const styleKeys: HTMLStyleElement = document.createElement("style");
@@ -420,8 +421,7 @@ function highlightCircles(playerColor: BABYLON.Color3): void {
 	}, 1000);
 }
 
-// Particle effect for goal
-function highlightGoalEffect(position: BABYLON.Vector3, color: BABYLON.Color4, scene: BABYLON.Scene) {
+function createGoalEffect(color: BABYLON.Color4, scene: BABYLON.Scene): BABYLON.ParticleSystem {
 	const particleSystem = new BABYLON.ParticleSystem("goalEffect", 300, scene);
 	particleSystem.particleTexture = new BABYLON.Texture("https://assets.babylonjs.com/textures/flare.png", scene);
 
@@ -447,16 +447,25 @@ function highlightGoalEffect(position: BABYLON.Vector3, color: BABYLON.Color4, s
 	particleSystem.colorDead = new BABYLON.Color4(color.r, color.g, color.b, 0.5);
 
 	particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
-	particleSystem.emitter = position.clone();
 	particleSystem.gravity = new BABYLON.Vector3(0, -0.5, 0);
 	particleSystem.targetStopDuration = 1.0;
 	particleSystem.disposeOnStop = true;
 
-	particleSystem.start();
+	return particleSystem;
+}
+
+const paddle1ParticleEffect = createGoalEffect(player1Color4, scene);
+const paddle2ParticleEffect = createGoalEffect(player2Color4, scene);
+
+function highlightGoalEffect(particleSystem: BABYLON.ParticleSystem, position: BABYLON.Vector3) {
+	particleSystem.emitter = position.clone();
+	let clone = particleSystem.clone(particleSystem.name, particleSystem.emitter);
+	clone.start()
+	setTimeout(() => clone.stop(), 1000);
 }
 
 // Resizing
-const updateCanvasSize = () => {
+const updateCanvasSize = throttle(() => {
 	if (resizePending)
 		return;
 	resizePending = true;
@@ -470,7 +479,7 @@ const updateCanvasSize = () => {
 		const aspectRatio = containerWidth / containerHeight;
 		const BASE_FOV = BABYLON.Tools.ToRadians(150);
 		camera.fov = Math.min(BASE_FOV, BASE_FOV / aspectRatio);
-		engine.resize();
+		engine.resize(true);
 
 		const scaleFactor = Math.min(containerWidth / 1280, containerHeight / 720);
 		document.documentElement.style.setProperty("--scale-factor", scaleFactor.toString());
@@ -480,7 +489,7 @@ const updateCanvasSize = () => {
 
 		resizePending = false;
 	});
-};
+});
 
 const updateKeySize = () => {
 	const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
@@ -634,7 +643,7 @@ function movePaddles(): void {
 		const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
 		simulatKeyPress(action);
 	}
-	else 
+	else
 	{
 		if (keyMap.get("ArrowLeft")?.pressed && paddle2.position.x < 5)
 			paddle2.position.x += paddleSpeed;
@@ -704,14 +713,14 @@ function checkCollision(): void {
 		score2++;
 		lastScorer = 2;
 		highlightCircles(player2Color);
-		highlightGoalEffect(new BABYLON.Vector3(ball.position.x, ball.position.y, ball.position.z), player2Color4, scene);
+		highlightGoalEffect(paddle1ParticleEffect, new BABYLON.Vector3(ball.position.x, ball.position.y, ball.position.z));
 		score = true;
 	}
 	if (ball.position.z < -6.5) {
 		score1++;
 		lastScorer = 1;
 		highlightCircles(player1Color);
-		highlightGoalEffect(new BABYLON.Vector3(ball.position.x, ball.position.y, ball.position.z), player1Color4, scene);
+		highlightGoalEffect(paddle2ParticleEffect, new BABYLON.Vector3(ball.position.x, ball.position.y, ball.position.z));
 		score = true;
 	}
 	if (score) {
@@ -1003,11 +1012,21 @@ function showTournament(players: string[]) {
 
 		startButton.addEventListener('click', () => {
 			matchList.style.display = 'none';
+			backToPlayerSelectionFromStartTournament!.style.display = 'none';
 			startTournamentGame(rounds);
 		});
 
 		matchList.appendChild(startButton);
 		matchList.style.display = 'block';
+		backToPlayerSelectionFromStartTournament!.style.display = 'block';
+		backToPlayerSelectionFromStartTournament!.onclick = () => {
+			matchList!.style.display = 'none';
+			backToPlayerSelectionFromStartTournament!.style.display = 'none';
+			playerInputs!.style.display = 'flex';
+			playerCountSelector!.style.display = 'flex';
+			backToMenuFromTournament!.style.display = 'flex';
+			continueButton!.style.display = 'block';
+		};
 	}
 }
 
@@ -1052,6 +1071,15 @@ document.addEventListener('DOMContentLoaded', function() {
 		tournamentButton.addEventListener('click', function () {
 			menu.style.display = 'none';
 			tournamentButtonContainer.style.display = 'flex';
+			backToMenuFromTournament!.style.display = 'flex';
+		});
+
+		backToMenuFromTournament?.addEventListener("click", () => {
+			menu.style.display = "block";
+			tournamentButtonContainer.style.display = "none";
+			backToMenuFromTournament!.style.display = "none";
+			playerInputs.innerHTML = "";
+			continueButton.style.display = "none";
 		});
 
 		playerCountSelector.addEventListener('click', function (e) {
@@ -1091,6 +1119,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 
 		continueButton.addEventListener('click', () => {
+			backToMenuFromTournament!.style.display = 'none';
 			const allInputs = playerInputs.querySelectorAll('input');
 			const playerNames: string[] = Array.from(allInputs).map(input => input.value.trim());
 
@@ -1125,9 +1154,17 @@ document.getElementById("resume-button")!.addEventListener("click", () => {
 document.getElementById("playButton")?.addEventListener("click", () => {
 	menu.style.display = "none";
 	document.getElementById("mode-selection-container")!.style.display = "flex";
+	document.getElementById("back-to-menu-from-play")!.style.display = "flex";
+});
+
+backToMenuFromPlay?.addEventListener("click", () => {
+	menu.style.display = "block";
+	document.getElementById("mode-selection-container")!.style.display = "none";
+	backToMenuFromPlay!.style.display = "none";
 });
 
 document.getElementById("aiMode")?.addEventListener("click", () => {
+	backToMenuFromPlay!.style.display = "none";
 	modeSelection!.style.display = "none";
 	pongAIInstance = new PongAI();
 	isPaused = true;
@@ -1137,6 +1174,7 @@ document.getElementById("aiMode")?.addEventListener("click", () => {
 });
 
 document.getElementById("humanMode")?.addEventListener("click", () => {
+	backToMenuFromPlay!.style.display = "none";
 	modeSelection!.style.display = "none";
 	isPaused = true;
 	startCountdown(startGame);
@@ -1148,6 +1186,15 @@ window.addEventListener('resize', () => {
 	engine.resize();
 });
 
+// FPS display
+const fpsDisplay = document.createElement('div');
+fpsDisplay.style.position = 'absolute';
+fpsDisplay.style.top = '10px';
+fpsDisplay.style.left = '10px';
+fpsDisplay.style.color = '#0ff';
+fpsDisplay.style.fontFamily = '"Orbitron", sans-serif';
+fpsDisplay.style.zIndex = '1000';
+document.body.appendChild(fpsDisplay);
 let frameCount = 0;
 let lastTime = performance.now();
 let fps = 0;
