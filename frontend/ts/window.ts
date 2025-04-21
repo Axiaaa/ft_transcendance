@@ -1,4 +1,5 @@
 import { setIsAppOpen } from "./taskbar.js";
+import { throttle } from "./utils.js";
 
 function resetWindows(windowElement: HTMLElement) {
 		windowElement.style.display = 'none';
@@ -53,7 +54,7 @@ function windowResize(isResizing: boolean, window: Window, windowElement: HTMLEl
 		const newHeight = e.clientY - windowElement.offsetTop + 5;
 		const minWidth = 300;
 		const minHeight = 200;
-		
+
 		windowElement.style.width = `${Math.max(newWidth, minWidth)}px`;
 		windowElement.style.height = `${Math.max(newHeight, minHeight)}px`;
 
@@ -65,7 +66,6 @@ function windowResize(isResizing: boolean, window: Window, windowElement: HTMLEl
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	
 	let Windows = document.getElementsByClassName('window');
 	console.log('Found ' + Windows.length + ' windows:');
 	Array.from(Windows).forEach((window, index) => {
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		let maximiseButton = windowElement.children[0].children[1].children[1] as HTMLElement;
 
-		
+
 		maximiseButton.addEventListener('click', () => {
 			isMaximised = maximize(windowElement, isMaximised);
 		});
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			windowElement.style.zIndex = "25";
 		});
 
-		document.addEventListener('mousemove', (e: MouseEvent) => {
+		document.addEventListener('mousemove', throttle((e: MouseEvent) => {
 			if (isDragging) {
 				windowElement.style.left = `${e.clientX - offsetX}px`;
 				windowElement.style.top = `${e.clientY - offsetY}px`;
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					windowElement.style.top = `${window.innerHeight - windowElement.offsetHeight}px`;
 				}
 			}
-		});
+		}));
 		windowHeader.addEventListener('mouseup', () => {
 			isDragging = false;
 		});
@@ -177,9 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		resizeHandle.addEventListener('mousedown', () => {
 			isResizing = true;
 		});
-		document.addEventListener('mousemove', (e: MouseEvent) => {
+		document.addEventListener('mousemove', throttle((e: MouseEvent) => {
 			windowResize(isResizing, window, windowElement, e);
-		});
+		}));
 		resizeHandle.addEventListener('mouseup', () => {
 			isResizing = false;
 		});

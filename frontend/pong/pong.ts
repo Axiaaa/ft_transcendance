@@ -4,6 +4,8 @@ import '@babylonjs/loaders';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
 import { PongAI } from './pong-ai.js';
+import { throttle } from '../ts/utils.js'
+import { match } from 'assert';
 
 declare var confetti: any;
 let pongAIInstance: PongAI | null = null;
@@ -29,7 +31,7 @@ let paddleSpeed: number = 0.15;
 let resizePending = false;
 
 // Field
-const fieldThickness: number = 0.2;
+const fieldThickness: number = 0.5;
 const fieldSize: { width: number, height: number } = { width: 12, height: 12 };
 const fieldHalf = fieldSize.width / 2
 
@@ -259,6 +261,10 @@ function createFieldLines(scene: BABYLON.Scene): {
 	const leftHalfCircle = BABYLON.MeshBuilder.CreateLines("leftHalfCircle", {points: leftHalfCirclePoints, updatable: false}, scene) as BABYLON.LinesMesh;
 	const rightHalfCircle = BABYLON.MeshBuilder.CreateLines("rightHalfCircle", {points: rightHalfCirclePoints, updatable: false}, scene) as BABYLON.LinesMesh;
 
+	fieldLines.freezeWorldMatrix();
+	leftHalfCircle.freezeWorldMatrix();
+	rightHalfCircle.freezeWorldMatrix();
+
 	const neonColor = new BABYLON.Color3(0, 1, 1);
 	const lines = [fieldLines, leftHalfCircle, rightHalfCircle];
 	lines.forEach(line => {
@@ -456,7 +462,7 @@ function highlightGoalEffect(position: BABYLON.Vector3, color: BABYLON.Color4, s
 }
 
 // Resizing
-const updateCanvasSize = () => {
+const updateCanvasSize = throttle(() => {
 	if (resizePending)
 		return;
 	resizePending = true;
@@ -480,7 +486,7 @@ const updateCanvasSize = () => {
 
 		resizePending = false;
 	});
-};
+});
 
 const updateKeySize = () => {
 	const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
@@ -634,7 +640,7 @@ function movePaddles(): void {
 		const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
 		simulatKeyPress(action);
 	}
-	else 
+	else
 	{
 		if (keyMap.get("ArrowLeft")?.pressed && paddle2.position.x < 5)
 			paddle2.position.x += paddleSpeed;
