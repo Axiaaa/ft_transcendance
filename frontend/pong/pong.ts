@@ -802,6 +802,7 @@ function reset(): void {
 }
 
 function restartGame(callback?: () => void) {
+	countdownComplete = false;
 	gameIsFinished = false;
 	score1 = 0;
 	score2 = 0;
@@ -989,7 +990,6 @@ function startGame(): void {
 }
 
 function startCountdown(callback: () => void): void {
-	countdownComplete = false;
 	menu.style.display = "none";
 	countdownContainer.style.display = "block";
 	countdownElement.style.opacity = "1";
@@ -1041,6 +1041,11 @@ function onMatchEnd(callback: (winner: string) => void): void {
 	matchEndCallback = callback;
 }
 
+function validatePlayerName(name: string): boolean {
+	const regex = /^[a-zA-Z0-9 ]*$/;
+	return regex.test(name); // Return true if valid, false otherwise
+  }
+
 function showMatchInfo(player1: string, player2: string) {
 	const matchInfo = document.getElementById("match-info");
 	if (!matchInfo) return;
@@ -1048,12 +1053,23 @@ function showMatchInfo(player1: string, player2: string) {
 	const cssColor1 = color3ToCSS(player1Color);
 	const cssColor2 = color3ToCSS(player2Color);
 
+	const truncate = (name: string) => name.length > 10 ? name.slice(0, 10) + '…' : name;
+
 	matchInfo.innerHTML = `
-		<span style="color: ${cssColor1}; text-shadow: 0 0 5px ${cssColor1}; font-weight: bold;">${player1}</span>
+		<span title="${player1}" style="color: ${cssColor1}; text-shadow: 0 0 5px ${cssColor1}; font-weight: bold;">
+			${truncate(player1)}
+		</span>
 		<span style="color: white; text-shadow: 0 0 5px white; font-size: 24px;"> vs </span>
-		<span style="color: ${cssColor2}; margin-left: 5px; text-shadow: 0 0 5px ${cssColor2}; font-weight: bold;">${player2}</span>
+		<span title="${player2}" style="color: ${cssColor2}; margin-left: 5px; text-shadow: 0 0 5px ${cssColor2}; font-weight: bold;">
+			${truncate(player2)}
+		</span>
 	`;
 	matchInfo.style.display = "block";
+	let fontSize = 40;
+	while (matchInfo.scrollWidth > matchInfo.clientWidth && fontSize > 10) {
+		fontSize -= 1;
+		matchInfo.style.fontSize = fontSize + "px";
+	}
 }
 
 function showTournament(players: string[]) {
@@ -1074,7 +1090,7 @@ function showTournament(players: string[]) {
 
 		rounds.forEach(([p1, p2], index) => {
 			const item = document.createElement('li');
-			item.textContent = `Match ${index + 1} : ${p1} vs ${p2}`;
+			item.textContent = `Match ${index + 1} : ${(p1)} vs ${(p2)}`;
 			item.style.marginBottom = '8px';
 			list.appendChild(item);
 		});
@@ -1179,6 +1195,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						const input = document.createElement("input");
 						input.type = "text";
 						input.placeholder = `Challenger ${index}`;
+						input.maxLength = 20;
 						columnDiv.appendChild(input);
 					}
 
@@ -1196,13 +1213,25 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 
 		continueButton.addEventListener('click', () => {
-			backToMenuFromTournament!.style.display = 'none';
 			const allInputs = playerInputs.querySelectorAll('input');
 			const playerNames: string[] = Array.from(allInputs).map(input => input.value.trim());
 
+			const uniqueNames = new Set(playerNames);
+			const hasDuplicates = uniqueNames.size !== playerNames.length;
+			if (hasDuplicates) {
+				showError("Please enter unique player names.");
+				return;
+			}
+			for (let name of playerNames) {
+				if (!validatePlayerName(name)) {
+				  showError("Player names can only contain letters, numbers, and spaces.");
+				  return;
+				}
+			  }
 			if (playerNames.length === 4 || playerNames.length === 8) {
 				showTournament(playerNames);
 			}
+			backToMenuFromTournament!.style.display = 'none';
 		});
 	}
 });
@@ -1243,48 +1272,63 @@ backToMenuFromPlay?.addEventListener("click", () => {
 });
 
 export async function showError(message: string) {
-    const errorBox = document.createElement('div');
-    errorBox.className = 'error-box';
-    errorBox.textContent = message;
-
-	errorBox.style.position = 'absolute';
-	errorBox.style.bottom = '20px';
-	errorBox.style.left = '50%';
-	errorBox.style.transform = 'translateX(-50%)';
-	errorBox.style.padding = '10px';
-	errorBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-	errorBox.style.color = '#0ff';
-	errorBox.style.fontFamily = '"Orbitron", sans-serif';
-	errorBox.style.fontSize = '14px';
-	errorBox.style.textAlign = 'center';
-	errorBox.style.border = '1px solid #0ff';
-	errorBox.style.borderRadius = '4px';
-	errorBox.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.5)';
-	errorBox.style.opacity = '0';
-	errorBox.style.transition = 'opacity 0.5s ease-in-out';
-
-    // Remove any existing error box
+    // Remove existing error box if it exists
     const existingErrorBox = document.querySelector('.error-box');
     if (existingErrorBox) {
         existingErrorBox.remove();
     }
 
-    // Append the error box to the body
+    const errorBox = document.createElement('div');
+    errorBox.className = 'error-box';
+    errorBox.textContent = message;
     document.body.appendChild(errorBox);
 
-    // Fade in the error box
+    const applyStyles = () => {
+        const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')) || 1;
+
+        errorBox.style.position = 'absolute';
+        errorBox.style.bottom = `${20 * scaleFactor}px`;
+        errorBox.style.left = '50%';
+        errorBox.style.transform = 'translateX(-50%)';
+        errorBox.style.padding = `${10 * scaleFactor}px`;
+        errorBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        errorBox.style.color = '#0ff';
+        errorBox.style.fontFamily = '"Orbitron", sans-serif';
+        errorBox.style.fontSize = `${14 * scaleFactor}px`;
+        errorBox.style.textAlign = 'center';
+        errorBox.style.border = `${1 * scaleFactor}px solid #0ff`;
+        errorBox.style.borderRadius = `${4 * scaleFactor}px`;
+        errorBox.style.boxShadow = `0 0 ${10 * scaleFactor}px rgba(0, 255, 255, 0.5)`;
+        errorBox.style.opacity = '0';
+        errorBox.style.transition = 'opacity 0.5s ease-in-out';
+    };
+
+    applyStyles();
+
+    // Fade in
     setTimeout(() => {
         errorBox.style.opacity = '1';
     }, 0);
+	// Resize event listener
+    const handleResize = () => {
+        if (document.body.contains(errorBox)) {
+            applyStyles();
+        } else {
+            window.removeEventListener('resize', handleResize);
+        }
+    };
+    window.addEventListener('resize', handleResize);
 
-    // Fade out and remove the error box after 5 seconds
+    // Fade out and cleanup after 5s
     setTimeout(() => {
         errorBox.style.opacity = '0';
         setTimeout(() => {
             errorBox.remove();
+            window.removeEventListener('resize', handleResize);
         }, 500);
     }, 5000);
 }
+
 
 const rankedSelectionContainer = document.createElement("div");
 rankedSelectionContainer.id = "ranked-selection-container";
