@@ -56,6 +56,7 @@ export async function userRoutes(server : FastifyInstance) {
                         avatar: user.avatar,
                         is_online : user.is_online,
                         id : user.id,
+                        history : user.history
                     };
                 }
                 return null;

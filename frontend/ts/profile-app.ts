@@ -1,6 +1,7 @@
 import { openAppWindow } from "./app-icon.js";
 import { sendNotification } from "./notification.js";
-import { getCurrentUser } from "./API.js";
+import { getCurrentUser, getMatchDetails, getUser, getUserById, getUserMatchHistory, isUserOnline } from "./API.js";
+import { forEachChild } from "typescript";
 
 function openProfile(AppLauncher: string, profileTab?: string): void
 {
@@ -241,7 +242,8 @@ function addTournamentHistory(Container: HTMLElement, Player1: string, Player2: 
 }
 
 
-document.addEventListener('DOMContentLoaded', async () => {
+export async function initProfileApp()
+{
 
 	let App = document.getElementById('profile-app-window') as HTMLElement;
 	if (!App) return;
@@ -314,6 +316,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		rightContainer.style.maxWidth = 'calc(100% - 150px)';
 		rightContainer.style.height = '100%';
 		rightContainer.style.overflow = 'auto';
+		
 		{
 			// Categories content
 			let GeneralCategorie = document.getElementById('profile-app-content-main-left-General') as HTMLElement;
@@ -349,7 +352,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 					profileInfoContainer.appendChild(avatarContainer);
 
 					// User avatar image
-					// API CALL NEEDED: Fetch user's profile picture from the backend
 					let avatarImg = document.createElement('img');
 					avatarImg.alt = 'User Avatar';
 					avatarImg.classList.add('avatar-preview');
@@ -360,7 +362,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 					avatarContainer.appendChild(avatarImg);
 
 					let usernameDisplay = document.createElement('h2');
-					usernameDisplay.innerText = 'Loading...'; // Placeholder text while fetching username
+					usernameDisplay.innerText = 'Loading...';
 					usernameDisplay.classList.add('user-name-text');
 					usernameDisplay.style.color = '#333';
 					usernameDisplay.style.fontSize = '18px';
@@ -377,12 +379,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 					profileInfoContainer.appendChild(statusContainer);
 
 					// Online status indicator (circle)
-					// API CALL NEEDED: Fetch user's online status from the backend
 					let statusIndicator = document.createElement('div');
 					statusIndicator.style.width = '12px';
 					statusIndicator.style.height = '12px';
 					statusIndicator.style.borderRadius = '50%';
-					statusIndicator.style.backgroundColor = '#4CAF50'; // Green for online - should be dynamic based on API response
+					statusIndicator.style.backgroundColor = '#4CAF50'; // Green for online
 					statusIndicator.style.marginRight = '5px';
 					statusIndicator.style.border = '1px solid rgba(0, 0, 0, 0.3)';
 					statusIndicator.style.boxShadow = '0 0 3px rgba(0, 0, 0, 0.2)';
@@ -391,15 +392,39 @@ document.addEventListener('DOMContentLoaded', async () => {
 					// Status text
 					// Related to the same API CALL as status indicator
 					let statusText = document.createElement('span');
-					statusText.innerText = 'Online'; // Should be dynamic based on API response
+					statusText.innerText = 'Online'; 
 					statusText.style.color = '#333';
 					statusText.style.fontSize = '14px';
 					statusContainer.appendChild(statusText);
+					{
+						let currentUser = getCurrentUser(sessionStorage.getItem('wxp_token') as string);
+						let isOnline = isUserOnline((await currentUser).username);
+						if (!isOnline)
+						{
+							statusIndicator.style.backgroundColor = '#F44336'; // Red for offline
+							statusText.innerText = 'Offline';
+						}
+					}
 
 					// Last login information
-					// API CALL NEEDED: Fetch user's last login timestamp from the backend
 					let lastLoginInfo = document.createElement('p');
-					lastLoginInfo.innerText = 'Last login: Today at 9:45 AM'; // Should be dynamic based on API response
+					lastLoginInfo.innerText = 'Last login:' + ' Loading...';
+					{
+						let currentUser = getCurrentUser(sessionStorage.getItem('wxp_token') as string);
+						let lastLogin = (await currentUser).last_login;
+						let lastLoginDate = new Date(lastLogin);
+						let options: Intl.DateTimeFormatOptions = {
+							year: 'numeric',
+							month: '2-digit',
+							day: '2-digit',
+							hour: '2-digit',
+							minute: '2-digit',
+							second: '2-digit',
+							hour12: false,
+						};
+						let formattedDate = lastLoginDate.toLocaleString('en-US', options);
+						lastLoginInfo.innerText = 'Last login: ' + formattedDate;
+					} // Replace with actual last login info from API
 					lastLoginInfo.style.color = '#555';
 					lastLoginInfo.style.fontSize = '12px';
 					lastLoginInfo.style.margin = '10px 0 5px 0';
@@ -435,7 +460,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 						editProfileButton.style.backgroundColor = '#F0F0F0';
 						editProfileButton.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
 					});
-					// API CALL NEEDED: On button click, open edit profile form and save changes to the backend
 					editProfileButton.addEventListener('click', () => {
 						// Open edit profile modal or navigate to edit profile page
 						// Implement form to update user profile data
@@ -457,7 +481,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 			let TournamentsContent = createCategorieContainer('Tournaments', rightContainer);
 			if (TournamentsContent)
 			{
-				{
+				
 					
 					let TournamentHistoryTitle = document.createElement('h3');
 					TournamentsContent.appendChild(TournamentHistoryTitle);
@@ -480,9 +504,52 @@ document.addEventListener('DOMContentLoaded', async () => {
 					TournamentHistory.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
 
 					// API Call to get the tournament history
-					let tournament1 = addTournamentHistory(TournamentHistory, 'Michel', 'Francis', 0, 2);
+					{
+						try 
+						{
+							console.log('Fetching tournament history of user ' + sessionStorage.getItem('wxp_user_id'));
+							let matchHistory = getUserMatchHistory(sessionStorage.getItem('wxp_token') as string);
+							console.log('HistoryTab is: ' + matchHistory);
+						
+							(await matchHistory).forEach(async (matchId) => {
+								let matchHistoryData = await getMatchDetails(matchId);
+								console.log('HistoryData is: ' + matchHistoryData);
+								if (matchHistoryData)
+								{
+									interface MatchData {
+										player1: string;
+										player2: string;
+										score: string;
+										winner: string;
+									}
+									
+									// Process the single match
+									const match = matchHistoryData as unknown as MatchData;
+									let player1_id = match.player1;
+									let player2_id = match.player2;
+									let player1 = getUserById(Number(player1_id));
+									let player2 = getUserById(Number(player2_id));
+									let player1Name = (await player1).username;
+									let player2Name = (await player2).username;
+									let score = match.score.split(' - ');
+									let score1 = parseInt(score[0]);
+									let score2 = parseInt(score[1]);
+									let winner = match.winner;
+									if (winner === player1Name)
+										addTournamentHistory(TournamentHistory, player1Name, player2Name, score1, score2);
+									else
+										addTournamentHistory(TournamentHistory, player2Name, player1Name, score2, score1);
+								}
+							})
+						}
+						catch (error) 
+						{
+							console.error('Error fetching tournament history:', error);
+							sendNotification('Error', 'Failed to load tournament history.', 'error');
+						}
+					// EXAMPLE HISTORY ELEMENT let tournament1 = addTournamentHistory(TournamentHistory, 'Michel', 'Francis', 0, 2);
+					}
 				}
-			}
 
 			let StatsContent = createCategorieContainer('Stats', rightContainer);
 			if (StatsContent)
@@ -634,4 +701,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 			}
 		}
 	}
-});
+};
