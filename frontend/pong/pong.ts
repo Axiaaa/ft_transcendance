@@ -360,9 +360,9 @@ function updateScores(): void {
 const styleKeys: HTMLStyleElement = document.createElement("style");
 styleKeys.textContent = `
 	.key-display {
-		width: calc(50px / var(--scale-factor));
-		height: calc(50px / var(--scale-factor));
-		border-radius: calc(8px / var(--scale-factor));
+		width: 50px;
+		height: 50px;
+		border-radius: 8px;
 		background: rgba(255, 255, 255, 0.2);
 		color: white;
 		opacity: 0.5;
@@ -524,6 +524,7 @@ function zoomOutEffect(callback?: () => void): void {
 	scene.onBeforeRenderObservable.add(zoomOutAnimation);
 }
 
+let pauseMenuIsActive = false;
 // Keyboard controls
 function handleKeyDown(event: KeyboardEvent) {
 	const code = event.code;
@@ -540,7 +541,7 @@ function handleKeyDown(event: KeyboardEvent) {
 			KeyState.element.classList.add('key-pressed');
 
 		if (code === 'Space' || code === 'Enter') {
-			if (gameIsFinished)
+			if (gameIsFinished || !countdownComplete || pauseMenuIsActive)
 				return;
 			hideButtons();
 			isPaused = false;
@@ -739,12 +740,6 @@ let spaceButton: HTMLElement | null = null;
 let spaceAndEnterIsPrint = false;
 let buttonHasBeenCreated = false;
 
-if (!buttonHasBeenCreated) {
-	createButtonOnce('Enter', 'key-enter');
-	createButtonOnce('Space', 'key-space');
-	hideButtons();
-}
-
 function createButtonOnce(text: string, className: string): void {
 	const button = document.createElement('div');
 	button.classList.add('key-display', className);
@@ -766,7 +761,6 @@ function createButtonOnce(text: string, className: string): void {
 }
 
 function showButtons() {
-	spaceAndEnterIsPrint = true;
 	enterButton!.style.display = 'flex';
 	spaceButton!.style.display = 'flex';
 }
@@ -797,7 +791,13 @@ function reset(): void {
 		return;
 
 	if (score1 !== 10 && score2 !== 10) {
-		showButtons();
+		if (!buttonHasBeenCreated) {
+			createButtonOnce('Enter', 'key-enter');
+			createButtonOnce('Space', 'key-space');
+		} else {
+			showButtons();
+		}
+		spaceAndEnterIsPrint = true;
 	}
 }
 
@@ -860,9 +860,7 @@ function endGame(): void {
 	const winnerText = document.getElementById("winner");
 	const isFinal = isTournament === 1 && isLastTournamentMatch;
 
-	const isRanked = isTournament === 0 && rankedSelectionContainer.style.display === "none";
-
-    if (isRanked) {
+    if (rankedMatch) {
         const player2 =  sessionStorage.getItem("second_wxp_user_id");
         const player1 =  sessionStorage.getItem("wxp_user_id");
 
@@ -885,7 +883,6 @@ function endGame(): void {
 			}),
 		});
 	}
-
 
 
 	if (winnerText && !isFinal) {
@@ -944,8 +941,9 @@ function endGame(): void {
 				document.body.appendChild(restartButton);
 			}, totalDelay);
 		}
-
+		console.log("Hello2");
 		if (!(isTournament === 1 && isFinal)) {
+			console.log("Hello1");
 			const restartButton = document.createElement("button-endgame");
 			if (isTournament === 1 && !isFinal) {
 				restartButton.textContent = "Next Match";
@@ -960,8 +958,8 @@ function endGame(): void {
 					});
 				};
 			} else {
-				restartButton.textContent = "Restart";
-				restartButton.onclick = () => restartGame(() => startGame());
+				restartButton.textContent = "Home";
+				restartButton.onclick = () => location.reload();
 			}
 			document.body.appendChild(restartButton);
 		}
@@ -971,6 +969,7 @@ function endGame(): void {
 function togglePause() {
 	isPaused = true;
 	if (isPaused) {
+		pauseMenuIsActive = true;
 		pauseMenu.style.display = "block";
 		countdownContainer.style.display = "block";
 		overlay.style.display = "block";
@@ -990,6 +989,7 @@ function startGame(): void {
 }
 
 function startCountdown(callback: () => void): void {
+	countdownComplete = false;
 	menu.style.display = "none";
 	countdownContainer.style.display = "block";
 	countdownElement.style.opacity = "1";
@@ -1024,8 +1024,8 @@ rankedButton?.addEventListener("click", () => {
 });
 
 backToMenuFromRanked?.addEventListener("click", () => {
-	rankedSelectionContainer!.style.display = "none";
 	backToMenuFromRanked!.style.display = "none";
+	rankedSelectionContainer!.style.display = "none"
 	menu.style.display = "block";
 });
 
@@ -1223,6 +1223,7 @@ document.getElementById("confirm-no")!.addEventListener("click", () => {
 
 document.getElementById("resume-button")!.addEventListener("click", () => {
 	pauseMenu.style.display = "none";
+	pauseMenuIsActive = false;
 	countdownContainer.style.display = "none";
 	overlay.style.display = "none";
 	if (spaceAndEnterIsPrint) return;
@@ -1393,6 +1394,7 @@ export async function getUserRanked(username: string, password: string): Promise
 	}
 }
 
+let rankedMatch = false;
 rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 	event.preventDefault();
 	if (loginInput && passwordInput) {
@@ -1416,6 +1418,7 @@ rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 				loginInput.value = "";
 				passwordInput.value = "";
 				startCountdown(startGame);
+				rankedMatch = true;
 				rankedSelectionContainer.style.display = "none";
 				menu.style.display = "none";
 			}
