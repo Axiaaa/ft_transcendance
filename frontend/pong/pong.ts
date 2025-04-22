@@ -94,7 +94,6 @@ const backToMenuFromTournament = document.getElementById('back-to-menu-from-tour
 const backToPlayerSelectionFromStartTournament = document.getElementById('back-to-player-selection-from-start-tournament') as HTMLElement | null;
 const backToMenuFromRanked = document.getElementById('back-to-menu-from-ranked') as HTMLElement | null;
 const rankedButton = document.getElementById('rankedButton') as HTMLElement | null;
-const rankedSelectionContainer = document.getElementById('ranked-selection-container') as HTMLElement | null;
 
 // Babylon
 const engine: BABYLON.Engine = new BABYLON.Engine(canvas, true);
