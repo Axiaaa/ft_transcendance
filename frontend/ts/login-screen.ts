@@ -262,9 +262,9 @@ export async function showError(message: string) {
                       signUpUsername.value = "";
                       signUpPassword.value = "";
                       signUpConfirmPassword.value = "";
+					  initApps();
                       await resetUserImages();
 					  await updateAllUserNames();
-					  await initApps();
                       setTimeout(() => {
                         goToDesktopPage();
                       }, 300);
@@ -360,10 +360,10 @@ export async function showError(message: string) {
 						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
 						signInUsername.value = "";
 						signInPassword.value = "";
+						initApps();
 						await resetUserImages();
 						await updateUserImages();
 						await updateAllUserNames();
-						initApps();
 						setTimeout(() => {
 							goToDesktopPage();
 						}, 300);

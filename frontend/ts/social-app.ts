@@ -1,8 +1,9 @@
 import { get } from "http";
 import { openAppWindow } from "./app-icon.js";
-import { acceptFriendRequest, declineFriendRequest, getFriendFromID, getPendingFriendRequests, getPendingFriendRequestsDetails, getUserById, getUserFriends, sendFriendRequest } from "./API.js";
+import { acceptFriendRequest, declineFriendRequest, getAllUsers, getPendingFriendRequests, getPendingFriendRequestsDetails, getUserById, getUserFriends, getUserFriendsDetails, removeFriend, sendFriendRequest } from "./API.js";
 import { disconnectUser } from "./start-menu.js";
 import { clearBrowserCache, goToDesktopPage, goToLoginPage } from "./system.js";
+import { NodeGeometry } from "@babylonjs/core";
 
 
 
@@ -16,7 +17,7 @@ import { clearBrowserCache, goToDesktopPage, goToLoginPage } from "./system.js";
  * @returns A promise that resolves to an array of formatted friend requests with id, username, avatar, and time
  * @throws Will catch errors internally and return an empty array
  */
-export async function fetchFormattedPendingRequests(userToken: string): Promise<{ id: string, username: string, avatar: string, time: string }[]> {
+export async function fetchFormattedPendingRequests(userToken: string): Promise<{ id: string, username: string, avatar: string, is_online: boolean }[]> {
 	try {
 		const pendingRequestsDetails = await getPendingFriendRequestsDetails(userToken);
 		
@@ -24,13 +25,42 @@ export async function fetchFormattedPendingRequests(userToken: string): Promise<
 		const formattedRequests = pendingRequestsDetails.map(user => ({
 			id: user.id?.toString() || 'unknown',
 			username: user.username,
-			avatar: user.avatar || '#cccccc', // Use default color if no avatar
-			time: 'Recently' // Could implement actual timestamp formatting here
+			avatar: user.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg", // Use default color if no avatar
+			is_online: user.is_online // Could implement actual timestamp formatting here
 		}));
 		
 		return formattedRequests;
 	} catch (error) {
 		console.error('Failed to fetch and format pending friend requests:', error);
+		return [];
+	}
+}
+
+/**
+ * Fetches and formats the friends list for the current user.
+ * 
+ * This function retrieves the friends list using the provided user token,
+ * and transforms it into a format suitable for UI display with user information.
+ * 
+ * @param userToken - The authentication token of the current user
+ * @returns A promise that resolves to an array of formatted friends with id, username, avatar, and status
+ * @throws Will catch errors internally and return an empty array
+ */
+export async function fetchFormattedFriends(userToken: string): Promise<{ id: string, username: string, avatar: string, is_online: boolean }[]> {
+	try {
+		const friendsDetails = await getUserFriendsDetails(userToken);
+		
+		// Format the detailed friends into the structure needed by the UI
+		const formattedFriends = friendsDetails.map(user => ({
+			id: user.id?.toString() || 'unknown',
+			username: user.username,
+			avatar: user.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg", // Use default color if no avatar
+			is_online: user.is_online // Could implement actual timestamp formatting here
+		}));
+		
+		return formattedFriends;
+	} catch (error) {
+		console.error('Failed to fetch and format friends list:', error);
 		return [];
 	}
 }
@@ -134,34 +164,94 @@ function setActiveContent(Content: HTMLElement)
 	Content.style.display = 'flex';
 }
 
-function createNotification(notification: { type: string, user: string, time: string }): HTMLElement {
+function createNotification(notification: { type: string, user: string, time: string, avatar?: string }): HTMLElement {
 	let notificationsList = document.getElementById('notifications-list') as HTMLElement;
 	let notificationItem = document.createElement('div');
 	notificationsList.appendChild(notificationItem);
 	notificationItem.style.padding = '5px';
 	notificationItem.style.borderBottom = '1px solid #e0e0e0';
 	notificationItem.style.fontSize = '11px';
+	notificationItem.style.display = 'flex';
+	notificationItem.style.alignItems = 'center';
 	
-	let icon = document.createElement('span');
-	notificationItem.appendChild(icon);
-	icon.style.display = 'inline-block';
-	icon.style.width = '16px';
-	icon.style.height = '16px';
-	icon.style.marginRight = '5px';
-	icon.style.backgroundColor = notification.type === 'friend_request' ? '#ffcc00' : '#66cc99';
-	icon.style.verticalAlign = 'middle';
+	// Avatar container instead of simple icon
+	let avatarContainer = document.createElement('div');
+	notificationItem.appendChild(avatarContainer);
+	avatarContainer.style.width = '20px';
+	avatarContainer.style.height = '20px';
+	avatarContainer.style.marginRight = '5px';
+	avatarContainer.style.borderRadius = '3px';
+	avatarContainer.style.border = '1px solid #c0c0c0';
+	avatarContainer.style.overflow = 'hidden';
 	
-	let text = document.createElement('span');
-	notificationItem.appendChild(text);
+	// If it's a friend request with avatar, use the image
+	if (notification.type === 'friend_request' && notification.avatar) {
+		let avatarImg = document.createElement('img');
+		avatarContainer.appendChild(avatarImg);
+		avatarImg.src = notification.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg"; // Default color if no avatar
+		avatarImg.style.width = '100%';
+		avatarImg.style.height = '100%';
+		avatarImg.style.objectFit = 'cover';
+	} else {
+		// Fallback to colored background
+		avatarContainer.style.backgroundColor = notification.type === 'friend_request' ? '#ffcc00' : '#66cc99';
+	}
+	
+	// Content container for text
+	let contentContainer = document.createElement('div');
+	notificationItem.appendChild(contentContainer);
+	contentContainer.style.flex = '1';
+	
+	let text = document.createElement('div');
+	contentContainer.appendChild(text);
+	contentContainer.style.maxWidth = 'calc(100% - 60px)';
+	text.style.overflow = 'hidden';
+	text.style.textOverflow = 'ellipsis';
+	text.style.whiteSpace = 'nowrap';
+	text.style.fontSize = '10px';
 	text.textContent = notification.type === 'friend_request' 
 		? `${notification.user} sent you a friend request` 
 		: `${notification.user} updated their profile`;
 	
-	let timeSpan = document.createElement('span');
-	notificationItem.appendChild(timeSpan);
-	timeSpan.textContent = ` - ${notification.time}`;
+	let timeSpan = document.createElement('div');
+	contentContainer.appendChild(timeSpan);
+	timeSpan.textContent = notification.time;
 	timeSpan.style.color = '#888888';
 	timeSpan.style.fontSize = '9px';
+
+	// Add "Go to Requests" button for friend requests
+	if (notification.type === 'friend_request') {
+		let goToRequestsBtn = document.createElement('div');
+		notificationItem.appendChild(goToRequestsBtn);
+		goToRequestsBtn.textContent = 'View';
+		goToRequestsBtn.style.width = '30px';
+		goToRequestsBtn.style.height = '16px';
+		goToRequestsBtn.style.lineHeight = '16px';
+		goToRequestsBtn.style.fontSize = '9px';
+		goToRequestsBtn.style.marginLeft = '5px';
+		goToRequestsBtn.style.border = '1px solid #a0a0a0';
+		goToRequestsBtn.style.borderRadius = '2px';
+		goToRequestsBtn.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+		goToRequestsBtn.style.cursor = 'pointer';
+		goToRequestsBtn.style.textAlign = 'center';
+		goToRequestsBtn.style.userSelect = 'none';
+		goToRequestsBtn.style.marginLeft = 'auto'; // Push button to right side
+
+		goToRequestsBtn.addEventListener('mouseenter', () => {
+			goToRequestsBtn.style.backgroundImage = 'linear-gradient(#f5f5f5, #e5e5e5)';
+		});
+
+		goToRequestsBtn.addEventListener('mouseleave', () => {
+			goToRequestsBtn.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+		});
+
+		goToRequestsBtn.addEventListener('click', () => {
+			const requestsTab = document.getElementById('social-app-Requests-tab');
+			if (requestsTab) {
+				requestsTab.click();
+			}
+		});
+	}
 
 	return notificationItem;
 }
@@ -336,16 +426,55 @@ if (!userToken || isNaN(userId))
 				notificationsList.style.maxHeight = '100px';
 				notificationsList.style.overflowY = 'auto';
 
-				// API Call
-				// Comment: API Call needed here to fetch recent notifications
-				let sampleNotifications = [
-					{ type: 'friend_request', user: 'JohnDoe', time: '2 hours ago' },
-					{ type: 'friend_update', user: 'JaneSmith', time: 'Yesterday' }
-				];
+				// Fetch real notifications - friend requests
+				const fetchNotifications = async () => {
+					try {
+						const notificationsList = document.getElementById('notifications-list');
+						if (notificationsList) {
+							notificationsList.innerHTML = ''; // Clear existing notifications
+						}
+						
+						// Get user token
+						const userToken = sessionStorage.getItem("wxp_token");
+						if (!userToken) {
+							console.error("User token not found");
+							return;
+						}
+						
+						// Fetch pending friend requests
+						const pendingRequests = await fetchFormattedPendingRequests(userToken);
+						
+						// If no requests, show empty state
+						if (pendingRequests.length === 0) {
+							const emptyMessage = document.createElement('div');
+							notificationsList?.appendChild(emptyMessage);
+							emptyMessage.textContent = 'No new notifications';
+							emptyMessage.style.padding = '10px';
+							emptyMessage.style.textAlign = 'center';
+							emptyMessage.style.color = '#888888';
+							emptyMessage.style.fontSize = '11px';
+							emptyMessage.style.fontStyle = 'italic';
+							return;
+						}
+						
+						// Convert requests to notification format
+						pendingRequests.forEach(request => {
+							const notification = {
+								type: 'friend_request',
+								user: request.username,
+								time: 'New request',
+								avatar: request.avatar
+							};
+							
+							createNotification(notification);
+						});
+					} catch (error) {
+						console.error('Error fetching notifications:', error);
+					}
+				}
 
-				sampleNotifications.forEach(notification => {
-					createNotification(notification);
-				});
+				// Load notifications when the page initializes
+				fetchNotifications();
 
 				// Recent Friends Section
 				let recentFriendsContainer = document.createElement('div');
@@ -380,17 +509,221 @@ if (!userToken || isNaN(userId))
 				recentFriendsList.style.width = '100%';
 				recentFriendsList.style.maxHeight = '150px';
 				recentFriendsList.style.overflowY = 'auto';
-
-				// API Call needed here to fetch recent friends
+			
 				
-				let sampleFriends = [
-					{ name: 'Alice Cooper', avatar: '#ff9999', status: 'online' },
-					{ name: 'Bob Smith', avatar: '#99ccff', status: 'offline' },
-					{ name: 'Charlie Davis', avatar: '#99ff99', status: 'online' }
-				];
+				// Fetch real friends data from API
+				const fetchRecentFriends = async () => {
+					try {
+						// Get user token
+						const userToken = sessionStorage.getItem("wxp_token");
+						if (!userToken) {
+							console.error("User token not found");
+							return;
+						}
+						
+						// Clear existing friends list
+						const recentFriendsList = document.getElementById('recent-friends-list');
+						if (recentFriendsList) {
+							recentFriendsList.innerHTML = '';
+						}
+						
+						// Fetch real friends data from API
+						const friends = await fetchFormattedFriends(userToken);
+						
+						// If no friends, show empty state
+						if (friends.length === 0) {
+							const emptyMessage = document.createElement('div');
+							recentFriendsList?.appendChild(emptyMessage);
+							emptyMessage.textContent = 'No friends yet. Add some friends!';
+							emptyMessage.style.padding = '10px';
+							emptyMessage.style.textAlign = 'center';
+							emptyMessage.style.color = '#888888';
+							emptyMessage.style.fontSize = '11px';
+							emptyMessage.style.fontStyle = 'italic';
+							return;
+						}
+						
+						// Show only up to 3 most recent friends
+						const recentFriends = friends.slice(0, 3);
+						
+						// Display each friend
+						recentFriends.forEach(friend => {
+							// Create friend element
+							let friendItem = document.createElement('div');
+							recentFriendsList?.appendChild(friendItem);
+							friendItem.style.padding = '5px';
+							friendItem.style.borderBottom = '1px solid #e0e0e0';
+							friendItem.style.display = 'flex';
+							friendItem.style.alignItems = 'center';
+							
+							// Avatar container
+							let avatarContainer = document.createElement('div');
+							friendItem.appendChild(avatarContainer);
+							avatarContainer.style.width = '20px';
+							avatarContainer.style.height = '20px';
+							avatarContainer.style.marginRight = '5px';
+							avatarContainer.style.borderRadius = '3px';
+							avatarContainer.style.border = '1px solid #c0c0c0';
+							avatarContainer.style.overflow = 'hidden';
+							avatarContainer.style.display = 'flex';
+							avatarContainer.style.justifyContent = 'center';
+							avatarContainer.style.alignItems = 'center';
 
-				sampleFriends.forEach(friend => {
-					createFriendElement(friend);
+							// Avatar image inside container
+							let avatarImage = document.createElement('img');
+							avatarContainer.appendChild(avatarImage);
+							avatarImage.src = friend.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg";
+							avatarImage.style.width = '100%';
+							avatarImage.style.height = '100%';
+							avatarImage.style.objectFit = 'cover';
+							
+							// Content container for text
+							let contentContainer = document.createElement('div');
+							friendItem.appendChild(contentContainer);
+							contentContainer.style.flex = '1';
+							contentContainer.style.maxWidth = 'calc(100% - 60px)';
+							
+							let nameText = document.createElement('div');
+							contentContainer.appendChild(nameText);
+							nameText.style.overflow = 'hidden';
+							nameText.style.textOverflow = 'ellipsis';
+							nameText.style.whiteSpace = 'nowrap';
+							nameText.style.fontSize = '10px';
+							nameText.style.fontWeight = 'bold';
+							nameText.textContent = friend.username;
+							
+							let statusText = document.createElement('div');
+							contentContainer.appendChild(statusText);
+							statusText.textContent = friend.is_online ? 'Online' : 'Offline';
+							statusText.style.color = friend.is_online ? '#008800' : '#888888';
+							statusText.style.fontSize = '9px';
+							
+							// Add "View Profile" button
+							let viewButton = document.createElement('div');
+							friendItem.appendChild(viewButton);
+							viewButton.textContent = 'View';
+							viewButton.style.width = '30px';
+							viewButton.style.height = '16px';
+							viewButton.style.lineHeight = '16px';
+							viewButton.style.fontSize = '9px';
+							viewButton.style.marginLeft = '5px';
+							viewButton.style.border = '1px solid #a0a0a0';
+							viewButton.style.borderRadius = '2px';
+							viewButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+							viewButton.style.cursor = 'pointer';
+							viewButton.style.textAlign = 'center';
+							viewButton.style.userSelect = 'none';
+							viewButton.style.marginLeft = 'auto';
+
+							viewButton.addEventListener('mouseenter', () => {
+								viewButton.style.backgroundImage = 'linear-gradient(#f5f5f5, #e5e5e5)';
+							});
+
+							viewButton.addEventListener('mouseleave', () => {
+								viewButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+							});
+
+							viewButton.addEventListener('click', () => {
+								const friendsTab = document.getElementById('social-app-Friends-tab');
+								if (friendsTab) {
+									friendsTab.click();
+								}
+							});
+						});
+						
+						// Show "see more" message if there are more than 3 friends
+						if (friends.length > 3) {
+							let seeMoreItem = document.createElement('div');
+							recentFriendsList?.appendChild(seeMoreItem);
+							seeMoreItem.style.padding = '5px';
+							seeMoreItem.style.textAlign = 'center';
+							seeMoreItem.style.fontSize = '10px';
+							seeMoreItem.style.color = '#555';
+							seeMoreItem.style.fontStyle = 'italic';
+							seeMoreItem.style.cursor = 'pointer';
+							seeMoreItem.textContent = `View all ${friends.length} friends on the Friends tab`;
+							
+							seeMoreItem.addEventListener('mouseenter', () => {
+								seeMoreItem.style.textDecoration = 'underline';
+								seeMoreItem.style.color = '#003399';
+							});
+							
+							seeMoreItem.addEventListener('mouseleave', () => {
+								seeMoreItem.style.textDecoration = 'none';
+								seeMoreItem.style.color = '#555';
+							});
+							
+							seeMoreItem.addEventListener('click', () => {
+								const friendsTab = document.getElementById('social-app-Friends-tab');
+								if (friendsTab) {
+									friendsTab.click();
+								}
+							});
+						}
+						
+					} catch (error) {
+						console.error('Failed to fetch recent friends:', error);
+						
+						// Show error message
+						const recentFriendsList = document.getElementById('recent-friends-list');
+						if (recentFriendsList) {
+							recentFriendsList.innerHTML = '';
+							
+							let errorMessage = document.createElement('div');
+							recentFriendsList.appendChild(errorMessage);
+							errorMessage.textContent = 'Failed to load friends list. Please try again.';
+							errorMessage.style.padding = '10px';
+							errorMessage.style.textAlign = 'center';
+							errorMessage.style.color = '#cc0000';
+							errorMessage.style.fontSize = '11px';
+						}
+					}
+				};
+
+				// Load recent friends when the page initializes
+				fetchRecentFriends();
+				// Add a refresh button for the recent friends list
+				let refreshFriendsContainer = document.createElement('div');
+				recentFriendsContainer.insertBefore(refreshFriendsContainer, recentFriendsList);
+				refreshFriendsContainer.style.display = 'flex';
+				refreshFriendsContainer.style.justifyContent = 'flex-end';
+				refreshFriendsContainer.style.padding = '5px';
+				refreshFriendsContainer.style.borderBottom = '1px solid #e0e0e0';
+
+				let refreshFriendsButton = document.createElement('div');
+				refreshFriendsContainer.appendChild(refreshFriendsButton);
+				refreshFriendsButton.textContent = '🔄 Refresh';
+				refreshFriendsButton.id = 'socialapp-recentfriend-refresh-button';
+				refreshFriendsButton.style.fontSize = '10px';
+				refreshFriendsButton.style.padding = '2px 6px';
+				refreshFriendsButton.style.border = '1px solid #a0a0a0';
+				refreshFriendsButton.style.borderRadius = '2px';
+				refreshFriendsButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+				refreshFriendsButton.style.cursor = 'pointer';
+				refreshFriendsButton.setAttribute('role', 'button');
+				refreshFriendsButton.setAttribute('tabindex', '0');
+
+				refreshFriendsButton.addEventListener('mouseenter', () => {
+					refreshFriendsButton.style.backgroundImage = 'linear-gradient(#f5f5f5, #e5e5e5)';
+				});
+
+				refreshFriendsButton.addEventListener('mouseleave', () => {
+					refreshFriendsButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+				});
+
+				refreshFriendsButton.addEventListener('click', () => {
+					// Visual feedback during refresh
+					refreshFriendsButton.textContent = '⌛ Loading...';
+					refreshFriendsButton.style.backgroundImage = 'linear-gradient(#e0e0e0, #d0d0d0)';
+					refreshFriendsButton.style.cursor = 'wait';
+					
+					// Fetch friends data
+					fetchRecentFriends().finally(() => {
+						// Reset button state after fetch completes
+						refreshFriendsButton.textContent = '🔄 Refresh';
+						refreshFriendsButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+						refreshFriendsButton.style.cursor = 'pointer';
+					});
 				});
 			}
 			let profileContent = createCategorieContainer('profile', contentContainer);
@@ -533,6 +866,37 @@ if (!userToken || isNaN(userId))
 				});
 				// API CALL NEEDED: Handle profile edit
 
+				// Fetch user profile data
+				const fetchUserProfile = async () => {
+					try {
+						const userToken = sessionStorage.getItem("wxp_token");
+						const userId = sessionStorage.getItem("wxp_user_id");
+						
+						if (!userToken || !userId) {
+							console.error("User token or ID not found");
+							return;
+						}
+						
+						// Fetch user profile using the getUserById API
+						const userData = await getUserById(Number(userId));
+						
+						// Update the UI with user data
+						const userNameText = document.querySelector('.user-name-text') as HTMLElement;
+						const avatarPreview = document.querySelector('.avatar-preview') as HTMLImageElement;
+						
+						if (userNameText) {
+							userNameText.textContent = userData.username || 'Unknown User';
+						}
+						
+						if (avatarPreview && userData.avatar) {
+							avatarPreview.src = userData.avatar;
+						}
+						
+					} catch (error) {
+						console.error("Failed to fetch user profile:", error);
+					}
+				};
+
 				// Friends statistics section
 				let friendsStatsContainer = document.createElement('div');
 				profileContent.appendChild(friendsStatsContainer);
@@ -572,11 +936,10 @@ if (!userToken || isNaN(userId))
 
 				let friendsCountValue = document.createElement('span');
 				friendsCountContainer.appendChild(friendsCountValue);
-				friendsCountValue.textContent = '0'; // Placeholder
+				friendsCountValue.textContent = 'Loading...'; // Show loading initially
 				friendsCountValue.style.fontSize = '11px';
-				// API CALL NEEDED: Get total friends count
 
-				// Recently added friends
+				// Recently added friends title
 				let recentFriendsTitle = document.createElement('div');
 				friendsStatsContainer.appendChild(recentFriendsTitle);
 				recentFriendsTitle.textContent = 'Recently Added:';
@@ -584,49 +947,127 @@ if (!userToken || isNaN(userId))
 				recentFriendsTitle.style.fontWeight = 'bold';
 				recentFriendsTitle.style.padding = '5px';
 
+				// Create container for recent friends list
 				let recentFriendsList = document.createElement('div');
 				friendsStatsContainer.appendChild(recentFriendsList);
+				recentFriendsList.id = 'profile-recent-friends-list';
 				recentFriendsList.style.maxHeight = '120px';
 				recentFriendsList.style.overflowY = 'auto';
+				recentFriendsList.innerHTML = '<div style="text-align:center;color:#888;font-size:10px;padding:5px;">Loading recent friends...</div>';
 
-				// API CALL NEEDED: Get recently added friends
-				// Displaying placeholder recent friends
-				let sampleRecentFriends = [
-					{ name: 'David Brown', avatar: '#ffcc99', addedDate: '2 days ago' },
-					{ name: 'Emma Wilson', avatar: '#cc99ff', addedDate: '1 week ago' }
-				];
+				// Function to fetch and display friend statistics
+				const fetchFriendStatistics = async () => {
+					try {
+						const userToken = sessionStorage.getItem("wxp_token");
+						if (!userToken) {
+							console.error("User token not found");
+							return;
+						}
+						
+						// Get friends list using the API
+						const friendsData = await getUserFriendsDetails(userToken);
+						
+						// Update total count
+						friendsCountValue.textContent = friendsData.length.toString();
+						
+						// Clear the loading message
+						recentFriendsList.innerHTML = '';
+						
+						// If no friends, show a message
+						if (friendsData.length === 0) {
+							recentFriendsList.innerHTML = '<div style="text-align:center;color:#888;font-size:10px;padding:5px;">No friends added yet</div>';
+							return;
+						}
+						
+						// Sort by most recently added (if available) or just take first 3
+						const recentFriends = friendsData.slice(0, 3);
+						
+						// Display recent friends
+						recentFriends.forEach(friend => {
+							let friendItem = document.createElement('div');
+							recentFriendsList.appendChild(friendItem);
+							friendItem.style.display = 'flex';
+							friendItem.style.alignItems = 'center';
+							friendItem.style.padding = '5px';
+							friendItem.style.borderBottom = '1px solid #e0e0e0';
+							
+							// Friend avatar container
+							let friendAvatarContainer = document.createElement('div');
+							friendItem.appendChild(friendAvatarContainer);
+							friendAvatarContainer.style.width = '16px';
+							friendAvatarContainer.style.height = '16px';
+							friendAvatarContainer.style.marginRight = '5px';
+							friendAvatarContainer.style.border = '1px solid #c0c0c0';
+							friendAvatarContainer.style.borderRadius = '2px';
+							friendAvatarContainer.style.overflow = 'hidden';
+							
+							// Avatar image
+							let friendAvatarImg = document.createElement('img');
+							friendAvatarContainer.appendChild(friendAvatarImg);
+							friendAvatarImg.src = friend.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg";
+							friendAvatarImg.style.width = '100%';
+							friendAvatarImg.style.height = '100%';
+							friendAvatarImg.style.objectFit = 'cover';
+							
+							let friendInfo = document.createElement('div');
+							friendItem.appendChild(friendInfo);
+							
+							let friendName = document.createElement('div');
+							friendInfo.appendChild(friendName);
+							friendName.textContent = friend.username;
+							friendName.style.fontSize = '10px';
+							friendName.style.fontWeight = 'bold';
+							
+							let statusInfo = document.createElement('div');
+							friendInfo.appendChild(statusInfo);
+							statusInfo.textContent = friend.is_online ? 'Online' : 'Offline';
+							statusInfo.style.fontSize = '9px';
+							statusInfo.style.color = friend.is_online ? '#008800' : '#888888';
+						});
+					} catch (error) {
+						console.error("Failed to fetch friend statistics:", error);
+						friendsCountValue.textContent = "Error";
+						recentFriendsList.innerHTML = '<div style="text-align:center;color:red;font-size:10px;padding:5px;">Failed to load friends</div>';
+					}
+				};
 
-				sampleRecentFriends.forEach(friend => {
-					let friendItem = document.createElement('div');
-					recentFriendsList.appendChild(friendItem);
-					friendItem.style.display = 'flex';
-					friendItem.style.alignItems = 'center';
-					friendItem.style.padding = '5px';
-					friendItem.style.borderBottom = '1px solid #e0e0e0';
+				// Call the functions to load profile data
+				fetchUserProfile();
+				fetchFriendStatistics();
+
+				// Add refresh button for statistics
+				let refreshStatsButton = document.createElement('div');
+				friendsStatsContainer.insertBefore(refreshStatsButton, recentFriendsTitle);
+				refreshStatsButton.id = 'socialapp-refresh-profilestats-button';
+				refreshStatsButton.textContent = '🔄 Refresh Stats';
+				refreshStatsButton.style.fontSize = '10px';
+				refreshStatsButton.style.padding = '2px 6px';
+				refreshStatsButton.style.margin = '5px 0';
+				refreshStatsButton.style.border = '1px solid #a0a0a0';
+				refreshStatsButton.style.borderRadius = '2px';
+				refreshStatsButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+				refreshStatsButton.style.cursor = 'pointer';
+				refreshStatsButton.style.width = 'fit-content';
+				refreshStatsButton.style.alignSelf = 'flex-end';
+
+				refreshStatsButton.addEventListener('mouseenter', () => {
+					refreshStatsButton.style.backgroundImage = 'linear-gradient(#f5f5f5, #e5e5e5)';
+				});
+
+				refreshStatsButton.addEventListener('mouseleave', () => {
+					refreshStatsButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+				});
+
+				refreshStatsButton.addEventListener('click', () => {
+					refreshStatsButton.textContent = '⌛ Refreshing...';
+					refreshStatsButton.style.cursor = 'wait';
 					
-					let friendAvatar = document.createElement('div');
-					friendItem.appendChild(friendAvatar);
-					friendAvatar.style.width = '16px';
-					friendAvatar.style.height = '16px';
-					friendAvatar.style.backgroundColor = friend.avatar;
-					friendAvatar.style.marginRight = '5px';
-					friendAvatar.style.border = '1px solid #c0c0c0';
-					friendAvatar.style.borderRadius = '2px';
-					
-					let friendInfo = document.createElement('div');
-					friendItem.appendChild(friendInfo);
-					
-					let friendName = document.createElement('div');
-					friendInfo.appendChild(friendName);
-					friendName.textContent = friend.name;
-					friendName.style.fontSize = '10px';
-					friendName.style.fontWeight = 'bold';
-					
-					let addedDate = document.createElement('div');
-					friendInfo.appendChild(addedDate);
-					addedDate.textContent = `Added ${friend.addedDate}`;
-					addedDate.style.fontSize = '9px';
-					addedDate.style.color = '#888888';
+					// Refresh data
+					Promise.all([fetchUserProfile(), fetchFriendStatistics()])
+						.finally(() => {
+							refreshStatsButton.textContent = '🔄 Refresh Stats';
+							refreshStatsButton.style.cursor = 'pointer';
+						});
 				});
 			}
 			let friendsContent = createCategorieContainer('friends', contentContainer);
@@ -703,7 +1144,6 @@ if (!userToken || isNaN(userId))
 					searchButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
 				});
 				searchButton.addEventListener('click', () => {
-					// API CALL NEEDED: Search friends by name using searchInput.value
 					filterFriendsList(searchInput.value, currentFilter);
 				});
 
@@ -751,13 +1191,12 @@ if (!userToken || isNaN(userId))
 						currentFilter = filterValue;
 						// Update active button styles
 						Array.from(filterContainer.children).forEach(child => {
-							if (child instanceof HTMLButtonElement) {
+							if (child instanceof HTMLElement && child !== filterLabel) {
 								child.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
 							}
 						});
 						button.style.backgroundImage = 'linear-gradient(#d0d0d0, #c0c0c0)';
 						
-						// API CALL NEEDED: Get friends sorted by specified filter
 						filterFriendsList(searchInput.value, currentFilter);
 					});
 					
@@ -812,7 +1251,6 @@ if (!userToken || isNaN(userId))
 				friendsListContainer.appendChild(friendsList);
 				friendsList.id = 'friends-list';
 				friendsList.style.flex = '1';
-				// friendsList.style.overflowY = 'scroll';
 				friendsList.style.padding = '2px';
 
 				// Function to create a friend element in the list
@@ -838,10 +1276,18 @@ if (!userToken || isNaN(userId))
 					friendItem.appendChild(avatar);
 					avatar.style.width = '24px';
 					avatar.style.height = '24px';
-					avatar.style.backgroundColor = friend.avatar;
 					avatar.style.borderRadius = '3px';
 					avatar.style.marginRight = '8px';
 					avatar.style.border = '1px solid #c0c0c0';
+					avatar.style.overflow = 'hidden';
+					
+					// Avatar image
+					let avatarImg = document.createElement('img');
+					avatar.appendChild(avatarImg);
+					avatarImg.src = friend.avatar;
+					avatarImg.style.width = '100%';
+					avatarImg.style.height = '100%';
+					avatarImg.style.objectFit = 'cover';
 					
 					// Friend information
 					let infoContainer = document.createElement('div');
@@ -895,70 +1341,163 @@ if (!userToken || isNaN(userId))
 					removeButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
 					removeButton.style.cursor = 'pointer';
 					
-					removeButton.addEventListener('click', (e) => {
+					removeButton.addEventListener('click', async (e) => {
 						e.stopPropagation();
 						if (confirm(`Are you sure you want to remove ${friend.name} from your friends?`)) {
-							// API CALL NEEDED: Remove friend
-							friendItem.remove();
-							// Update friends count
-							updateFriendsCount();
+							try {
+								const userToken = sessionStorage.getItem("wxp_token");
+								if (!userToken) {
+									console.error("User token not found");
+									return;
+								}
+								
+								await removeFriend(userToken, friend.name);
+
+								// If API call is successful, remove from UI and update count
+								friendItem.remove();
+								updateFriendsCount();
+							} catch (error) {
+								console.error('Failed to remove friend:', error);
+								alert('Failed to remove friend. Please try again.');
+							}
 						}
 					});
 					
 					return friendItem;
-				}
+				};
 
 				// Function to filter friends list based on search term and sort filter
-				const filterFriendsList = (searchTerm: string, sortBy: string) => {
-					// Clear current list
-					friendsList.innerHTML = '';
-					
-					// API CALL NEEDED: Get friends filtered by search term and sorted by sortBy
-					// For now, use sample data
-					let filteredFriends = sampleFriends.filter(friend => 
-						friend.name.toLowerCase().includes(searchTerm.toLowerCase())
-					);
-					
-					// Sort based on current filter
-					if (sortBy === 'name') {
-						filteredFriends.sort((a, b) => a.name.localeCompare(b.name));
-					} else if (sortBy === 'date') {
-						// For demo purposes just reverse the array
-						filteredFriends.reverse();
-					} else if (sortBy === 'status') {
-						filteredFriends.sort((a, b) => {
-							if (a.status === 'online' && b.status !== 'online') return -1;
-							if (a.status !== 'online' && b.status === 'online') return 1;
-							return 0;
+				const filterFriendsList = async (searchTerm: string, sortBy: string) => {
+					try {
+						// Clear current list
+						friendsList.innerHTML = '';
+						
+						// Show loading state
+						friendsCountDisplay.textContent = 'Loading friends...';
+						
+						const userToken = sessionStorage.getItem("wxp_token");
+						if (!userToken) {
+							console.error("User token not found");
+							friendsCountDisplay.textContent = 'Error: User not logged in';
+							return;
+						}
+						
+						// Fetch all friends
+						const allFriends = await getUserFriendsDetails(userToken);
+						
+						// Filter by search term
+						let filteredFriends = allFriends;
+						if (searchTerm) {
+							filteredFriends = allFriends.filter(friend => 
+								friend.username.toLowerCase().includes(searchTerm.toLowerCase())
+							);
+						}
+						
+						// Sort based on current filter
+						if (sortBy === 'name') {
+							filteredFriends.sort((a, b) => a.username.localeCompare(b.username));
+						} else if (sortBy === 'date') {
+							// API doesn't provide date info, so maintain order as returned
+							// This would ideally use creation_date or similar if available
+						} else if (sortBy === 'status') {
+							filteredFriends.sort((a, b) => {
+								if (a.is_online && !b.is_online) return -1;
+								if (!a.is_online && b.is_online) return 1;
+								return 0;
+							});
+						}
+						
+						// Create friend items for filtered list
+						filteredFriends.forEach(friend => {
+							const friendItem = {
+								id: friend.id?.toString() || 'unknown',
+								name: friend.username,
+								avatar: friend.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg",
+								status: friend.is_online ? 'online' : 'offline',
+								addedDate: 'N/A' // API doesn't provide this info
+							};
+							createFriendListItem(friendItem);
 						});
+						
+						// Update count display
+						updateFriendsCount(filteredFriends.length);
+						
+					} catch (error) {
+						console.error('Failed to filter friends list:', error);
+						friendsList.innerHTML = '<div style="padding:10px;color:red;font-size:11px;text-align:center;">Failed to load friends. Please try again.</div>';
+						friendsCountDisplay.textContent = 'Error loading friends';
 					}
-					
-					// Create friend items for filtered list
-					filteredFriends.forEach(friend => {
-						createFriendListItem(friend);
-					});
-					
-					// Update count display
-					updateFriendsCount(filteredFriends.length);
 				};
 
 				// Function to update friends count display
 				const updateFriendsCount = (count?: number) => {
-					// API CALL NEEDED: Get total friends count if count not provided
-					friendsCountDisplay.textContent = `Total Friends: ${count !== undefined ? count : sampleFriends.length}`;
+					if (count !== undefined) {
+						friendsCountDisplay.textContent = `Total Friends: ${count}`;
+					} else {
+						const userToken = sessionStorage.getItem("wxp_token");
+						if (userToken) {
+							getUserFriendsDetails(userToken)
+								.then(friends => {
+									friendsCountDisplay.textContent = `Total Friends: ${friends.length}`;
+								})
+								.catch(error => {
+									console.error('Failed to get friends count:', error);
+									friendsCountDisplay.textContent = 'Failed to load count';
+								});
+						} else {
+							friendsCountDisplay.textContent = 'User not logged in';
+						}
+					}
 				};
-
-				// Sample friends data for demonstration
-				const sampleFriends = [
-					{ id: '1', name: 'Alice Cooper', avatar: '#ff9999', status: 'online', addedDate: '2023-01-15' },
-					{ id: '2', name: 'Bob Smith', avatar: '#99ccff', status: 'offline', addedDate: '2023-02-20' },
-					{ id: '3', name: 'Charlie Davis', avatar: '#99ff99', status: 'online', addedDate: '2023-03-10' },
-					{ id: '4', name: 'David Jones', avatar: '#ffcc99', status: 'offline', addedDate: '2023-04-05' },
-					{ id: '5', name: 'Eve Williams', avatar: '#cc99ff', status: 'online', addedDate: '2023-05-12' }
-				];
 
 				// Initial load of friends list
 				filterFriendsList('', currentFilter);
+				// Add refresh button above friends list
+				let refreshFriendsButtonContainer = document.createElement('div');
+				friendsListContainer.insertBefore(refreshFriendsButtonContainer, friendsCountDisplay);
+				refreshFriendsButtonContainer.style.display = 'flex';
+				refreshFriendsButtonContainer.style.justifyContent = 'flex-end';
+				refreshFriendsButtonContainer.style.padding = '5px';
+				refreshFriendsButtonContainer.style.borderBottom = '1px solid #e0e0e0';
+
+				let refreshFriendsListButton = document.createElement('div');
+				refreshFriendsButtonContainer.appendChild(refreshFriendsListButton);
+				refreshFriendsListButton.textContent = '🔄 Refresh List';
+				refreshFriendsListButton.id = 'friends-refresh-button';
+				refreshFriendsListButton.style.fontSize = '10px';
+				refreshFriendsListButton.style.padding = '2px 6px';
+				refreshFriendsListButton.style.border = '1px solid #a0a0a0';
+				refreshFriendsListButton.style.borderRadius = '2px';
+				refreshFriendsListButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+				refreshFriendsListButton.style.cursor = 'pointer';
+				refreshFriendsListButton.setAttribute('role', 'button');
+				refreshFriendsListButton.setAttribute('tabindex', '0');
+
+				refreshFriendsListButton.addEventListener('mouseenter', () => {
+					refreshFriendsListButton.style.backgroundImage = 'linear-gradient(#f5f5f5, #e5e5e5)';
+				});
+
+				refreshFriendsListButton.addEventListener('mouseleave', () => {
+					refreshFriendsListButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+				});
+
+				refreshFriendsListButton.addEventListener('click', () => {
+					// Visual feedback during refresh
+					refreshFriendsListButton.textContent = '⌛ Refreshing...';
+					refreshFriendsListButton.style.backgroundImage = 'linear-gradient(#e0e0e0, #d0d0d0)';
+					refreshFriendsListButton.style.cursor = 'wait';
+					
+					// Reset search input and refresh list
+					searchInput.value = '';
+					
+					// Fetch friends data with current filter
+					filterFriendsList('', currentFilter).finally(() => {
+						// Reset button state after fetch completes
+						refreshFriendsListButton.textContent = '🔄 Refresh List';
+						refreshFriendsListButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+						refreshFriendsListButton.style.cursor = 'pointer';
+					});
+				});
 			}
 			let requestsContent = createCategorieContainer('requests', contentContainer);
 			{
@@ -1069,93 +1608,145 @@ if (!userToken || isNaN(userId))
 					if (!searchUserInput.value.trim()) {
 						return;
 					}
-					
 					// Set new timeout
-					searchTimeout = setTimeout(() => {
-						// API CALL NEEDED: Search for user by username
+					searchTimeout = setTimeout(async () => {
 						const username = searchUserInput.value.trim();
-						searchUser(username);
-					}, 500); // Wait for 500ms of inactivity
-				});
-
-				// Function to search for a user
-				const searchUser = (username: string) => {
-					// Clear previous results
-					searchResultsContainer.innerHTML = '';
-					
-					// API CALL NEEDED: Search for user by username
-					
-					// Simulate API response
-					setTimeout(() => {
-						// For demo, randomly decide if user exists
-						const userExists = username.length > 3;
 						
-						if (userExists) {
-							currentSearchResult = {
-								id: 'user123',
-								username: username,
-								avatar: '#' + Math.floor(Math.random()*16777215).toString(16) // Random color
-							};
-							showUserFound(currentSearchResult);
-						} else {
-							showUserNotFound();
-						}
-					}, 500);
-				}
+						// Show a loading indicator
+						searchResultsContainer.style.display = 'block';
+						searchResultsContainer.innerHTML = '<div style="text-align:center;font-size:11px;color:#555;">Searching...</div>';
+						
+						// Call the real search function
+						await searchUser(username);
+					}, 500); // Wait for 500ms of inactivity
+					});
 
-				// Function to display user found
-				const showUserFound = (user: { id: string, username: string, avatar: string }) => {
-					searchResultsContainer.style.display = 'flex';
-					searchResultsContainer.style.alignItems = 'center';
-					searchResultsContainer.style.padding = '5px';
-					searchResultsContainer.style.border = '1px solid #d0d0d0';
-					searchResultsContainer.style.backgroundColor = '#f8f8f8';
-					searchResultsContainer.style.borderRadius = '3px';
-					
-					// User avatar
-					let userAvatar = document.createElement('div');
-					searchResultsContainer.appendChild(userAvatar);
-					userAvatar.style.width = '20px';
-					userAvatar.style.height = '20px';
-					userAvatar.style.backgroundColor = user.avatar;
-					userAvatar.style.borderRadius = '3px';
-					userAvatar.style.marginRight = '5px';
-					userAvatar.style.border = '1px solid #c0c0c0';
-					
-					// User info
-					let userInfo = document.createElement('div');
-					searchResultsContainer.appendChild(userInfo);
-					userInfo.textContent = user.username;
-					userInfo.style.flex = '1';
-					userInfo.style.fontSize = '11px';
-					
-					// Status indicator
-					let statusIndicator = document.createElement('div');
-					searchResultsContainer.appendChild(statusIndicator);
-					statusIndicator.innerHTML = '✓';
-					statusIndicator.style.color = 'green';
-					statusIndicator.style.fontWeight = 'bold';
-					statusIndicator.style.marginLeft = '5px';
-					
-					// Activate send request button
-					sendRequestButton.setAttribute('data-disabled', 'false');
-					sendRequestButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
-					sendRequestButton.style.color = '#000000';
-					sendRequestButton.style.cursor = 'pointer';
-					
-					// Add hover effects to button
-					sendRequestButton.onmouseenter = () => {
-						if (sendRequestButton.getAttribute('data-disabled') === 'false') {
-							sendRequestButton.style.backgroundImage = 'linear-gradient(#f5f5f5, #e5e5e5)';
+					// Function to search for a user
+					const searchUser = async (username: string) => {
+						// Clear previous results
+						searchResultsContainer.innerHTML = '';
+						
+						if (!username || username.length < 3) {
+							showUserNotFound();
+							return;
+						}
+						
+						try {
+							// Get user token
+							if (!userToken) {
+								console.error("User token not found");
+								return;
+							}
+
+							// Show loading indicator
+							searchResultsContainer.style.display = 'block';
+							searchResultsContainer.textContent = 'Searching for users...';
+							
+							// Get our own id to avoid displaying ourselves in search results
+							const currentUserId = sessionStorage.getItem("wxp_user_id");
+							
+							// Call getAllUsers and await its promise to resolve
+							const allUsers = await getAllUsers();
+							
+							if (!Array.isArray(allUsers)) {
+								console.error('Invalid response format from getAllUsers');
+								throw new Error('Invalid user data received');
+							}
+							
+							// Filter users to find matches with the searched username
+							const matchedUser = allUsers.find(user => 
+								user.username?.toLowerCase() === username.toLowerCase() && 
+								user.id !== parseInt(currentUserId || '0')
+							);
+							
+							if (matchedUser) {
+								currentSearchResult = {
+									id: matchedUser.id?.toString() || '',
+									username: matchedUser.username || '',
+									avatar: matchedUser.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg"
+								};
+								showUserFound(currentSearchResult);
+							} else {
+								showUserNotFound();
+							}
+						} catch (error) {
+							console.error('Error searching for user:', error);
+							searchResultsContainer.innerHTML = '';
+							searchResultsContainer.style.display = 'block';
+							searchResultsContainer.style.padding = '5px';
+							searchResultsContainer.style.border = '1px solid #ffcccc';
+							searchResultsContainer.style.backgroundColor = '#fff8f8';
+							searchResultsContainer.style.borderRadius = '3px';
+							searchResultsContainer.style.color = '#cc0000';
+							searchResultsContainer.style.fontSize = '11px';
+							searchResultsContainer.textContent = 'Error searching for user. Please try again.';
 						}
 					};
-					
-					sendRequestButton.onmouseleave = () => {
-						if (sendRequestButton.getAttribute('data-disabled') === 'false') {
-							sendRequestButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
-						}
-					};
-				}
+
+					// Function to display user found
+					const showUserFound = (user: { id: string, username: string, avatar: string }) => {
+						searchResultsContainer.style.display = 'flex';
+						searchResultsContainer.style.alignItems = 'center';
+						searchResultsContainer.style.padding = '5px';
+						searchResultsContainer.style.border = '1px solid #d0d0d0';
+						searchResultsContainer.style.backgroundColor = '#f8f8f8';
+						searchResultsContainer.style.borderRadius = '3px';
+						
+						// User avatar container
+						let userAvatarContainer = document.createElement('div');
+						searchResultsContainer.appendChild(userAvatarContainer);
+						userAvatarContainer.style.width = '20px';
+						userAvatarContainer.style.height = '20px';
+						userAvatarContainer.style.borderRadius = '3px';
+						userAvatarContainer.style.marginRight = '5px';
+						userAvatarContainer.style.border = '1px solid #c0c0c0';
+						userAvatarContainer.style.overflow = 'hidden';
+						userAvatarContainer.style.display = 'flex';
+						userAvatarContainer.style.justifyContent = 'center';
+						userAvatarContainer.style.alignItems = 'center';
+						
+						// Add avatar image
+						let avatarImg = document.createElement('img');
+						userAvatarContainer.appendChild(avatarImg);
+						avatarImg.src = user.avatar;
+						avatarImg.style.width = '100%';
+						avatarImg.style.height = '100%';
+						avatarImg.style.objectFit = 'cover';
+						
+						// User info
+						let userInfo = document.createElement('div');
+						searchResultsContainer.appendChild(userInfo);
+						userInfo.textContent = user.username;
+						userInfo.style.flex = '1';
+						userInfo.style.fontSize = '11px';
+						
+						// Status indicator
+						let statusIndicator = document.createElement('div');
+						searchResultsContainer.appendChild(statusIndicator);
+						statusIndicator.innerHTML = '✓';
+						statusIndicator.style.color = 'green';
+						statusIndicator.style.fontWeight = 'bold';
+						statusIndicator.style.marginLeft = '5px';
+						
+						// Activate send request button
+						sendRequestButton.setAttribute('data-disabled', 'false');
+						sendRequestButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+						sendRequestButton.style.color = '#000000';
+						sendRequestButton.style.cursor = 'pointer';
+						
+						// Add hover effects to button
+						sendRequestButton.onmouseenter = () => {
+							if (sendRequestButton.getAttribute('data-disabled') === 'false') {
+								sendRequestButton.style.backgroundImage = 'linear-gradient(#f5f5f5, #e5e5e5)';
+							}
+						};
+						
+						sendRequestButton.onmouseleave = () => {
+							if (sendRequestButton.getAttribute('data-disabled') === 'false') {
+								sendRequestButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+							}
+						};
+					}
 
 				// Function to show user not found
 				const showUserNotFound = () => {
@@ -1174,7 +1765,6 @@ if (!userToken || isNaN(userId))
 				// Send friend request button click handler
 				sendRequestButton.addEventListener('click', () => {
 					if (currentSearchResult && sendRequestButton.getAttribute('data-disabled') === 'false') {
-						// API CALL NEEDED: Send friend request
 						if (userToken) {
 							sendFriendRequest(userToken, currentSearchResult.username);
 							console.log(`Friend request sent to ${currentSearchResult.username}`);
@@ -1303,7 +1893,7 @@ if (!userToken || isNaN(userId))
 					
 					try {
 						// Use the new function to fetch formatted pending requests
-						let pendingRequests: { id: string, username: string, avatar: string, time: string }[] = [];
+						let pendingRequests: { id: string, username: string, avatar: string, is_online: boolean }[] = [];
 						
 						if (userToken) {
 							pendingRequests = await fetchFormattedPendingRequests(userToken);
@@ -1352,7 +1942,7 @@ if (!userToken || isNaN(userId))
 				requestsList.style.maxHeight = '200px';
 
 				// Function to create request item
-				const createRequestItem = (request: { id: string, username: string, avatar: string, time: string }): HTMLElement => {
+				const createRequestItem = (request: { id: string, username: string, avatar: string, is_online: boolean }): HTMLElement => {
 					let requestItem = document.createElement('div');
 					requestsList.appendChild(requestItem);
 					requestItem.id = 'socialapp-request-item-' + request.id;
@@ -1361,20 +1951,32 @@ if (!userToken || isNaN(userId))
 					requestItem.style.padding = '8px 5px';
 					requestItem.style.borderBottom = '1px solid #e0e0e0';
 					
-					// User avatar
+					// User avatar container
 					let userAvatar = document.createElement('div');
 					requestItem.appendChild(userAvatar);
 					userAvatar.style.width = '24px';
 					userAvatar.style.height = '24px';
-					userAvatar.style.backgroundColor = request.avatar;
 					userAvatar.style.borderRadius = '3px';
 					userAvatar.style.marginRight = '8px';
 					userAvatar.style.border = '1px solid #c0c0c0';
+					userAvatar.style.overflow = 'hidden';
+					userAvatar.style.display = 'flex';
+					userAvatar.style.justifyContent = 'center';
+					userAvatar.style.alignItems = 'center';
+
+					// Avatar image inside container
+					let avatarImage = document.createElement('img');
+					userAvatar.appendChild(avatarImage);
+					avatarImage.style.width = '100%';
+					avatarImage.style.height = '100%';
+					avatarImage.style.objectFit = 'cover';
+					avatarImage.src = request.avatar; // Use avatar URL from request
 					
 					// User info container
 					let userInfo = document.createElement('div');
 					requestItem.appendChild(userInfo);
 					userInfo.style.flex = '1';
+					userInfo.style.maxWidth = 'calc(100% - 105px)';
 					
 					// Username
 					let username = document.createElement('div');
@@ -1382,13 +1984,30 @@ if (!userToken || isNaN(userId))
 					username.textContent = request.username;
 					username.style.fontSize = '11px';
 					username.style.fontWeight = 'bold';
+					username.style.overflow = 'hidden';
+					username.style.textOverflow = 'ellipsis';
+					username.style.whiteSpace = 'nowrap';
+					username.style.maxWidth = 'calc(100% - 5px)'; // Adjust for avatar and buttons
 					
-					// Request time
-					let requestTime = document.createElement('div');
-					userInfo.appendChild(requestTime);
-					requestTime.textContent = request.time;
-					requestTime.style.fontSize = '9px';
-					requestTime.style.color = '#888888';
+					// Online status
+					let statusInfo = document.createElement('div');
+					userInfo.appendChild(statusInfo);
+					statusInfo.style.display = 'flex';
+					statusInfo.style.alignItems = 'center';
+					
+					let statusDot = document.createElement('span');
+					statusInfo.appendChild(statusDot);
+					statusDot.style.width = '6px';
+					statusDot.style.height = '6px';
+					statusDot.style.borderRadius = '50%';
+					statusDot.style.backgroundColor = request.is_online ? '#00aa00' : '#aaaaaa';
+					statusDot.style.marginRight = '3px';
+					
+					let statusText = document.createElement('span');
+					statusInfo.appendChild(statusText);
+					statusText.textContent = request.is_online ? 'Online' : 'Offline';
+					statusText.style.fontSize = '9px';
+					statusText.style.color = request.is_online ? '#008800' : '#888888';
 					
 					// Action buttons container
 					let actionButtons = document.createElement('div');
@@ -1482,6 +2101,10 @@ if (!userToken || isNaN(userId))
 					notification.style.fontWeight = 'bold';
 					notification.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
 					notification.style.zIndex = '100';
+					notification.style.maxWidth = 'calc(100% - 35px)';
+					notification.style.overflow = 'hidden';
+					notification.style.whiteSpace = 'nowrap';
+					notification.style.textOverflow = 'ellipsis';
 					
 					if (type === 'success') {
 						notification.style.backgroundColor = '#d4ffb8';
@@ -1502,7 +2125,7 @@ if (!userToken || isNaN(userId))
 				}
 
 				// Load pending requests from API
-				let pendingRequests: { id: string, username: string, avatar: string, time: string }[] = [];
+				let pendingRequests: { id: string, username: string, avatar: string, is_online: boolean }[] = [];
 				
 				if (userToken) {
 					pendingRequests = await fetchFormattedPendingRequests(userToken);
@@ -1535,18 +2158,30 @@ if (!userToken || isNaN(userId))
 				homeTab.addEventListener('click', () => {
 					setActiveTab(homeTab);
 					setActiveContent(homeContent);
+					let refreshButton = document.getElementById('socialapp-recentfriend-refresh-button');
+					if (refreshButton)
+						refreshButton.click();
 				});
 				profileTab.addEventListener('click', () => {
 					setActiveTab(profileTab);
 					setActiveContent(profileContent);
+					let refreshButton = document.getElementById('socialapp-refresh-profilestats-button');
+					if (refreshButton)
+						refreshButton.click();
 				});
 				friendsTab.addEventListener('click', () => {
 					setActiveTab(friendsTab);
 					setActiveContent(friendsContent);
+					let refreshButton = document.getElementById('friends-refresh-button');
+					if (refreshButton)
+						refreshButton.click();
 				});
 				requestsTab.addEventListener('click', () => {
 					setActiveTab(requestsTab);
 					setActiveContent(requestsContent);
+					let refreshButton = document.getElementById('socialapp-refresh-requests-button');
+					if (refreshButton)
+						refreshButton.click();
 				});
 				
 			}
@@ -1554,3 +2189,7 @@ if (!userToken || isNaN(userId))
 	}
 
 }
+function searchUsersByUsername(userToken: string, username: string) {
+	throw new Error("Function not implemented.");
+}
+
