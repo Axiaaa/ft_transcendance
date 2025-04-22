@@ -860,9 +860,7 @@ function endGame(): void {
 	const winnerText = document.getElementById("winner");
 	const isFinal = isTournament === 1 && isLastTournamentMatch;
 
-	const isRanked = isTournament === 0 && rankedSelectionContainer.style.display === "none";
-
-    if (isRanked) {
+    if (rankedMatch) {
         const player2 =  sessionStorage.getItem("second_wxp_user_id");
         const player1 =  sessionStorage.getItem("wxp_user_id");
 
@@ -885,7 +883,6 @@ function endGame(): void {
 			}),
 		});
 	}
-
 
 
 	if (winnerText && !isFinal) {
@@ -944,8 +941,9 @@ function endGame(): void {
 				document.body.appendChild(restartButton);
 			}, totalDelay);
 		}
-
+		console.log("Hello2");
 		if (!(isTournament === 1 && isFinal)) {
+			console.log("Hello1");
 			const restartButton = document.createElement("button-endgame");
 			if (isTournament === 1 && !isFinal) {
 				restartButton.textContent = "Next Match";
@@ -959,9 +957,9 @@ function endGame(): void {
 						startGame();
 					});
 				};
-			} else if (isTournament === 0) {
-				restartButton.textContent = "Restart";
-				restartButton.onclick = () => restartGame(() => startGame());
+			} else {
+				restartButton.textContent = "Home";
+				restartButton.onclick = () => location.reload();
 			}
 			document.body.appendChild(restartButton);
 		}
@@ -1396,6 +1394,7 @@ export async function getUserRanked(username: string, password: string): Promise
 	}
 }
 
+let rankedMatch = false;
 rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 	event.preventDefault();
 	if (loginInput && passwordInput) {
@@ -1419,6 +1418,7 @@ rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 				loginInput.value = "";
 				passwordInput.value = "";
 				startCountdown(startGame);
+				rankedMatch = true;
 				rankedSelectionContainer.style.display = "none";
 				menu.style.display = "none";
 			}
