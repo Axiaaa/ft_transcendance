@@ -18,14 +18,17 @@ export class Match implements IMatch {
         player1: string,
         player2: string,
         isTournament : boolean,
+        winner: string,
+        score: string,
+        created_at: Date,
         tournament_id? : number
     ) {
         this.id = 0; //Id value is only a placeholder, It'll be set in the DB
         this.player1 = player1;
         this.player2 = player2;
-        this.winner = null;
-        this.score = "0 - 0";
-        this.created_at = new Date();
+        this.winner = winner;
+        this.score = score;
+        this.created_at = created_at;
         this.is_tournament = isTournament;
         this.tournament_id = tournament_id ? tournament_id : null;
     }
@@ -142,7 +145,7 @@ export async function getMatchFromDb(id : number) : Promise<Match | null> {
 
         if (!matchRow) return null;
 
-        let match = new Match(matchRow.player1, matchRow.player2, matchRow.is_tournament ? true : false);
+        let match = new Match(matchRow.player1, matchRow.player2, matchRow.is_tournament ? true : false, matchRow.winner, matchRow.score, new Date(matchRow.created_at));
         match.id = matchRow.id;
         match.score = matchRow.score;
         match.created_at = new Date(matchRow.created_at);

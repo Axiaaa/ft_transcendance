@@ -52,10 +52,13 @@ export async function matchsRoutes(server : FastifyInstance) {
 
     server.route<{
         Body: {
-            player1: string,
-            player2: string,
-            is_tournament: boolean,
-            tournament_id?: number
+            player1?: string;
+            player2?: string;
+            winner?: string;
+            created_at?: string;
+            score?: string;
+            token1?: string;
+            token2?: string;
         }
         }>({
         method: 'POST',
@@ -64,7 +67,7 @@ export async function matchsRoutes(server : FastifyInstance) {
             rateLimit: RateLimits.matchs,
         },
         handler: async (request, reply) => {
-        const { player1, player2, is_tournament, tournament_id } = request.body;
+        const { player1, player2, winner, created_at, score, token1, token2  } = request.body;
         const u1 = await getUserFromDb( { token : player1 });
         const u2 = await getUserFromDb( { token : player2 });
         if (u1 == null || u2 == null) {
@@ -75,80 +78,28 @@ export async function matchsRoutes(server : FastifyInstance) {
             reply.code(404).send({ error: "The two players must be different" });
             return;
         }
-
-        const match = new Match(player1.toString(), player2.toString(), is_tournament, is_tournament ? tournament_id : undefined);
+        if (!winner || !score)
+        {
+            reply.code(400).send({ error: "Winner and score must be provided" });
+            return;
+        }
+        if (!player1 || !player2) {
+            reply.code(400).send({ error: "Both players must be provided" });
+            return;
+        }
+        const user = await getUserFromDb({ token : token1 });
+        if (user == null) {
+          reply.code(404).send({ error: "invalid token" });
+          return;
+        }
+        const user2 = await getUserFromDb({ token : token2 });
+        if (user2 == null) {
+          reply.code(404).send({ error: "invalid token" });
+          return;
+        }
+        const match = new Match(player1.toString(), player2.toString(), false, winner.toString(), score.toString(), new Date(), 0);
         const req_message = await match.pushMatchToDb();        
         req_message === null ? reply.code(201).send({ id: match.id }) : reply.code(409).send({ error: req_message });
     }});
 
-    server.route<{
-        Params: { id: string },
-        Body: {
-            player1?: string;
-            player2?: string;
-            winner?: string | null;
-            created_at?: string;
-            score?: string;
-            is_tournament?: boolean;
-        }
-        }>({
-        method: 'PATCH',
-        url: '/matchs/:id',
-        config: {
-            rateLimit: RateLimits.matchs,
-        },
-        handler: async (request, reply) => {
-        const { player1, player2, winner, created_at, score, is_tournament } = request.body;
-        const matchId = request.params.id;
-        let match = await getMatchFromDb(Number(matchId));
-        if (match == null) {
-            reply.code(404).send({error: "Match not found"});
-            return;
-        }
-        
-        if (player1 != null && await getUserFromDb({ token : player1 }) == null ||
-            player2 != null && await getUserFromDb({ token : player2 }) == null ||
-            winner != null && await getUserFromDb({ token : winner }) == null) {
-            reply.code(409).send({ error: "One of the players or the winner does not exist" });
-            return;
-        }
-
-        if (player1) { 
-            if (player1.toString() == match.player2) { 
-                reply.code(409).send({ error: "The two players must be different" }); return; } }
-
-        if (player2) { 
-            if (player2.toString() == match.player1) { 
-                reply.code(409).send({ error: "The two players must be different" }); return; } }
-
-        if (player1) match.player1 = player1.toString();
-        if (player2) match.player2 = player2.toString();
-        if (winner !== undefined) { match.winner = (winner === null ? null : winner.toString()); }
-        if (score) match.score = score;
-        if (is_tournament) match.is_tournament = is_tournament;
-
-        const req_message = await match.updateMatchInDb();
-        req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });
-}});
-
-
-    server.route<{
-        Params: { id: string }
-        }>({
-        method: 'DELETE',
-        url: '/matchs/:id',
-        config: {
-            rateLimit: RateLimits.matchs,
-        },
-        handler: async (request, reply) => {
-         const matchId = request.params.id;
-        const match = await getMatchFromDb(Number(matchId));
-        if (match == null) {
-            reply.code(404).send({ error: "Match not found" });
-            return;
-        }
-        const req_message = await match.deleteMatchInDb();
-        req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });
-    }
-});
 }

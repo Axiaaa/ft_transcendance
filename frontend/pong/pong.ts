@@ -1,12 +1,8 @@
 import * as BABYLON from '@babylonjs/core';
-import * as GUI from '@babylonjs/gui';
 import '@babylonjs/loaders';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
-import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
 import { PongAI } from './pong-ai.js';
 import { getUser } from "../ts/API.js";
 import { throttle } from '../ts/utils.js'
-import { match } from 'assert';
 
 declare var confetti: any;
 let pongAIInstance: PongAI | null = null;
@@ -816,12 +812,76 @@ function restartGame(callback?: () => void) {
 	});
 }
 
+async function apiFetch(url: string, options: RequestInit = {}, useJsonContentType = true, nojson?: boolean): Promise<Response> {
+	// const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
+	
+	let headers: HeadersInit = {
+		'Authorization': `Bearer ${sessionStorage.getItem('wxp_token')}`,
+		...options.headers
+	};
+
+	// Only add Content-Type if specified (useful to exclude when using FormData)
+	if (useJsonContentType) {
+		headers = {
+			...headers,
+			'Content-Type': 'application/json'
+		};
+	}
+	
+	console.log('API Fetch:', `${API_CONFIG.baseUrl}${url}`, options);
+	console.log('Headers:', headers);
+	console.log('Body:', options.body);
+	const response = await fetch(`${API_CONFIG.baseUrl}${url}`, {
+		...options,
+		headers
+	});
+	
+	// if (!response.ok) {
+	// 	const error = new Error(`HTTP error! status: ${response.status}`);
+	// 	(error as any).status = response.status;
+	// 	throw error;
+	// }
+	
+	return response;
+}
+
 function endGame(): void {
 	gameIsFinished = true;
 	isPlaying = false;
 	document.removeEventListener("keydown", handleKeyDown);
 	const winnerText = document.getElementById("winner");
 	const isFinal = isTournament === 1 && isLastTournamentMatch;
+
+	const isRanked = isTournament === 0 && rankedSelectionContainer.style.display === "none";
+
+    if (isRanked) {
+        const player2 =  sessionStorage.getItem("second_wxp_user_id");
+        const player1 =  sessionStorage.getItem("wxp_user_id");
+
+        // Send match result to the server
+		const token = sessionStorage.getItem("wxp_token");
+		if (!token) {
+			console.error("No token found in session storage.");
+			return;
+		}
+        apiFetch(`/matchs`, {
+            method: "POST",
+            body: JSON.stringify({
+                player1: player1,
+                player2: player2,
+				winner:  score1 > score2 ? player1 : player2,
+				created_at: new Date().toISOString(),
+                score: `${score1} - ${score2}`,
+				token1: sessionStorage.getItem("wxp_token"),
+				token2: sessionStorage.getItem("second_wxp_token"),
+            }),
+        }).then(() => {
+            console.log("Match result sent successfully.");
+        }).catch((error) => {
+            console.error("Error sending match result:", error);
+        });
+    }
+
 
 	if (winnerText && !isFinal) {
 		winnerText.style.display = "block";
@@ -1300,39 +1360,6 @@ const API_CONFIG = {
 	// 	password: 'adminpassword'
 	// }
 };
-
-async function apiFetch(url: string, options: RequestInit = {}, useJsonContentType = true, nojson?: boolean): Promise<Response> {
-	// const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
-	
-	let headers: HeadersInit = {
-		'Authorization': `Bearer ${sessionStorage.getItem('wxp_token')}`,
-		...options.headers
-	};
-
-	// Only add Content-Type if specified (useful to exclude when using FormData)
-	if (useJsonContentType) {
-		headers = {
-			...headers,
-			'Content-Type': 'application/json'
-		};
-	}
-	
-	console.log('API Fetch:', `${API_CONFIG.baseUrl}${url}`, options);
-	console.log('Headers:', headers);
-	console.log('Body:', options.body);
-	const response = await fetch(`${API_CONFIG.baseUrl}${url}`, {
-		...options,
-		headers
-	});
-	
-	// if (!response.ok) {
-	// 	const error = new Error(`HTTP error! status: ${response.status}`);
-	// 	(error as any).status = response.status;
-	// 	throw error;
-	// }
-	
-	return response;
-}
 
 export async function getUserRanked(username: string, password: string): Promise<User> {
 	try {

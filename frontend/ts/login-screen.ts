@@ -246,9 +246,9 @@ export async function showError(message: string) {
 					signUpConfirmPassword.value = "";
 					return ;
 				}
-				if (username && /[A-Za-z0-9]/ )
+				if (username && /[^A-Za-z0-9]/.test(username))
 				{
-					showError("Username must only contains lowercase, uppercase and number");
+					showError("Username must only contain lowercase letters, uppercase letters, and numbers.");
 					signUpUsername.value = "";
 					signUpPassword.value = "";
 					signUpConfirmPassword.value = "";
