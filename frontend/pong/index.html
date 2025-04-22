@@ -195,11 +195,6 @@
                     height: calc(100vh / var(--scale-factor));
                 }
 
-                .scaled-key {
-                    transform: scale(var(--scale-factor));
-                    transform-origin: center;
-                }
-
                 #pause-menu {
                     position: absolute;
                     top: 50%; left: 50%;
@@ -426,7 +421,7 @@
                     font-size: 40px;
                 }
                     
-                #back-to-menu-from-play, #back-to-menu-from-tournament, #back-to-player-selection-from-start-tournament {
+                #back-to-menu-from-play, #back-to-menu-from-tournament, #back-to-player-selection-from-start-tournament, #back-to-menu-from-ranked {
                     display: none;
                     align-items: center;
                     justify-content: center;
@@ -446,7 +441,7 @@
                     text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
                     transition: 0.2s ease-out;
                 }
-                #back-to-menu-from-play:hover, #back-to-menu-from-tournament:hover, #back-to-player-selection-from-start-tournament:hover {
+                #back-to-menu-from-play:hover, #back-to-menu-from-tournament:hover, #back-to-player-selection-from-start-tournament:hover, #back-to-menu-from-ranked:hover {
                     box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
                     transform: translate(-50%, -50%) scale(1.1);
                 }
@@ -470,7 +465,7 @@
     </head>
 
     <body>
-        <script type="module" src="../.build/pong/pong.js"></script>
+        <script type="module" src="pong.js"></script>
         <canvas id="canvas"></canvas>
         <div id="pong-global-container">
             <div id="match-info"></div>
@@ -507,6 +502,7 @@
             <button id="back-to-menu-from-play">←</button>
             <button id="back-to-menu-from-tournament">←</button>
             <button id="back-to-player-selection-from-start-tournament">←</button>
+            <button id="back-to-menu-from-ranked">←</button>
         </div>
     </body>
 
