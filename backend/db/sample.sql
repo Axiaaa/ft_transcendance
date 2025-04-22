@@ -36,27 +36,5 @@ CREATE TABLE IF NOT EXISTS `matchs` (
     `player2` TEXT NOT NULL,
     `winner` TEXT,
     `score` TEXT NOT NULL,
-    `created_at` REAL NOT NULL,
-    `is_tournament` INTEGER NOT NULL CHECK (is_tournament IN (0,1)),
-    `tournament_id` INTEGER
-);
-
-CREATE TABLE IF NOT EXISTS `tournaments` (
-    `id` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
-    `name` TEXT NOT NULL,
-    `password` TEXT,
-    `created_at` REAL NOT NULL,
-    `creator_id` INTEGER NOT NULL,
-    `duration` INTEGER,
-    `type` INTEGER NOT NULL,
-    `winner` INTEGER,
-    FOREIGN KEY (`winner`) REFERENCES `users`(`id`) ON DELETE SET NULL
-);
-
-CREATE TABLE IF NOT EXISTS `tournament_members` (
-    `tournament_id` INTEGER NOT NULL,
-    `user_id` INTEGER NOT NULL,
-    PRIMARY KEY (tournament_id, user_id),
-    FOREIGN KEY (tournament_id) REFERENCES `tournaments`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES `users`(`id`) ON DELETE CASCADE
+    `created_at` REAL NOT NULL
 );

@@ -239,6 +239,22 @@ export async function showError(message: string) {
 				const username = signUpUsername.value;
 				const password = signUpPassword.value;
 				const confirmPassword = signUpConfirmPassword.value;
+				if (username && username.length >= 20)
+				{
+					showError("Username must be shorter than 21 letters");
+					signUpUsername.value = "";
+					signUpPassword.value = "";
+					signUpConfirmPassword.value = "";
+					return ;
+				}
+				if (username && /[^A-Za-z0-9]/.test(username))
+				{
+					showError("Username must only contain lowercase letters, uppercase letters, and numbers.");
+					signUpUsername.value = "";
+					signUpPassword.value = "";
+					signUpConfirmPassword.value = "";
+					return ;
+				}
 				if (username && password && confirmPassword) {
 					if (password == confirmPassword)
 					{
@@ -303,7 +319,7 @@ export async function showError(message: string) {
 									signUpConfirmPassword.value = "";
 								}
 							}
-							else{
+							else {
 								const existingErrorBox = document.querySelector('.error-box');
 								if (existingErrorBox) {
 									existingErrorBox.remove();
@@ -314,7 +330,7 @@ export async function showError(message: string) {
 								signUpConfirmPassword.value = "";
 							}
 						}
-						else{
+						else	{
 							const existingErrorBox = document.querySelector('.error-box');
 							if (existingErrorBox) {
 								existingErrorBox.remove();
@@ -325,7 +341,7 @@ export async function showError(message: string) {
 							signUpConfirmPassword.value = "";
 							}
 					}
-					else{
+					else	{
 						const existingErrorBox = document.querySelector('.error-box');
 						if (existingErrorBox) {
 							existingErrorBox.remove();

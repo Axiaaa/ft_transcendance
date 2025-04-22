@@ -1,11 +1,8 @@
 import * as BABYLON from '@babylonjs/core';
-import * as GUI from '@babylonjs/gui';
 import '@babylonjs/loaders';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
-import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
 import { PongAI } from './pong-ai.js';
+import { getUser } from "../ts/API.js";
 import { throttle } from '../ts/utils.js'
-import { match } from 'assert';
 
 declare var confetti: any;
 let pongAIInstance: PongAI | null = null;
@@ -95,6 +92,8 @@ const continueButton = document.getElementById('continueTournament') as HTMLElem
 const backToMenuFromPlay = document.getElementById('back-to-menu-from-play') as HTMLElement | null;
 const backToMenuFromTournament = document.getElementById('back-to-menu-from-tournament') as HTMLElement | null;
 const backToPlayerSelectionFromStartTournament = document.getElementById('back-to-player-selection-from-start-tournament') as HTMLElement | null;
+const backToMenuFromRanked = document.getElementById('back-to-menu-from-ranked') as HTMLElement | null;
+const rankedButton = document.getElementById('rankedButton') as HTMLElement | null;
 
 // Babylon
 const engine: BABYLON.Engine = new BABYLON.Engine(canvas, true);
@@ -361,9 +360,9 @@ function updateScores(): void {
 const styleKeys: HTMLStyleElement = document.createElement("style");
 styleKeys.textContent = `
 	.key-display {
-		width: 50px;
-		height: 50px;
-		border-radius: 8px;
+		width: calc(50px / var(--scale-factor));
+		height: calc(50px / var(--scale-factor));
+		border-radius: calc(8px / var(--scale-factor));
 		background: rgba(255, 255, 255, 0.2);
 		color: white;
 		opacity: 0.5;
@@ -738,8 +737,15 @@ function checkCollision(): void {
 let enterButton: HTMLElement | null = null;
 let spaceButton: HTMLElement | null = null;
 let spaceAndEnterIsPrint = false;
+let buttonHasBeenCreated = false;
 
-function createButton(text: string, className: string): void {
+if (!buttonHasBeenCreated) {
+	createButtonOnce('Enter', 'key-enter');
+	createButtonOnce('Space', 'key-space');
+	hideButtons();
+}
+
+function createButtonOnce(text: string, className: string): void {
 	const button = document.createElement('div');
 	button.classList.add('key-display', className);
 	button.textContent = text;
@@ -756,18 +762,19 @@ function createButton(text: string, className: string): void {
 	} else if (className === 'key-space') {
 		button.style.right = '40%';
 	}
+	buttonHasBeenCreated = true;
+}
+
+function showButtons() {
+	spaceAndEnterIsPrint = true;
+	enterButton!.style.display = 'flex';
+	spaceButton!.style.display = 'flex';
 }
 
 function hideButtons(): void {
 	spaceAndEnterIsPrint = false;
-	if (enterButton) {
-		enterButton.remove();
-		enterButton = null;
-	}
-	if (spaceButton) {
-		spaceButton.remove();
-		spaceButton = null;
-	}
+	enterButton!.style.display = 'none';
+	spaceButton!.style.display = 'none';
 }
 
 // Game Control
@@ -790,9 +797,7 @@ function reset(): void {
 		return;
 
 	if (score1 !== 10 && score2 !== 10) {
-		createButton('Enter', 'key-enter');
-		createButton('Space', 'key-space');
-		spaceAndEnterIsPrint = true;
+		showButtons();
 	}
 }
 
@@ -815,12 +820,73 @@ function restartGame(callback?: () => void) {
 	});
 }
 
+async function apiFetch(url: string, options: RequestInit = {}, useJsonContentType = true, nojson?: boolean): Promise<Response> {
+	// const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
+	
+	let headers: HeadersInit = {
+		'Authorization': `Bearer ${sessionStorage.getItem('wxp_token')}`,
+		...options.headers
+	};
+
+	// Only add Content-Type if specified (useful to exclude when using FormData)
+	if (useJsonContentType) {
+		headers = {
+			...headers,
+			'Content-Type': 'application/json'
+		};
+	}
+	
+	console.log('API Fetch:', `${API_CONFIG.baseUrl}${url}`, options);
+	console.log('Headers:', headers);
+	console.log('Body:', options.body);
+	const response = await fetch(`${API_CONFIG.baseUrl}${url}`, {
+		...options,
+		headers
+	});
+	
+	// if (!response.ok) {
+	// 	const error = new Error(`HTTP error! status: ${response.status}`);
+	// 	(error as any).status = response.status;
+	// 	throw error;
+	// }
+	
+	return response;
+}
+
 function endGame(): void {
 	gameIsFinished = true;
 	isPlaying = false;
 	document.removeEventListener("keydown", handleKeyDown);
 	const winnerText = document.getElementById("winner");
 	const isFinal = isTournament === 1 && isLastTournamentMatch;
+
+	const isRanked = isTournament === 0 && rankedSelectionContainer.style.display === "none";
+
+    if (isRanked) {
+        const player2 =  sessionStorage.getItem("second_wxp_user_id");
+        const player1 =  sessionStorage.getItem("wxp_user_id");
+
+        // Send match result to the server
+		const token = sessionStorage.getItem("wxp_token");
+		if (!token) {
+			console.error("No token found in session storage.");
+			return;
+		}
+		const response = apiFetch(`/matchs`, {
+			method: "POST",
+			body: JSON.stringify({
+				player1: player1,
+				player2: player2,
+				winner: score1 > score2 ? player1 : player2,
+				created_at: new Date().toISOString(),
+				score: `${score1} - ${score2}`,
+				token1: sessionStorage.getItem("wxp_token"),
+				token2: sessionStorage.getItem("second_wxp_token")
+			}),
+		});
+	}
+
+
 
 	if (winnerText && !isFinal) {
 		winnerText.style.display = "block";
@@ -951,6 +1017,17 @@ function startCountdown(callback: () => void): void {
 	}
 	updateCountdown();
 }
+
+rankedButton?.addEventListener("click", () => {
+	menu.style.display = "none";
+    backToMenuFromRanked!.style.display = "flex";
+});
+
+backToMenuFromRanked?.addEventListener("click", () => {
+	rankedSelectionContainer!.style.display = "none";
+	backToMenuFromRanked!.style.display = "none";
+	menu.style.display = "block";
+});
 
 // Tournament
 function color3ToCSS(color: BABYLON.Color3): string {
@@ -1136,6 +1213,7 @@ document.getElementById("home-button")!.addEventListener("click", () => {
 });
 
 document.getElementById("confirm-yes")!.addEventListener("click", () => {
+	console.log("Home button");
 	location.reload();
 });
 
@@ -1161,6 +1239,208 @@ backToMenuFromPlay?.addEventListener("click", () => {
 	menu.style.display = "block";
 	document.getElementById("mode-selection-container")!.style.display = "none";
 	backToMenuFromPlay!.style.display = "none";
+});
+
+export async function showError(message: string) {
+    const errorBox = document.createElement('div');
+    errorBox.className = 'error-box';
+    errorBox.textContent = message;
+
+	errorBox.style.position = 'absolute';
+	errorBox.style.bottom = '20px';
+	errorBox.style.left = '50%';
+	errorBox.style.transform = 'translateX(-50%)';
+	errorBox.style.padding = '10px';
+	errorBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+	errorBox.style.color = '#0ff';
+	errorBox.style.fontFamily = '"Orbitron", sans-serif';
+	errorBox.style.fontSize = '14px';
+	errorBox.style.textAlign = 'center';
+	errorBox.style.border = '1px solid #0ff';
+	errorBox.style.borderRadius = '4px';
+	errorBox.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.5)';
+	errorBox.style.opacity = '0';
+	errorBox.style.transition = 'opacity 0.5s ease-in-out';
+
+    // Remove any existing error box
+    const existingErrorBox = document.querySelector('.error-box');
+    if (existingErrorBox) {
+        existingErrorBox.remove();
+    }
+
+    // Append the error box to the body
+    document.body.appendChild(errorBox);
+
+    // Fade in the error box
+    setTimeout(() => {
+        errorBox.style.opacity = '1';
+    }, 0);
+
+    // Fade out and remove the error box after 5 seconds
+    setTimeout(() => {
+        errorBox.style.opacity = '0';
+        setTimeout(() => {
+            errorBox.remove();
+        }, 500);
+    }, 5000);
+}
+
+const rankedSelectionContainer = document.createElement("div");
+rankedSelectionContainer.id = "ranked-selection-container";
+rankedSelectionContainer.style.display = "none";
+rankedSelectionContainer.style.position = "absolute";
+rankedSelectionContainer.style.top = "50%";
+rankedSelectionContainer.style.left = "50%";
+rankedSelectionContainer.style.transform = "translate(-50%, -50%)";
+rankedSelectionContainer.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+rankedSelectionContainer.style.padding = "20px";
+rankedSelectionContainer.style.borderRadius = "8px";
+rankedSelectionContainer.style.boxShadow = "0 0 10px rgba(0, 255, 255, 0.5)";
+rankedSelectionContainer.style.color = "#0ff";
+rankedSelectionContainer.style.fontFamily = '"Orbitron", sans-serif';
+
+const rankedform = document.createElement("form");
+rankedform.style.display = "flex";
+rankedform.style.flexDirection = "column";
+rankedform.style.gap = "10px";
+
+const loginLabel = document.createElement("label");
+loginLabel.textContent = "Login:";
+loginLabel.style.fontSize = "16px";
+
+const loginInput = document.createElement("input");
+loginInput.type = "text";
+loginInput.placeholder = "Enter your login";
+loginInput.style.padding = "10px";
+loginInput.style.borderRadius = "4px";
+loginInput.style.border = "1px solid #0ff";
+loginInput.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+loginInput.style.color = "#0ff";
+
+const passwordLabel = document.createElement("label");
+passwordLabel.textContent = "Password:";
+passwordLabel.style.fontSize = "16px";
+
+const passwordInput = document.createElement("input");
+passwordInput.type = "password";
+passwordInput.placeholder = "Enter your password";
+passwordInput.style.padding = "10px";
+passwordInput.style.borderRadius = "4px";
+passwordInput.style.border = "1px solid #0ff";
+passwordInput.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+passwordInput.style.color = "#0ff";
+
+const signInButtonRanked = document.createElement("button");
+signInButtonRanked.type = "submit";
+signInButtonRanked.textContent = "Sign In";
+signInButtonRanked.style.padding = "10px";
+signInButtonRanked.style.borderRadius = "4px";
+signInButtonRanked.style.border = "none";
+signInButtonRanked.style.backgroundColor = "#0ff";
+signInButtonRanked.style.color = "#000";
+signInButtonRanked.style.fontWeight = "bold";
+signInButtonRanked.style.cursor = "pointer";
+
+rankedform.appendChild(loginLabel);
+rankedform.appendChild(loginInput);
+rankedform.appendChild(passwordLabel);
+rankedform.appendChild(passwordInput);
+
+
+interface User {
+    id?: number;
+    email: string;  
+    password: string;
+    username: string;
+    is_online: boolean;
+    created_at: Date;
+    last_login: Date;
+    history: Array<number>;
+    win_nbr: number;
+    loss_nbr: number; 
+    avatar: string;
+    background: string;
+    friend_list: Array<number>;
+    pending_friend_list: Array<number>;
+    font_size: number;
+	token: string;
+}
+
+/**
+ * API configuration
+ */
+const API_CONFIG = {
+	baseUrl: '/api',
+	// credentials: {
+	// 	username: 'admin',
+	// 	password: 'adminpassword'
+	// }
+};
+
+export async function getUserRanked(username: string, password: string): Promise<User> {
+	try {
+		const response = await apiFetch(`/users/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+		if (!response.ok) {
+			const error = new Error(`HTTP error! status: ${response.status}`);
+			(error as any).status = response.status;
+			throw error;
+		}
+		return await response.json();
+	} catch (error) {
+		console.error('Error fetching user:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		throw error;	
+	}
+}
+
+rankedform.addEventListener("submit", async (event: SubmitEvent) => {
+	event.preventDefault();
+	if (loginInput && passwordInput) {
+		const username = loginInput.value;
+		const password = passwordInput.value;
+		if (username && password) {
+			try {
+				const existingErrorBox = document.querySelector('.error-box');
+				if (existingErrorBox) {
+					existingErrorBox.remove();
+				}
+				const Second_user = await getUserRanked(username, password);
+				if (Second_user && Second_user.id === Number(sessionStorage.getItem("wxp_user_id"))) {
+					showError("User already logged in.");
+					loginInput.value = "";
+					passwordInput.value = "";
+					return;
+				}
+				sessionStorage.setItem("second_wxp_token", Second_user.token);
+				sessionStorage.setItem("second_wxp_user_id", Second_user.id != null ? Second_user.id.toString() : "");
+				loginInput.value = "";
+				passwordInput.value = "";
+				startCountdown(startGame);
+				rankedSelectionContainer.style.display = "none";
+				menu.style.display = "none";
+			}
+			catch (error) {
+				const existingErrorBox = document.querySelector('.error-box');
+				if (existingErrorBox) {
+					existingErrorBox.remove();
+				}
+				showError("Username or password is incorrect.");
+				loginInput.value = "";
+				passwordInput.value = "";
+			}
+		 }
+	}
+	});
+
+rankedform.appendChild(signInButtonRanked);
+
+rankedSelectionContainer.appendChild(rankedform);
+document.body.appendChild(rankedSelectionContainer);
+
+
+document.getElementById("rankedButton")?.addEventListener("click", () => {
+	menu.style.display = "none";
+	document.getElementById("ranked-selection-container")!.style.display = "flex";
 });
 
 document.getElementById("aiMode")?.addEventListener("click", () => {
