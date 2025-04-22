@@ -3,7 +3,7 @@ import { deleteUserAvatar, deleteUserBackground, updateUser } from "./API.js";
 
 import { getUserAvatar, uploadFile } from "./API.js";
 import { updateUserImages } from "./login-screen.js";
-import { setFont } from "./system.js";
+import { setFont, updateAllUserNames } from "./system.js";
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -417,6 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				sendNotification('Username Changed', `Username changed to ${nameInput.value}`, "./img/Utils/profile-icon.png");
 				updateUser(sessionStorage.getItem('wxp_token'), { username: nameInput.value })
 				nameInput.value = '';
+				updateAllUserNames();
 			}
 		};
 		let usernameText = document.createElement('span');

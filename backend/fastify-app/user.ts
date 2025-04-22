@@ -250,7 +250,7 @@ export async function getUserFromDb(query: Partial<User>): Promise<User | null> 
         user.font_size = userRow.font_size;
         user.token = userRow.token;
         const friends = await getFriendsFromDb(user.id);
-        if (friends) user.friend_list = friends.map(f => f.id);
+        if (friends) user.friend_list = friends;
         const pending_friends = await getPendingFriendsListFromDb(user.id);
         if (pending_friends) user.pending_friend_list = pending_friends.map(f => f.id);
 
@@ -266,15 +266,14 @@ export async function getUserFromDb(query: Partial<User>): Promise<User | null> 
     }
 }
 
-export async function getFriendsFromDb(userId: number): Promise<Array<User> | null> {
+export async function getFriendsFromDb(userId: number): Promise<Array<number> | null> {
 
     try {
         const sqlRequest = "SELECT friend_id FROM friends WHERE user_id = ?";
         const friendsRow = db.prepare(sqlRequest).all(userId) as Array<{ friend_id: number }>;
-        const users = new Array<User>();
+        const users = new Array<number>();
         for (const friend of friendsRow) {
-            const user = await getUserFromDb({ id: friend.friend_id });
-            if (user) users.push(user);
+            users.push(friend.friend_id);
         }
         return users;
     } catch (error) {
@@ -354,7 +353,7 @@ export async function getUserFromHash(username: string, password: string): Promi
         user.font_size = userRow.font_size;
         user.token = userRow.token;
         const friends = await getFriendsFromDb(user.id);
-        if (friends) user.friend_list = friends.map(f => f.id);
+        if (friends) user.friend_list = friends;
         const pending_friends = await getPendingFriendsListFromDb(user.id)
         if (pending_friends) user.pending_friend_list = pending_friends.map(f => f.id);
 

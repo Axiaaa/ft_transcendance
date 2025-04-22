@@ -1383,7 +1383,16 @@ if (!userToken || isNaN(userId))
 						}
 						
 						// Fetch all friends
-						const allFriends = await getUserFriendsDetails(userToken);
+						const allFriendsResponse = await getUserFriendsDetails(userToken);
+						
+						// Deduplicate friends by ID to prevent duplicates from API
+						const uniqueMap = new Map();
+						allFriendsResponse.forEach(friend => {
+							if (friend.id !== undefined) {
+								uniqueMap.set(friend.id.toString(), friend);
+							}
+						});
+						const allFriends = Array.from(uniqueMap.values());
 						
 						// Filter by search term
 						let filteredFriends = allFriends;

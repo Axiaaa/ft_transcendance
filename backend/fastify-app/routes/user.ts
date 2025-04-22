@@ -265,8 +265,36 @@ export async function userRoutes(server : FastifyInstance) {
             return;
         }   
         if (user.friend_list.find(f => f === friend.id) == undefined) {
+            // Add friend to user's friend list
             const req_message = await user.addFriend(friend.id);
-            req_message === null ? reply.code(201).send({ id : user.id}) : reply.code(409).send({ error : req_message });
+            if (req_message !== null) {
+                reply.code(409).send({ error: req_message });
+                return;
+            }
+            
+            // Add user to friend's friend list
+            const friend_req_message = await friend.addFriend(user.id);
+            if (friend_req_message !== null) {
+                // Rollback if adding user to friend's list fails
+                await user.removeFriend(friend.id);
+                reply.code(409).send({ error: friend_req_message });
+                return;
+            }
+            
+            // Verify both database updates were successful
+            const updated_user = await getUserFromDb({ token });
+            const updated_friend = await getUserFromDb({ username: friend_username });
+            
+            if (!updated_user?.friend_list.includes(friend.id) || 
+                !updated_friend?.friend_list.includes(user.id)) {
+                // Something went wrong, rollback changes
+                await user.removeFriend(friend.id);
+                await friend.removeFriend(user.id);
+                reply.code(500).send({ error: "Failed to update both users' friend lists" });
+                return;
+            }
+            
+            reply.code(201).send({ id: user.id });
             return;
         } else  
             reply.code(409).send({error: "Friend already in friend list"});
@@ -280,22 +308,41 @@ export async function userRoutes(server : FastifyInstance) {
             rateLimit: RateLimits.friends,
         },
         handler : async (request, reply) => {
-        const { token, friend_username } = request.params;
-        const user = await getUserFromDb({ token });
-        if (user == null) {
-            reply.code(404).send({error: "User not found"});
-            return;
-        }
-        const friend = await getUserFromDb({username: friend_username});
-        if (friend == null) {
-            reply.code(404).send({error: "Friend not found"});
-            return;
-        }
-        if (user.friend_list.find(f => f === friend.id)) {
-            const req_message = await user.removeFriend(friend.id);
-            req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });            
-        } else
-            reply.code(404).send({error: "Friend not found in friend list"});
+            const { token, friend_username } = request.params;
+            const user = await getUserFromDb({ token });
+            if (user == null) {
+                reply.code(404).send({error: "User not found"});
+                return;
+            }
+            const friend = await getUserFromDb({username: friend_username});
+            if (friend == null) {
+                reply.code(404).send({error: "Friend not found"});
+                return;
+            }
+            if (user.friend_list.find(f => f === friend.id)) {
+                const req_message = await user.removeFriend(friend.id);
+                if (req_message !== null) {
+                    reply.code(409).send({ error: req_message });
+                    return;
+                }
+                const friend_req_message = await friend.removeFriend(user.id);
+                if (friend_req_message !== null) {
+                    await user.addFriend(friend.id);
+                    reply.code(409).send({ error: friend_req_message });
+                    return;
+                }
+                const updated_user = await getUserFromDb({ token });
+                const updated_friend = await getUserFromDb({ username: friend_username });
+                if (updated_user?.friend_list.includes(friend.id) ||
+                    updated_friend?.friend_list.includes(user.id)) {
+                    await user.addFriend(friend.id);
+                    await friend.addFriend(user.id);
+                    reply.code(500).send({ error: "Failed to update both users' friend lists" });
+                    return;
+                }
+                reply.code(204).send();
+            } else
+                reply.code(404).send({error: "Friend not found in friend list"});
         }
 });
 

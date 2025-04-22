@@ -1,4 +1,4 @@
-all : build up 
+all : build up defaultuser
 
 start : up
 
@@ -9,6 +9,7 @@ build :
 
 up :
 	docker-compose up -d
+
 
 down :
 	docker-compose down
