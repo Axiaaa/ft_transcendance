@@ -1023,6 +1023,7 @@ rankedButton?.addEventListener("click", () => {
 });
 
 backToMenuFromRanked?.addEventListener("click", () => {
+	rankedSelectionContainer!.style.display = "none";
 	backToMenuFromRanked!.style.display = "none";
 	menu.style.display = "block";
 });
