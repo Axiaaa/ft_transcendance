@@ -115,96 +115,60 @@ pipeline.bloomEnabled = true;
 pipeline.bloomThreshold = 0.4;
 pipeline.bloomKernel = 16;
 
-// Create field
-function createField(scene: BABYLON.Scene): BABYLON.Mesh {
-	const field: BABYLON.Mesh = BABYLON.MeshBuilder.CreateBox("field", {
-		width: fieldSize.width,
-		height: fieldThickness,
-		depth: fieldSize.height,
-		updatable: false,
-		sideOrientation: BABYLON.Mesh.FRONTSIDE
-	}, scene);
-
-	field.position.y = fieldThickness / 2 + 0.5;
-
-	const fieldMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("fieldMaterial", scene);
-	fieldMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
-	fieldMaterial.freeze();
-
-	field.material = fieldMaterial;
-	field.freezeWorldMatrix();
-
-	return field;
-}
-
-const field: BABYLON.Mesh = createField(scene);
-const fieldHeight: number = field.position.y + fieldThickness / 2;
+const fieldHeight: number = fieldThickness + 0.5;
 
 // Create ball
 function createBall(): BABYLON.Mesh {
+	const ball: BABYLON.Mesh = BABYLON.MeshBuilder.CreateSphere("ball", {diameter: 0.4, segments: 8, updatable: false}, scene);
 	const ballMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
-	ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0);
-	ballMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
-	ballMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-	ballMaterial.freeze();
+	const ballColor = new BABYLON.Color3(1, 1, 0);
 
-	const ball: BABYLON.Mesh = BABYLON.MeshBuilder.CreateSphere("ball", {diameter: 0.4, segments: 8}, scene);
+	ballMaterial.diffuseColor = ballColor;
+	ballMaterial.specularColor = ballColor;
+	ballMaterial.emissiveColor = ballColor;
+	ballMaterial.freeze();
+		
 	ball.material = ballMaterial;
 	ball.position = new BABYLON.Vector3(0, fieldHeight + 0.2, 0);
-
+	ball.freezeNormals();
 	return ball;
 }
 
 let ball = createBall();
 
 // Create paddles
-const createCapsuleOutline = (radius: number, height: number, radialSegments: number, scene: BABYLON.Scene, color: BABYLON.Color3, thickness: number = 0.01): BABYLON.LinesMesh => {
-	const segmentStep = PI / radialSegments;
-	const halfHeight = height / 2;
+const createCapsuleMesh = (radius: number, height: number, scene: BABYLON.Scene, color: BABYLON.Color3): BABYLON.Mesh => {
+    const capsule = BABYLON.MeshBuilder.CreateCapsule("capsule", {radius: radius, height: height + radius * 2, tessellation: 12, subdivisions: 8}, scene);
 
-	const topHalf: BABYLON.Vector3[] = [];
-	const bottomHalf: BABYLON.Vector3[] = [];
+    const material = new BABYLON.StandardMaterial("paddleMaterial", scene);
+    material.diffuseColor = color;
+    material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+    material.emissiveColor = color.scale(0.3);
+	material.freeze();
+    capsule.material = material;
+	capsule.freezeNormals();
 
-	for (let i = 0; i <= radialSegments; i++) {
-		const theta = i * segmentStep;
-		const cosTheta = Math.cos(theta);
-		const sinTheta = Math.sin(theta);
-
-		topHalf[i] = new BABYLON.Vector3(radius * cosTheta, halfHeight + radius * sinTheta, 0);
-		bottomHalf[i] = new BABYLON.Vector3(radius * Math.cos(PI - theta), -halfHeight - radius * Math.sin(PI - theta), 0);
-	}
-
-	const verticalLines = [
-		[new BABYLON.Vector3(radius, halfHeight, 0), new BABYLON.Vector3(radius, -halfHeight, 0)],
-		[new BABYLON.Vector3(-radius, halfHeight, 0), new BABYLON.Vector3(-radius, -halfHeight, 0)]
-	];
-
-	const lines = [topHalf, bottomHalf, ...verticalLines];
-	const capsuleLines = BABYLON.MeshBuilder.CreateLineSystem("capsule", {lines, updatable: false}, scene);
-
-	capsuleLines.color = color;
-	return capsuleLines;
+    return capsule;
 };
 
 const createPaddles = (scene: BABYLON.Scene, fieldHeight: number) => {
-	const radius = 0.25;
-	const height = 1.5;
-	const radialSegments = 12;
+    const radius = 0.25;
+    const height = 1.5;
 
-	const paddle1 = createCapsuleOutline(radius, height, radialSegments, scene, player1Color);
-	const paddle2 = createCapsuleOutline(radius, height, radialSegments, scene, player2Color);
-
-	const paddleRotationZ = PI / 2;
-	const paddleRotationX = -PI / 4;
-	paddle1.rotation.z = paddleRotationZ;
-	paddle1.rotation.x = paddleRotationX;
-	paddle2.rotation.z = paddleRotationZ;
-	paddle2.rotation.x = paddleRotationX;
-
-	paddle1.position.set(0, fieldHeight + 0.2, 6.5);
-	paddle2.position.set(0, fieldHeight + 0.2, -6.5);
-
-	return { paddle1, paddle2 };
+    const paddle1 = createCapsuleMesh(radius, height, scene, player1Color);
+    const paddle2 = createCapsuleMesh(radius, height, scene, player2Color);
+    
+    const paddleRotationZ = PI / 2;
+    const paddleRotationX = -PI / 4;
+    paddle1.rotation.z = paddleRotationZ;
+    paddle1.rotation.x = paddleRotationX;
+    paddle2.rotation.z = paddleRotationZ;
+    paddle2.rotation.x = paddleRotationX;
+    
+    paddle1.position.set(0, fieldHeight + 0.2, 6.5);
+    paddle2.position.set(0, fieldHeight + 0.2, -6.5);
+    
+    return { paddle1, paddle2 };
 };
 
 let { paddle1, paddle2 } = createPaddles(scene, fieldHeight);
@@ -225,60 +189,54 @@ function createHalfCircle(centerX: number, centerZ: number, radius: number, star
 	return points;
 }
 
-function createFieldLines(scene: BABYLON.Scene): {
-	fieldLines: BABYLON.LinesMesh,
-	leftHalfCircle: BABYLON.LinesMesh,
-	rightHalfCircle: BABYLON.LinesMesh
-} {
-	const fieldLinePoints: BABYLON.Vector3[] = [
-		// Top edges
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, -fieldHalf),
-		// Bottom edges
-		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
-		// Vertical connectors
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, -fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, fieldHalf),
-		// Central line
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, 0),
-		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, 0)
+function createFieldLines(scene: BABYLON.Scene): void {
+	const topLine: BABYLON.Vector3[] = [
+		new BABYLON.Vector3(-fieldHalf, fieldHeight, -fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight, fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight, fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight, -fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight, -fieldHalf)
 	];
-
+	const frontLine: BABYLON.Vector3[] = [
+		new BABYLON.Vector3(fieldHalf, fieldHeight, fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight, fieldHalf)
+	];
+	const middleLine: BABYLON.Vector3[] = [
+		new BABYLON.Vector3(-fieldHalf, fieldHeight, 0),
+		new BABYLON.Vector3(fieldHalf, fieldHeight, 0),
+	];
 	const leftHalfCirclePoints = createHalfCircle(0, -6, 3, 0, PI);
 	const rightHalfCirclePoints = createHalfCircle(0, 6, 3, PI, 2 * PI);
 
-	const fieldLines = BABYLON.MeshBuilder.CreateLines("fieldLines", {points: fieldLinePoints, updatable: false}, scene) as BABYLON.LinesMesh;
+	const fieldTop = BABYLON.MeshBuilder.CreateTube("fieldTop", {path: topLine, radius: 0.01, updatable: false}, scene);
+	const fieldFront = BABYLON.MeshBuilder.CreateTube("fieldFront", {path: frontLine, radius: 0.01, updatable: false}, scene);
+	const fieldmiddle = BABYLON.MeshBuilder.CreateDashedLines("fieldmiddle", {points: middleLine, dashSize: 1, gapSize: 0.49, dashNb: 24, updatable: false}, scene)
 	const leftHalfCircle = BABYLON.MeshBuilder.CreateLines("leftHalfCircle", {points: leftHalfCirclePoints, updatable: false}, scene) as BABYLON.LinesMesh;
 	const rightHalfCircle = BABYLON.MeshBuilder.CreateLines("rightHalfCircle", {points: rightHalfCirclePoints, updatable: false}, scene) as BABYLON.LinesMesh;
 
-	fieldLines.freezeWorldMatrix();
+	const neonColor = new BABYLON.Color3(0, 1, 1);
+	const material = new BABYLON.StandardMaterial("lineMaterial", scene);
+	material.emissiveColor = neonColor;
+	material.disableLighting = true;
+	material.freeze();
+
+	fieldTop.material = material;
+	fieldFront.material = material;
+	fieldmiddle.material = material;
+	leftHalfCircle.color = neonColor;
+	rightHalfCircle.color = neonColor;
+
+	fieldTop.freezeWorldMatrix();
+	fieldFront.freezeWorldMatrix();
+	fieldmiddle.freezeWorldMatrix();
 	leftHalfCircle.freezeWorldMatrix();
 	rightHalfCircle.freezeWorldMatrix();
 
-	const neonColor = new BABYLON.Color3(0, 1, 1);
-	const lines = [fieldLines, leftHalfCircle, rightHalfCircle];
-	lines.forEach(line => {
-		line.color = neonColor;
-		line.freezeWorldMatrix();
-	});
-
-	return {fieldLines, leftHalfCircle, rightHalfCircle}
 }
 
-const {fieldLines, leftHalfCircle, rightHalfCircle} = createFieldLines(scene);
+createFieldLines(scene);
 
 // Create circles for scoring effects
 function createCircle(radius: number = 0.3): BABYLON.Mesh {
