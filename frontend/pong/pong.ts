@@ -1048,12 +1048,23 @@ function showMatchInfo(player1: string, player2: string) {
 	const cssColor1 = color3ToCSS(player1Color);
 	const cssColor2 = color3ToCSS(player2Color);
 
+	const truncate = (name: string) => name.length > 10 ? name.slice(0, 10) + '…' : name;
+
 	matchInfo.innerHTML = `
-		<span style="color: ${cssColor1}; text-shadow: 0 0 5px ${cssColor1}; font-weight: bold;">${player1}</span>
+		<span title="${player1}" style="color: ${cssColor1}; text-shadow: 0 0 5px ${cssColor1}; font-weight: bold;">
+			${truncate(player1)}
+		</span>
 		<span style="color: white; text-shadow: 0 0 5px white; font-size: 24px;"> vs </span>
-		<span style="color: ${cssColor2}; margin-left: 5px; text-shadow: 0 0 5px ${cssColor2}; font-weight: bold;">${player2}</span>
+		<span title="${player2}" style="color: ${cssColor2}; margin-left: 5px; text-shadow: 0 0 5px ${cssColor2}; font-weight: bold;">
+			${truncate(player2)}
+		</span>
 	`;
 	matchInfo.style.display = "block";
+	let fontSize = 40;
+	while (matchInfo.scrollWidth > matchInfo.clientWidth && fontSize > 10) {
+		fontSize -= 1;
+		matchInfo.style.fontSize = fontSize + "px";
+	}
 }
 
 function showTournament(players: string[]) {
@@ -1074,7 +1085,7 @@ function showTournament(players: string[]) {
 
 		rounds.forEach(([p1, p2], index) => {
 			const item = document.createElement('li');
-			item.textContent = `Match ${index + 1} : ${p1} vs ${p2}`;
+			item.textContent = `Match ${index + 1} : ${(p1)} vs ${(p2)}`;
 			item.style.marginBottom = '8px';
 			list.appendChild(item);
 		});
@@ -1179,6 +1190,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						const input = document.createElement("input");
 						input.type = "text";
 						input.placeholder = `Challenger ${index}`;
+						input.maxLength = 20;
 						columnDiv.appendChild(input);
 					}
 
@@ -1199,6 +1211,13 @@ document.addEventListener('DOMContentLoaded', function() {
 			backToMenuFromTournament!.style.display = 'none';
 			const allInputs = playerInputs.querySelectorAll('input');
 			const playerNames: string[] = Array.from(allInputs).map(input => input.value.trim());
+
+			const uniqueNames = new Set(playerNames);
+			const hasDuplicates = uniqueNames.size !== playerNames.length;
+			if (hasDuplicates) {
+				showError("Please enter unique player names.");
+				return;
+			}
 
 			if (playerNames.length === 4 || playerNames.length === 8) {
 				showTournament(playerNames);
