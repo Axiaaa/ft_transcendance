@@ -1,5 +1,5 @@
 import { sendNotification } from "./notification.js";
-import { deleteUserAvatar, deleteUserBackground, updateUser } from "./API.js";
+import { deleteUserAvatar, deleteUserBackground, getAllUsers, updateUser } from "./API.js";
 
 import { getUserAvatar, uploadFile } from "./API.js";
 import { updateUserImages } from "./login-screen.js";
@@ -408,9 +408,18 @@ document.addEventListener('DOMContentLoaded', () => {
 		applyButton.textContent = 'Change Username';
 		applyButton.style.padding = '5px 10px';
 
-		applyButton.onclick = () => {
+		applyButton.onclick = async () => {
 			if (!nameInput.value.match(/^[A-Za-z0-9_]+$/)) {
 				sendNotification('Error', 'Invalid username format', "./img/Utils/error-icon.png");
+				return;
+			}
+			if (nameInput.value.length >= 20) {
+				sendNotification('Error', 'Username too long', "./img/Utils/error-icon.png");
+				return;
+			}
+			const userList = await getAllUsers();
+			if (userList.find(user => user.username === nameInput.value)) {
+				sendNotification('Error', 'Username already taken', "./img/Utils/error-icon.png");
 				return;
 			}
 			if (confirm(`Are you sure you want to change your username to "${nameInput.value}"?`)) {

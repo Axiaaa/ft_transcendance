@@ -272,19 +272,19 @@ export async function showError(message: string) {
 											if (existingErrorBox) {
 												existingErrorBox.remove();
 											}
-                      const newUser = await createUser({ username, password });
-                      sessionStorage.setItem("wxp_token", newUser.token);
-                      sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
-                      signUpUsername.value = "";
-                      signUpPassword.value = "";
-                      signUpConfirmPassword.value = "";
-					  initApps();
-                      await resetUserImages();
-					  await updateAllUserNames();
-                      setTimeout(() => {
-                        goToDesktopPage();
-                      }, 300);
-										}
+											const newUser = await createUser({ username, password });
+											sessionStorage.setItem("wxp_token", newUser.token);
+											sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
+											signUpUsername.value = "";
+											signUpPassword.value = "";
+											signUpConfirmPassword.value = "";
+											initApps();
+											await resetUserImages();
+											await updateAllUserNames();
+											setTimeout(() => {
+												goToDesktopPage();
+											}, 300);
+									}
 										catch (error)
 										{
 											const existingErrorBox = document.querySelector('.error-box');

@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
     `email` TEXT NOT NULL UNIQUE,
     `password` TEXT NOT NULL,
-    `username` TEXT NOT NULL,
+    `username` TEXT NOT NULL UNIQUE,
     `is_online` INTEGER NOT NULL CHECK (is_online IN (0,1)), 
     `created_at` REAL NOT NULL,
     `win_nbr` INTEGER NOT NULL DEFAULT 0,

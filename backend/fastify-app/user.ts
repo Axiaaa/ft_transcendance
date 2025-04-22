@@ -91,6 +91,10 @@ export class User implements User {
                 server.log.error(`The email address ${this.email} is already in the DB`);
                 return "Email address already exists!";
             }
+            else if ((error as any).message.includes("UNIQUE constraint failed: users.username")) {
+                server.log.error(`The username ${this.username} is already in the DB`);
+                return "Username already exists!";
+            }
             server.log.error(`Error while inserting user ${this.username} in the DB: ${error}`);
             return "Error while inserting user in the DB";
         }
@@ -321,8 +325,8 @@ export async function updateUserBackground(user: User, filePath: string) : Promi
 export async function getUserFromHash(username: string, password: string): Promise<User | null> {
     try {
         const hash_password = sha256.hmac(salt, password);
-        const existingUser = db.prepare('SELECT * FROM users WHERE username = ? AND password = ?');
-        const userRow = existingUser.get(username, hash_password) as { 
+        const existingUser = db.prepare('SELECT * FROM users WHERE username = ?');
+        const userRow = existingUser.get(username) as { 
             id: number;
             username: string;
             email: string;
