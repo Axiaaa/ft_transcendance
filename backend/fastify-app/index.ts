@@ -26,7 +26,6 @@ server.addHook('preHandler', async (req, reply) => {
   }
  
 	const authHeader = req.headers.authorization;
-	server.log.info('Auth Header:', authHeader);
 	if (!authHeader || !authHeader.startsWith('Bearer ')) 
 	  return reply.code(401).send({ error: 'Unauthorized' });
 

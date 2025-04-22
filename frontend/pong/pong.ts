@@ -115,96 +115,60 @@ pipeline.bloomEnabled = true;
 pipeline.bloomThreshold = 0.4;
 pipeline.bloomKernel = 16;
 
-// Create field
-function createField(scene: BABYLON.Scene): BABYLON.Mesh {
-	const field: BABYLON.Mesh = BABYLON.MeshBuilder.CreateBox("field", {
-		width: fieldSize.width,
-		height: fieldThickness,
-		depth: fieldSize.height,
-		updatable: false,
-		sideOrientation: BABYLON.Mesh.FRONTSIDE
-	}, scene);
-
-	field.position.y = fieldThickness / 2 + 0.5;
-
-	const fieldMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("fieldMaterial", scene);
-	fieldMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
-	fieldMaterial.freeze();
-
-	field.material = fieldMaterial;
-	field.freezeWorldMatrix();
-
-	return field;
-}
-
-const field: BABYLON.Mesh = createField(scene);
-const fieldHeight: number = field.position.y + fieldThickness / 2;
+const fieldHeight: number = fieldThickness + 0.5;
 
 // Create ball
 function createBall(): BABYLON.Mesh {
+	const ball: BABYLON.Mesh = BABYLON.MeshBuilder.CreateSphere("ball", {diameter: 0.4, segments: 8, updatable: false}, scene);
 	const ballMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
-	ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0);
-	ballMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
-	ballMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-	ballMaterial.freeze();
+	const ballColor = new BABYLON.Color3(1, 1, 0);
 
-	const ball: BABYLON.Mesh = BABYLON.MeshBuilder.CreateSphere("ball", {diameter: 0.4, segments: 8}, scene);
+	ballMaterial.diffuseColor = ballColor;
+	ballMaterial.specularColor = ballColor;
+	ballMaterial.emissiveColor = ballColor;
+	ballMaterial.freeze();
+		
 	ball.material = ballMaterial;
 	ball.position = new BABYLON.Vector3(0, fieldHeight + 0.2, 0);
-
+	ball.freezeNormals();
 	return ball;
 }
 
 let ball = createBall();
 
 // Create paddles
-const createCapsuleOutline = (radius: number, height: number, radialSegments: number, scene: BABYLON.Scene, color: BABYLON.Color3, thickness: number = 0.01): BABYLON.LinesMesh => {
-	const segmentStep = PI / radialSegments;
-	const halfHeight = height / 2;
+const createCapsuleMesh = (radius: number, height: number, scene: BABYLON.Scene, color: BABYLON.Color3): BABYLON.Mesh => {
+    const capsule = BABYLON.MeshBuilder.CreateCapsule("capsule", {radius: radius, height: height + radius * 2, tessellation: 12, subdivisions: 8}, scene);
 
-	const topHalf: BABYLON.Vector3[] = [];
-	const bottomHalf: BABYLON.Vector3[] = [];
+    const material = new BABYLON.StandardMaterial("paddleMaterial", scene);
+    material.diffuseColor = color;
+    material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+    material.emissiveColor = color.scale(0.3);
+	material.freeze();
+    capsule.material = material;
+	capsule.freezeNormals();
 
-	for (let i = 0; i <= radialSegments; i++) {
-		const theta = i * segmentStep;
-		const cosTheta = Math.cos(theta);
-		const sinTheta = Math.sin(theta);
-
-		topHalf[i] = new BABYLON.Vector3(radius * cosTheta, halfHeight + radius * sinTheta, 0);
-		bottomHalf[i] = new BABYLON.Vector3(radius * Math.cos(PI - theta), -halfHeight - radius * Math.sin(PI - theta), 0);
-	}
-
-	const verticalLines = [
-		[new BABYLON.Vector3(radius, halfHeight, 0), new BABYLON.Vector3(radius, -halfHeight, 0)],
-		[new BABYLON.Vector3(-radius, halfHeight, 0), new BABYLON.Vector3(-radius, -halfHeight, 0)]
-	];
-
-	const lines = [topHalf, bottomHalf, ...verticalLines];
-	const capsuleLines = BABYLON.MeshBuilder.CreateLineSystem("capsule", {lines, updatable: false}, scene);
-
-	capsuleLines.color = color;
-	return capsuleLines;
+    return capsule;
 };
 
 const createPaddles = (scene: BABYLON.Scene, fieldHeight: number) => {
-	const radius = 0.25;
-	const height = 1.5;
-	const radialSegments = 12;
+    const radius = 0.25;
+    const height = 1.5;
 
-	const paddle1 = createCapsuleOutline(radius, height, radialSegments, scene, player1Color);
-	const paddle2 = createCapsuleOutline(radius, height, radialSegments, scene, player2Color);
-
-	const paddleRotationZ = PI / 2;
-	const paddleRotationX = -PI / 4;
-	paddle1.rotation.z = paddleRotationZ;
-	paddle1.rotation.x = paddleRotationX;
-	paddle2.rotation.z = paddleRotationZ;
-	paddle2.rotation.x = paddleRotationX;
-
-	paddle1.position.set(0, fieldHeight + 0.2, 6.5);
-	paddle2.position.set(0, fieldHeight + 0.2, -6.5);
-
-	return { paddle1, paddle2 };
+    const paddle1 = createCapsuleMesh(radius, height, scene, player1Color);
+    const paddle2 = createCapsuleMesh(radius, height, scene, player2Color);
+    
+    const paddleRotationZ = PI / 2;
+    const paddleRotationX = -PI / 4;
+    paddle1.rotation.z = paddleRotationZ;
+    paddle1.rotation.x = paddleRotationX;
+    paddle2.rotation.z = paddleRotationZ;
+    paddle2.rotation.x = paddleRotationX;
+    
+    paddle1.position.set(0, fieldHeight + 0.2, 6.5);
+    paddle2.position.set(0, fieldHeight + 0.2, -6.5);
+    
+    return { paddle1, paddle2 };
 };
 
 let { paddle1, paddle2 } = createPaddles(scene, fieldHeight);
@@ -225,60 +189,54 @@ function createHalfCircle(centerX: number, centerZ: number, radius: number, star
 	return points;
 }
 
-function createFieldLines(scene: BABYLON.Scene): {
-	fieldLines: BABYLON.LinesMesh,
-	leftHalfCircle: BABYLON.LinesMesh,
-	rightHalfCircle: BABYLON.LinesMesh
-} {
-	const fieldLinePoints: BABYLON.Vector3[] = [
-		// Top edges
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, -fieldHalf),
-		// Bottom edges
-		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
-		// Vertical connectors
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, -fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, -fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, fieldHalf),
-		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, fieldHalf),
-		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, fieldHalf),
-		// Central line
-		new BABYLON.Vector3(-fieldHalf, fieldHeight + 0.01, 0),
-		new BABYLON.Vector3(fieldHalf, fieldHeight + 0.01, 0)
+function createFieldLines(scene: BABYLON.Scene): void {
+	const topLine: BABYLON.Vector3[] = [
+		new BABYLON.Vector3(-fieldHalf, fieldHeight, -fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight, fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight, fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight, -fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight, -fieldHalf)
 	];
-
+	const frontLine: BABYLON.Vector3[] = [
+		new BABYLON.Vector3(fieldHalf, fieldHeight, fieldHalf),
+		new BABYLON.Vector3(fieldHalf, fieldHeight - fieldThickness, fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight - fieldThickness, fieldHalf),
+		new BABYLON.Vector3(-fieldHalf, fieldHeight, fieldHalf)
+	];
+	const middleLine: BABYLON.Vector3[] = [
+		new BABYLON.Vector3(-fieldHalf, fieldHeight, 0),
+		new BABYLON.Vector3(fieldHalf, fieldHeight, 0),
+	];
 	const leftHalfCirclePoints = createHalfCircle(0, -6, 3, 0, PI);
 	const rightHalfCirclePoints = createHalfCircle(0, 6, 3, PI, 2 * PI);
 
-	const fieldLines = BABYLON.MeshBuilder.CreateLines("fieldLines", {points: fieldLinePoints, updatable: false}, scene) as BABYLON.LinesMesh;
+	const fieldTop = BABYLON.MeshBuilder.CreateTube("fieldTop", {path: topLine, radius: 0.01, updatable: false}, scene);
+	const fieldFront = BABYLON.MeshBuilder.CreateTube("fieldFront", {path: frontLine, radius: 0.01, updatable: false}, scene);
+	const fieldmiddle = BABYLON.MeshBuilder.CreateDashedLines("fieldmiddle", {points: middleLine, dashSize: 1, gapSize: 0.49, dashNb: 24, updatable: false}, scene)
 	const leftHalfCircle = BABYLON.MeshBuilder.CreateLines("leftHalfCircle", {points: leftHalfCirclePoints, updatable: false}, scene) as BABYLON.LinesMesh;
 	const rightHalfCircle = BABYLON.MeshBuilder.CreateLines("rightHalfCircle", {points: rightHalfCirclePoints, updatable: false}, scene) as BABYLON.LinesMesh;
 
-	fieldLines.freezeWorldMatrix();
+	const neonColor = new BABYLON.Color3(0, 1, 1);
+	const material = new BABYLON.StandardMaterial("lineMaterial", scene);
+	material.emissiveColor = neonColor;
+	material.disableLighting = true;
+	material.freeze();
+
+	fieldTop.material = material;
+	fieldFront.material = material;
+	fieldmiddle.material = material;
+	leftHalfCircle.color = neonColor;
+	rightHalfCircle.color = neonColor;
+
+	fieldTop.freezeWorldMatrix();
+	fieldFront.freezeWorldMatrix();
+	fieldmiddle.freezeWorldMatrix();
 	leftHalfCircle.freezeWorldMatrix();
 	rightHalfCircle.freezeWorldMatrix();
 
-	const neonColor = new BABYLON.Color3(0, 1, 1);
-	const lines = [fieldLines, leftHalfCircle, rightHalfCircle];
-	lines.forEach(line => {
-		line.color = neonColor;
-		line.freezeWorldMatrix();
-	});
-
-	return {fieldLines, leftHalfCircle, rightHalfCircle}
 }
 
-const {fieldLines, leftHalfCircle, rightHalfCircle} = createFieldLines(scene);
+createFieldLines(scene);
 
 // Create circles for scoring effects
 function createCircle(radius: number = 0.3): BABYLON.Mesh {
@@ -802,6 +760,7 @@ function reset(): void {
 }
 
 function restartGame(callback?: () => void) {
+	countdownComplete = false;
 	gameIsFinished = false;
 	score1 = 0;
 	score2 = 0;
@@ -989,7 +948,6 @@ function startGame(): void {
 }
 
 function startCountdown(callback: () => void): void {
-	countdownComplete = false;
 	menu.style.display = "none";
 	countdownContainer.style.display = "block";
 	countdownElement.style.opacity = "1";
@@ -1041,6 +999,11 @@ function onMatchEnd(callback: (winner: string) => void): void {
 	matchEndCallback = callback;
 }
 
+function validatePlayerName(name: string): boolean {
+	const regex = /^[a-zA-Z0-9 ]*$/;
+	return regex.test(name); // Return true if valid, false otherwise
+  }
+
 function showMatchInfo(player1: string, player2: string) {
 	const matchInfo = document.getElementById("match-info");
 	if (!matchInfo) return;
@@ -1048,12 +1011,23 @@ function showMatchInfo(player1: string, player2: string) {
 	const cssColor1 = color3ToCSS(player1Color);
 	const cssColor2 = color3ToCSS(player2Color);
 
+	const truncate = (name: string) => name.length > 10 ? name.slice(0, 10) + '…' : name;
+
 	matchInfo.innerHTML = `
-		<span style="color: ${cssColor1}; text-shadow: 0 0 5px ${cssColor1}; font-weight: bold;">${player1}</span>
+		<span title="${player1}" style="color: ${cssColor1}; text-shadow: 0 0 5px ${cssColor1}; font-weight: bold;">
+			${truncate(player1)}
+		</span>
 		<span style="color: white; text-shadow: 0 0 5px white; font-size: 24px;"> vs </span>
-		<span style="color: ${cssColor2}; margin-left: 5px; text-shadow: 0 0 5px ${cssColor2}; font-weight: bold;">${player2}</span>
+		<span title="${player2}" style="color: ${cssColor2}; margin-left: 5px; text-shadow: 0 0 5px ${cssColor2}; font-weight: bold;">
+			${truncate(player2)}
+		</span>
 	`;
 	matchInfo.style.display = "block";
+	let fontSize = 40;
+	while (matchInfo.scrollWidth > matchInfo.clientWidth && fontSize > 10) {
+		fontSize -= 1;
+		matchInfo.style.fontSize = fontSize + "px";
+	}
 }
 
 function showTournament(players: string[]) {
@@ -1074,7 +1048,7 @@ function showTournament(players: string[]) {
 
 		rounds.forEach(([p1, p2], index) => {
 			const item = document.createElement('li');
-			item.textContent = `Match ${index + 1} : ${p1} vs ${p2}`;
+			item.textContent = `Match ${index + 1} : ${(p1)} vs ${(p2)}`;
 			item.style.marginBottom = '8px';
 			list.appendChild(item);
 		});
@@ -1179,6 +1153,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						const input = document.createElement("input");
 						input.type = "text";
 						input.placeholder = `Challenger ${index}`;
+						input.maxLength = 20;
 						columnDiv.appendChild(input);
 					}
 
@@ -1196,13 +1171,25 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 
 		continueButton.addEventListener('click', () => {
-			backToMenuFromTournament!.style.display = 'none';
 			const allInputs = playerInputs.querySelectorAll('input');
 			const playerNames: string[] = Array.from(allInputs).map(input => input.value.trim());
 
+			const uniqueNames = new Set(playerNames);
+			const hasDuplicates = uniqueNames.size !== playerNames.length;
+			if (hasDuplicates) {
+				showError("Please enter unique player names.");
+				return;
+			}
+			for (let name of playerNames) {
+				if (!validatePlayerName(name)) {
+				  showError("Player names can only contain letters, numbers, and spaces.");
+				  return;
+				}
+			  }
 			if (playerNames.length === 4 || playerNames.length === 8) {
 				showTournament(playerNames);
 			}
+			backToMenuFromTournament!.style.display = 'none';
 		});
 	}
 });
@@ -1243,48 +1230,63 @@ backToMenuFromPlay?.addEventListener("click", () => {
 });
 
 export async function showError(message: string) {
-    const errorBox = document.createElement('div');
-    errorBox.className = 'error-box';
-    errorBox.textContent = message;
-
-	errorBox.style.position = 'absolute';
-	errorBox.style.bottom = '20px';
-	errorBox.style.left = '50%';
-	errorBox.style.transform = 'translateX(-50%)';
-	errorBox.style.padding = '10px';
-	errorBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-	errorBox.style.color = '#0ff';
-	errorBox.style.fontFamily = '"Orbitron", sans-serif';
-	errorBox.style.fontSize = '14px';
-	errorBox.style.textAlign = 'center';
-	errorBox.style.border = '1px solid #0ff';
-	errorBox.style.borderRadius = '4px';
-	errorBox.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.5)';
-	errorBox.style.opacity = '0';
-	errorBox.style.transition = 'opacity 0.5s ease-in-out';
-
-    // Remove any existing error box
+    // Remove existing error box if it exists
     const existingErrorBox = document.querySelector('.error-box');
     if (existingErrorBox) {
         existingErrorBox.remove();
     }
 
-    // Append the error box to the body
+    const errorBox = document.createElement('div');
+    errorBox.className = 'error-box';
+    errorBox.textContent = message;
     document.body.appendChild(errorBox);
 
-    // Fade in the error box
+    const applyStyles = () => {
+        const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')) || 1;
+
+        errorBox.style.position = 'absolute';
+        errorBox.style.bottom = `${20 * scaleFactor}px`;
+        errorBox.style.left = '50%';
+        errorBox.style.transform = 'translateX(-50%)';
+        errorBox.style.padding = `${10 * scaleFactor}px`;
+        errorBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        errorBox.style.color = '#0ff';
+        errorBox.style.fontFamily = '"Orbitron", sans-serif';
+        errorBox.style.fontSize = `${14 * scaleFactor}px`;
+        errorBox.style.textAlign = 'center';
+        errorBox.style.border = `${1 * scaleFactor}px solid #0ff`;
+        errorBox.style.borderRadius = `${4 * scaleFactor}px`;
+        errorBox.style.boxShadow = `0 0 ${10 * scaleFactor}px rgba(0, 255, 255, 0.5)`;
+        errorBox.style.opacity = '0';
+        errorBox.style.transition = 'opacity 0.5s ease-in-out';
+    };
+
+    applyStyles();
+
+    // Fade in
     setTimeout(() => {
         errorBox.style.opacity = '1';
     }, 0);
+	// Resize event listener
+    const handleResize = () => {
+        if (document.body.contains(errorBox)) {
+            applyStyles();
+        } else {
+            window.removeEventListener('resize', handleResize);
+        }
+    };
+    window.addEventListener('resize', handleResize);
 
-    // Fade out and remove the error box after 5 seconds
+    // Fade out and cleanup after 5s
     setTimeout(() => {
         errorBox.style.opacity = '0';
         setTimeout(() => {
             errorBox.remove();
+            window.removeEventListener('resize', handleResize);
         }, 500);
     }, 5000);
 }
+
 
 const rankedSelectionContainer = document.createElement("div");
 rankedSelectionContainer.id = "ranked-selection-container";
