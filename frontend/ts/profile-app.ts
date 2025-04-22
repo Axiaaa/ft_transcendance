@@ -1,7 +1,6 @@
 import { openAppWindow } from "./app-icon.js";
 import { sendNotification } from "./notification.js";
 import { getCurrentUser, getMatchDetails, getUser, getUserById, getUserByUsername, getUserMatchHistory, isUserOnline } from "./API.js";
-import { forEachChild } from "typescript";
 
 function openProfile(AppLauncher: string, profileTab?: string): void
 {
@@ -403,7 +402,7 @@ export async function initProfileApp()
 		{
 			// Categories content
 			let GeneralCategorie = document.getElementById('profile-app-content-main-left-General') as HTMLElement;
-			let HistoryMatchCategorie = document.getElementById('profile-app-content-main-left-HistoryMatch') as HTMLElement;
+			let HistoryMatchCategorie = document.getElementById('profile-app-content-main-left-Match History') as HTMLElement;
 			let StatsCategorie = document.getElementById('profile-app-content-main-left-Stats') as HTMLElement;
 
 			

@@ -3,7 +3,6 @@ import { openAppWindow } from "./app-icon.js";
 import { acceptFriendRequest, declineFriendRequest, getAllUsers, getPendingFriendRequests, getPendingFriendRequestsDetails, getUserById, getUserFriends, getUserFriendsDetails, removeFriend, sendFriendRequest } from "./API.js";
 import { disconnectUser } from "./start-menu.js";
 import { clearBrowserCache, goToDesktopPage, goToLoginPage } from "./system.js";
-import { NodeGeometry } from "@babylonjs/core";
 
 
 

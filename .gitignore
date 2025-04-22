@@ -12,4 +12,5 @@ draw.drawio
 *.js
 *.js.map
 frontend/node_modules
+backend/fastify-app/node_modules
 frontend/.build
