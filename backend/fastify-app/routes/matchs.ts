@@ -67,37 +67,46 @@ export async function matchsRoutes(server : FastifyInstance) {
             rateLimit: RateLimits.matchs,
         },
         handler: async (request, reply) => {
+          console.log(request.body);
         const { player1, player2, winner, created_at, score, token1, token2  } = request.body;
         const u1 = await getUserFromDb( { token : player1 });
         const u2 = await getUserFromDb( { token : player2 });
-        if (u1 == null || u2 == null) {
-            reply.code(404).send({ error: "One of the players does not exist" });
-            return;
-        }
         if (player1 == player2) {
+            console.log("player1 and player2 are the same");
             reply.code(404).send({ error: "The two players must be different" });
             return;
         }
         if (!winner || !score)
         {
+            console.log("winner or score is null");
             reply.code(400).send({ error: "Winner and score must be provided" });
             return;
         }
         if (!player1 || !player2) {
+          console.log("player1 or player2 is null");
             reply.code(400).send({ error: "Both players must be provided" });
             return;
         }
         const user = await getUserFromDb({ token : token1 });
         if (user == null) {
+          console.log("token1 does not exist");
           reply.code(404).send({ error: "invalid token" });
           return;
         }
         const user2 = await getUserFromDb({ token : token2 });
         if (user2 == null) {
+          console.log("token2 does not exist");
           reply.code(404).send({ error: "invalid token" });
           return;
         }
-        const match = new Match(player1.toString(), player2.toString(), false, winner.toString(), score.toString(), new Date(), 0);
+        if (!created_at)
+        {
+            console.log("created_at is null");
+            reply.code(400).send({ error: "created_at must be provided" });
+            return;
+        }
+        console.log("match pushed to db");
+        const match = new Match(player1.toString(), player2.toString(), winner.toString(), score.toString(), new Date(created_at.toString()));
         const req_message = await match.pushMatchToDb();        
         req_message === null ? reply.code(201).send({ id: match.id }) : reply.code(409).send({ error: req_message });
     }});

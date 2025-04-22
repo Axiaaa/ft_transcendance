@@ -871,23 +871,20 @@ function endGame(): void {
 			console.error("No token found in session storage.");
 			return;
 		}
-        apiFetch(`/matchs`, {
-            method: "POST",
-            body: JSON.stringify({
-                player1: player1,
-                player2: player2,
-				winner:  score1 > score2 ? player1 : player2,
+		const response = apiFetch(`/matchs`, {
+			method: "POST",
+			body: JSON.stringify({
+				player1: player1,
+				player2: player2,
+				winner: score1 > score2 ? player1 : player2,
 				created_at: new Date().toISOString(),
-                score: `${score1} - ${score2}`,
+				score: `${score1} - ${score2}`,
 				token1: sessionStorage.getItem("wxp_token"),
-				token2: sessionStorage.getItem("second_wxp_token"),
-            }),
-        }).then(() => {
-            console.log("Match result sent successfully.");
-        }).catch((error) => {
-            console.error("Error sending match result:", error);
-        });
-    }
+				token2: sessionStorage.getItem("second_wxp_token")
+			}),
+		});
+	}
+
 
 
 	if (winnerText && !isFinal) {
