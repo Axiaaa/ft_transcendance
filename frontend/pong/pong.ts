@@ -1027,6 +1027,7 @@ rankedButton?.addEventListener("click", () => {
 
 backToMenuFromRanked?.addEventListener("click", () => {
 	backToMenuFromRanked!.style.display = "none";
+	rankedSelectionContainer!.style.display = "none"
 	menu.style.display = "block";
 });
 
