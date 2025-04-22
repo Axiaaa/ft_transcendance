@@ -1041,6 +1041,11 @@ function onMatchEnd(callback: (winner: string) => void): void {
 	matchEndCallback = callback;
 }
 
+function validatePlayerName(name: string): boolean {
+	const regex = /^[a-zA-Z0-9 ]*$/;
+	return regex.test(name); // Return true if valid, false otherwise
+  }
+
 function showMatchInfo(player1: string, player2: string) {
 	const matchInfo = document.getElementById("match-info");
 	if (!matchInfo) return;
@@ -1208,7 +1213,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 
 		continueButton.addEventListener('click', () => {
-			backToMenuFromTournament!.style.display = 'none';
 			const allInputs = playerInputs.querySelectorAll('input');
 			const playerNames: string[] = Array.from(allInputs).map(input => input.value.trim());
 
@@ -1218,10 +1222,16 @@ document.addEventListener('DOMContentLoaded', function() {
 				showError("Please enter unique player names.");
 				return;
 			}
-
+			for (let name of playerNames) {
+				if (!validatePlayerName(name)) {
+				  showError("Player names can only contain letters, numbers, and spaces.");
+				  return;
+				}
+			  }
 			if (playerNames.length === 4 || playerNames.length === 8) {
 				showTournament(playerNames);
 			}
+			backToMenuFromTournament!.style.display = 'none';
 		});
 	}
 });
@@ -1262,48 +1272,63 @@ backToMenuFromPlay?.addEventListener("click", () => {
 });
 
 export async function showError(message: string) {
-    const errorBox = document.createElement('div');
-    errorBox.className = 'error-box';
-    errorBox.textContent = message;
-
-	errorBox.style.position = 'absolute';
-	errorBox.style.bottom = '20px';
-	errorBox.style.left = '50%';
-	errorBox.style.transform = 'translateX(-50%)';
-	errorBox.style.padding = '10px';
-	errorBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-	errorBox.style.color = '#0ff';
-	errorBox.style.fontFamily = '"Orbitron", sans-serif';
-	errorBox.style.fontSize = '14px';
-	errorBox.style.textAlign = 'center';
-	errorBox.style.border = '1px solid #0ff';
-	errorBox.style.borderRadius = '4px';
-	errorBox.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.5)';
-	errorBox.style.opacity = '0';
-	errorBox.style.transition = 'opacity 0.5s ease-in-out';
-
-    // Remove any existing error box
+    // Remove existing error box if it exists
     const existingErrorBox = document.querySelector('.error-box');
     if (existingErrorBox) {
         existingErrorBox.remove();
     }
 
-    // Append the error box to the body
+    const errorBox = document.createElement('div');
+    errorBox.className = 'error-box';
+    errorBox.textContent = message;
     document.body.appendChild(errorBox);
 
-    // Fade in the error box
+    const applyStyles = () => {
+        const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')) || 1;
+
+        errorBox.style.position = 'absolute';
+        errorBox.style.bottom = `${20 * scaleFactor}px`;
+        errorBox.style.left = '50%';
+        errorBox.style.transform = 'translateX(-50%)';
+        errorBox.style.padding = `${10 * scaleFactor}px`;
+        errorBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        errorBox.style.color = '#0ff';
+        errorBox.style.fontFamily = '"Orbitron", sans-serif';
+        errorBox.style.fontSize = `${14 * scaleFactor}px`;
+        errorBox.style.textAlign = 'center';
+        errorBox.style.border = `${1 * scaleFactor}px solid #0ff`;
+        errorBox.style.borderRadius = `${4 * scaleFactor}px`;
+        errorBox.style.boxShadow = `0 0 ${10 * scaleFactor}px rgba(0, 255, 255, 0.5)`;
+        errorBox.style.opacity = '0';
+        errorBox.style.transition = 'opacity 0.5s ease-in-out';
+    };
+
+    applyStyles();
+
+    // Fade in
     setTimeout(() => {
         errorBox.style.opacity = '1';
     }, 0);
+	// Resize event listener
+    const handleResize = () => {
+        if (document.body.contains(errorBox)) {
+            applyStyles();
+        } else {
+            window.removeEventListener('resize', handleResize);
+        }
+    };
+    window.addEventListener('resize', handleResize);
 
-    // Fade out and remove the error box after 5 seconds
+    // Fade out and cleanup after 5s
     setTimeout(() => {
         errorBox.style.opacity = '0';
         setTimeout(() => {
             errorBox.remove();
+            window.removeEventListener('resize', handleResize);
         }, 500);
     }, 5000);
 }
+
 
 const rankedSelectionContainer = document.createElement("div");
 rankedSelectionContainer.id = "ranked-selection-container";
