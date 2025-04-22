@@ -1,7 +1,7 @@
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { PongAI } from './pong-ai.js';
-import { getUser } from "../ts/API.js";
+import { getCurrentUser, getUser } from "../ts/API.js";
 import { throttle } from '../ts/utils.js'
 
 declare var confetti: any;
@@ -1420,6 +1420,10 @@ rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 				loginInput.value = "";
 				passwordInput.value = "";
 				startCountdown(startGame);
+				const temp_p1 = await getCurrentUser(sessionStorage.getItem("wxp_token")!);
+				const temp_p2 = await getCurrentUser(sessionStorage.getItem("second_wxp_token")!);
+				showMatchInfo(temp_p1.username, temp_p2.username);
+				backToMenuFromRanked!.style.display = "none";
 				rankedMatch = true;
 				rankedSelectionContainer.style.display = "none";
 				menu.style.display = "none";
