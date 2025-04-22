@@ -107,7 +107,13 @@ export async function matchsRoutes(server : FastifyInstance) {
         }
         console.log("match pushed to db");
         const match = new Match(player1.toString(), player2.toString(), winner.toString(), score.toString(), new Date(created_at.toString()));
-        const req_message = await match.pushMatchToDb();        
+        const req_message = await match.pushMatchToDb();   
+            // Update the winner's match wins
+            await db.prepare('UPDATE users SET win_nbr = win_nbr + 1 WHERE token = ?').run(winner);
+
+            // Determine the loser and update their match losses
+            const loser = winner === player1 ? player2 : player1;
+            await db.prepare('UPDATE users SET loss_nbr = loss_nbr + 1 WHERE token = ?').run(loser);
         req_message === null ? reply.code(201).send({ id: match.id }) : reply.code(409).send({ error: req_message });
     }});
 

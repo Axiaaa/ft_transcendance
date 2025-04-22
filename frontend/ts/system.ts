@@ -541,3 +541,22 @@ export async function updateAllUserNames()
 		userNames[i].innerText = userName;
 	}
 }
+
+// export async function updateAllStat()
+// {
+// 	const token = sessionStorage.getItem("wxp_token") || "";
+// 	try {
+// 		console.log("Fetching user stats...");
+// 		const [userWins, userLosses] = await getUserStat(token);
+// 		const wins = userWins;
+// 		const losses = userLosses;
+// 	} 
+// 	catch (error) {
+// 		console.error("Failed to fetch user stats:", error);
+// 	}
+// 	let winRate = 0
+// 	if (losses + wins != 0)
+// 	{
+// 		winRate = Math.round((wins / (wins + losses)) * 100);
+// 	}
+// }

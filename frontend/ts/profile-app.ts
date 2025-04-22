@@ -1,6 +1,7 @@
 import { openAppWindow } from "./app-icon.js";
 import { sendNotification } from "./notification.js";
-import { getCurrentUser } from "./API.js";
+import { getCurrentUser, getUserStat } from "./API.js";
+// import { updateAllStat } from "./system.js";
 
 function openProfile(AppLauncher: string, profileTab?: string): void
 {
@@ -12,28 +13,28 @@ function openProfile(AppLauncher: string, profileTab?: string): void
 		appTaskbarIcon.style.display = 'flex';
 		appTaskbarIcon.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
 		let GeneralContent = document.getElementById('profile-app-content-main-right-General-content') as HTMLElement;
-		let TournamentsContent = document.getElementById('profile-app-content-main-right-Tournaments-content') as HTMLElement;
+		let matchContent = document.getElementById('profile-app-content-main-right-match-content') as HTMLElement;
 		let StatsContent = document.getElementById('profile-app-content-main-right-Stats-content') as HTMLElement;
-		if (GeneralContent && TournamentsContent && StatsContent)
+		if (GeneralContent && matchContent && StatsContent)
 		{
 			if (profileTab)
 			{
 				if (profileTab === 'general')
 				{
 					GeneralContent.style.display = 'flex';
-					TournamentsContent.style.display = 'none';
+					matchContent.style.display = 'none';
 					StatsContent.style.display = 'none';
 				}
-				else if (profileTab === 'tournaments')
+				else if (profileTab === 'matchs')
 				{
 					GeneralContent.style.display = 'none';
-					TournamentsContent.style.display = 'flex';
+					matchContent.style.display = 'flex';
 					StatsContent.style.display = 'none';
 				}
 				else if (profileTab === 'stats')
 				{
 					GeneralContent.style.display = 'none';
-					TournamentsContent.style.display = 'none';
+					matchContent.style.display = 'none';
 					StatsContent.style.display = 'flex';
 				}
 			}
@@ -122,29 +123,29 @@ function createCategorieContainer(Name: string, Container: HTMLElement)
 	return categorie;
 }
 
-function addTournamentHistory(Container: HTMLElement, Player1: string, Player2: string, Score1: number, Score2: number)
+function addmatchHistory(Container: HTMLElement, Player1: string, Player2: string, Score1: number, Score2: number)
 {
 	if (!Container) return;
-	let tournamentHistoryEntry = document.createElement('div');
-	Container.appendChild(tournamentHistoryEntry);
-	tournamentHistoryEntry.style.width = 'calc(100% - 30px)';
-	tournamentHistoryEntry.style.height = 'auto';
-	tournamentHistoryEntry.style.display = 'flex';
-	tournamentHistoryEntry.style.flexDirection = 'row';
-	tournamentHistoryEntry.style.alignItems = 'center';
-	tournamentHistoryEntry.style.justifyContent = 'space-between';
-	tournamentHistoryEntry.style.padding = '5px 10px';
-	tournamentHistoryEntry.style.margin = '10px 0px';
-	tournamentHistoryEntry.style.marginTop = '0px';
-	tournamentHistoryEntry.style.border = '1px solid rgba(0, 0, 0, 0.58)';
-	tournamentHistoryEntry.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+	let matchHistoryEntry = document.createElement('div');
+	Container.appendChild(matchHistoryEntry);
+	matchHistoryEntry.style.width = 'calc(100% - 30px)';
+	matchHistoryEntry.style.height = 'auto';
+	matchHistoryEntry.style.display = 'flex';
+	matchHistoryEntry.style.flexDirection = 'row';
+	matchHistoryEntry.style.alignItems = 'center';
+	matchHistoryEntry.style.justifyContent = 'space-between';
+	matchHistoryEntry.style.padding = '5px 10px';
+	matchHistoryEntry.style.margin = '10px 0px';
+	matchHistoryEntry.style.marginTop = '0px';
+	matchHistoryEntry.style.border = '1px solid rgba(0, 0, 0, 0.58)';
+	matchHistoryEntry.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
 
 	// Column 1: Player 1
 	const player1Column = document.createElement('div');
 	player1Column.style.display = 'flex';
 	player1Column.style.flexDirection = 'column';
 	player1Column.style.alignItems = 'center';
-	tournamentHistoryEntry.appendChild(player1Column);
+	matchHistoryEntry.appendChild(player1Column);
 
 	const player1Label = document.createElement('h3');
 	player1Label.innerText = 'Player 1';
@@ -164,7 +165,7 @@ function addTournamentHistory(Container: HTMLElement, Player1: string, Player2: 
 	const vsColumn = document.createElement('div');
 	vsColumn.style.display = 'flex';
 	vsColumn.style.alignItems = 'center';
-	tournamentHistoryEntry.appendChild(vsColumn);
+	matchHistoryEntry.appendChild(vsColumn);
 
 	const vsText = document.createElement('h3');
 	vsText.innerText = 'VS';
@@ -178,7 +179,7 @@ function addTournamentHistory(Container: HTMLElement, Player1: string, Player2: 
 	player2Column.style.display = 'flex';
 	player2Column.style.flexDirection = 'column';
 	player2Column.style.alignItems = 'center';
-	tournamentHistoryEntry.appendChild(player2Column);
+	matchHistoryEntry.appendChild(player2Column);
 
 	const player2Label = document.createElement('h3');
 	player2Label.innerText = 'Player 2';
@@ -199,7 +200,7 @@ function addTournamentHistory(Container: HTMLElement, Player1: string, Player2: 
 	scoreColumn.style.display = 'flex';
 	scoreColumn.style.flexDirection = 'column';
 	scoreColumn.style.alignItems = 'center';
-	tournamentHistoryEntry.appendChild(scoreColumn);
+	matchHistoryEntry.appendChild(scoreColumn);
 
 	const scoreLabel = document.createElement('h3');
 	scoreLabel.innerText = 'Score';
@@ -220,7 +221,7 @@ function addTournamentHistory(Container: HTMLElement, Player1: string, Player2: 
 	winnerColumn.style.display = 'flex';
 	winnerColumn.style.flexDirection = 'column';
 	winnerColumn.style.alignItems = 'center';
-	tournamentHistoryEntry.appendChild(winnerColumn);
+	matchHistoryEntry.appendChild(winnerColumn);
 
 	const winnerLabel = document.createElement('h3');
 	winnerLabel.innerText = 'Winner';
@@ -237,7 +238,7 @@ function addTournamentHistory(Container: HTMLElement, Player1: string, Player2: 
 	winnerName.style.fontSize = '10px';
 	winnerColumn.appendChild(winnerName);
 
-	return tournamentHistoryEntry;
+	return matchHistoryEntry;
 }
 
 
@@ -261,11 +262,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 			openProfile('start-menu-profile-main', 'general');
 		});
 	}
-	let AppLauncherTournaments = document.getElementById('start-menu-profile-my-tournaments') as HTMLElement;
-	if (AppLauncherTournaments)
+	let AppLaunchermatch = document.getElementById('start-menu-profile-my-matchs') as HTMLElement;
+	if (AppLaunchermatch)
 	{
-		AppLauncherTournaments.addEventListener('click', () => {
-			openProfile('start-menu-profile-my-tournaments', 'tournaments');
+		AppLaunchermatch.addEventListener('click', () => {
+			openProfile('start-menu-profile-my-matchs', 'matchs');
 		});
 	}
 	let AppLauncherStats = document.getElementById('start-menu-profile-my-stats') as HTMLElement;
@@ -300,7 +301,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		{
 			// Categories tabs
 			let General = createCategorieTab('General', './img/Utils/infos-icon.png', leftContainer);
-			let Tournaments = createCategorieTab('Tournaments', './img/Start_Menu/cup-icon.png', leftContainer);
+			let match = createCategorieTab('match', './img/Start_Menu/cup-icon.png', leftContainer);
 			let Stats = createCategorieTab('Stats', './img/Start_Menu/stats-icon.png', leftContainer);
 		}
 	}
@@ -317,7 +318,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		{
 			// Categories content
 			let GeneralCategorie = document.getElementById('profile-app-content-main-left-General') as HTMLElement;
-			let TournamentsCategorie = document.getElementById('profile-app-content-main-left-Tournaments') as HTMLElement;
+			let matchCategorie = document.getElementById('profile-app-content-main-left-match') as HTMLElement;
 			let StatsCategorie = document.getElementById('profile-app-content-main-left-Stats') as HTMLElement;
 
 			
@@ -454,39 +455,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 				}
 			}
 			
-			let TournamentsContent = createCategorieContainer('Tournaments', rightContainer);
-			if (TournamentsContent)
+			let matchContent = createCategorieContainer('match', rightContainer);
+			if (matchContent)
 			{
 				{
 					
-					let TournamentHistoryTitle = document.createElement('h3');
-					TournamentsContent.appendChild(TournamentHistoryTitle);
-					TournamentHistoryTitle.innerText = 'Tournament History';
-					TournamentHistoryTitle.style.color = 'white';
-					TournamentHistoryTitle.style.textAlign = 'left';
-					TournamentHistoryTitle.style.margin = '10px 10px';
-					TournamentHistoryTitle.style.fontSize = '20px';
-					TournamentHistoryTitle.style.fontWeight = 'bold';
-					TournamentHistoryTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
-					let TournamentHistory = document.createElement('div');
-					TournamentsContent.appendChild(TournamentHistory);
-					TournamentHistory.style.width = '100%';
-					TournamentHistory.style.height = '100%';
-					TournamentHistory.style.display = 'flex';
-					TournamentHistory.style.flexDirection = 'column';
-					TournamentHistory.style.alignItems = 'left';
-					TournamentHistory.style.justifyContent = 'left';
-					TournamentHistory.style.overflow = 'auto';
-					TournamentHistory.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+					let matchHistoryTitle = document.createElement('h3');
+					matchContent.appendChild(matchHistoryTitle);
+					matchHistoryTitle.innerText = 'match History';
+					matchHistoryTitle.style.color = 'white';
+					matchHistoryTitle.style.textAlign = 'left';
+					matchHistoryTitle.style.margin = '10px 10px';
+					matchHistoryTitle.style.fontSize = '20px';
+					matchHistoryTitle.style.fontWeight = 'bold';
+					matchHistoryTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
+					let matchHistory = document.createElement('div');
+					matchContent.appendChild(matchHistory);
+					matchHistory.style.width = '100%';
+					matchHistory.style.height = '100%';
+					matchHistory.style.display = 'flex';
+					matchHistory.style.flexDirection = 'column';
+					matchHistory.style.alignItems = 'left';
+					matchHistory.style.justifyContent = 'left';
+					matchHistory.style.overflow = 'auto';
+					matchHistory.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
 
-					// API Call to get the tournament history
-					let tournament1 = addTournamentHistory(TournamentHistory, 'Michel', 'Francis', 0, 2);
+					// API Call to get the match history
+					//let match1 = addmatchHistory(matchHistory, 'Michel', 'Francis', 0, 2);
 				}
 			}
 
 			let StatsContent = createCategorieContainer('Stats', rightContainer);
+			
 			if (StatsContent)
-			{
+				{
+				StatsContent.classList.add('stats-class');
+				StatsContent.dataset.wins = '0';
+				StatsContent.dataset.losses = '0';
+				StatsContent.dataset.winRate = '0';
 				// Win/Loss section
 				let winLossSection = document.createElement('div');
 				StatsContent.appendChild(winLossSection);
@@ -515,12 +521,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 				winLossBar.style.borderRadius = '2px';
 				winLossBar.style.boxShadow = 'inset 0 0 5px rgba(0, 0, 0, 0.2)';
 
-				// API Call to get the win/loss ratio
-					// Dummy data - replace with API call
-				const wins = 15;
-				const losses = 7;
-				const winRate = Math.round((wins / (wins + losses)) * 100);
-
+				// Declare statsSection outside the function for broader scope
+				let statsSection = document.createElement('div');
+				
+				// Call the function from system.ts
+					const  wins = parseInt(StatsContent.dataset.wins) || 0;
+					const  losses = parseInt(StatsContent.dataset.losses) || 0;
+					const  winRate = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0; // Calculate win rate
+					const totalMatches = wins + losses;
+					const statsData = [
+						{ label: 'Total Matches', value: totalMatches },
+						{ label: 'Wins', value: wins },
+						{ label: 'Losses', value: losses }
+					];
 				let winBar = document.createElement('div');
 				winLossBar.appendChild(winBar);
 				winBar.style.width = `${winRate}%`;
@@ -531,18 +544,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 				let ratioText = document.createElement('div');
 				winLossSection.appendChild(ratioText);
-				ratioText.innerText = `Win Rate: ${winRate}% (${wins} wins, ${losses} losses)`;
+				ratioText.innerText = `Win Rate: ${winRate}%`;
 				ratioText.style.color = 'white';
 				ratioText.style.fontSize = '14px';
-				ratioText.style.marginTop = '5px';
-				ratioText.style.textAlign = 'center';
-
-				// Game Statistics section
-				let statsSection = document.createElement('div');
 				StatsContent.appendChild(statsSection);
-				// statsSection.style.width = '100%';
 				statsSection.style.margin = '15px 0';
 				statsSection.style.padding = '10px';
+				statsSection.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+				statsSection.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+				statsSection.style.borderRadius = '3px';
 				statsSection.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
 				statsSection.style.border = '1px solid rgba(0, 0, 0, 0.3)';
 				statsSection.style.borderRadius = '3px';
@@ -565,17 +575,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 				// API Call to get the game statistics
 					// Dummy data - replace with API call
-				const totalMatches = wins + losses;
-				const pointsScored = 254;
-				const avgMatchDuration = '3m 42s';
-				const highestScore = 11;
-
-				const statsData = [
-					{ label: 'Total Matches', value: totalMatches },
-					{ label: 'Points Scored', value: pointsScored },
-					{ label: 'Average Match Duration', value: avgMatchDuration },
-					{ label: 'Highest Score', value: highestScore }
-				];
+			
 
 				statsData.forEach(stat => {
 					let row = document.createElement('tr');
@@ -595,7 +595,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 					valueCell.style.padding = '8px';
 					valueCell.style.textAlign = 'right';
 				});
-
 				// Note about updating stats
 				let statsNote = document.createElement('p');
 				statsSection.appendChild(statsNote);
@@ -605,21 +604,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 				statsNote.style.marginTop = '10px';
 				statsNote.style.fontStyle = 'italic';
 			}
-			if (GeneralContent && TournamentsContent && StatsContent)
+			if (GeneralContent && matchContent && StatsContent)
 			{
 				if (GeneralCategorie)
 				{
 					GeneralCategorie.addEventListener('click', () => {
 						GeneralContent.style.display = 'flex';
-						TournamentsContent.style.display = 'none';
+						matchContent.style.display = 'none';
 						StatsContent.style.display = 'none';
 					});
 				}
-				if (TournamentsCategorie)
+				if (matchCategorie)
 				{
-					TournamentsCategorie.addEventListener('click', () => {
+					matchCategorie.addEventListener('click', () => {
 						GeneralContent.style.display = 'none';
-						TournamentsContent.style.display = 'flex';
+						matchContent.style.display = 'flex';
 						StatsContent.style.display = 'none';
 					});
 				}
@@ -627,7 +626,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 				{
 					StatsCategorie.addEventListener('click', () => {
 						GeneralContent.style.display = 'none';
-						TournamentsContent.style.display = 'none';
+						matchContent.style.display = 'none';
 						StatsContent.style.display = 'flex';
 					});
 				}

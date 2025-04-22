@@ -520,6 +520,30 @@ export async function getUserFriends(token: string): Promise<number[]> {
 	}
 }
 
+export async function getUserStat(token: string): Promise<number[]> {
+	try {
+		const response = await apiFetch(`/users/${token}`);
+		if (!response.ok) {
+		if (response.status === 404) {
+			// Empty friend list or user not found
+			return [];
+		}
+		throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+		
+		const responseData = await response.json();
+		const userWin = responseData.win_nbr;
+		const userLoss = responseData.loss_nbr;
+		return [userWin, userLoss];
+	} catch (error) {
+		console.error('Error fetching user friends:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+		sendNotification('API Error', `Failed to fetch friends: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+}
 /**
  * Gets a specific friend by their ID
  * @param token - The token of the user

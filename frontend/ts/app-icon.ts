@@ -1,5 +1,6 @@
 import { setIsAppOpen } from "./taskbar.js";
 import { throttle } from "./utils.js";
+// import { updateAllStat } from "./system.js";
 
 export function openAppWindow(appName: string, rawName?:string ): void {
 	let appWindow = document.getElementById(appName + '-window') as HTMLElement;
@@ -22,6 +23,7 @@ export function openAppWindow(appName: string, rawName?:string ): void {
 	appWindow.style.display = 'block';
 	appWindow.classList.add('opened-window');
 	let appTaskbarIcon = document.getElementById(appName + '-taskbar-icon') as HTMLElement;
+	// updateAllStat();
 	if (appTaskbarIcon)
 	{
 		appTaskbarIcon.style.display = 'flex';

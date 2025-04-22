@@ -3,6 +3,7 @@ import '@babylonjs/loaders';
 import { PongAI } from './pong-ai.js';
 import { getUser } from "../ts/API.js";
 import { throttle } from '../ts/utils.js'
+import { updateAllStat } from 'ts/system.js';
 
 declare var confetti: any;
 let pongAIInstance: PongAI | null = null;
@@ -884,8 +885,6 @@ function endGame(): void {
 			}),
 		});
 	}
-
-
 
 	if (winnerText && !isFinal) {
 		winnerText.style.display = "block";
