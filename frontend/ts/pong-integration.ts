@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		pongAppIframe.id = 'pong-game-iframe';
 		pongAppIframe.src = '../../pong/index.html';
 
-        pongAppIframe.loading = "eager";
+        pongAppIframe.loading = "lazy";
         pongAppIframe.setAttribute('importance', 'high');
 
 		pongAppIframe.width = '100%';

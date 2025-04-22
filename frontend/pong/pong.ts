@@ -1,28 +1,24 @@
 import * as BABYLON from '@babylonjs/core';
+import * as GUI from '@babylonjs/gui';
 import '@babylonjs/loaders';
-import { Engine, Scene } from "@babylonjs/core";
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
+import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
 import { PongAI } from './pong-ai.js';
 import { throttle } from '../ts/utils.js'
+import { match } from 'assert';
 
 declare var confetti: any;
-
+let pongAIInstance: PongAI | null = null;
 const PI: number = Math.PI;
 const maxBounceAngle: number = PI/3;
-const MAX_BALL_SPEED: number = 0.2;
 
-// Colors
+//  paddle
 const player1Color: BABYLON.Color3 = new BABYLON.Color3(0, 1, 0); // Green
 const player2Color: BABYLON.Color3 = new BABYLON.Color3(0.5, 0, 0.5); // Purple
 const player1Color4: BABYLON.Color4 = new BABYLON.Color4(player1Color.r, player1Color.g, player1Color.b, 1);
 const player2Color4: BABYLON.Color4 = new BABYLON.Color4(player2Color.r, player2Color.g, player2Color.b, 1);
 
-// Field
-const fieldThickness: number = 0.5;
-const fieldSize: { width: number, height: number } = { width: 12, height: 12 };
-const fieldHalf = fieldSize.width / 2;
-const fieldHeight: number = fieldThickness + 0.5;
-
-let pongAIInstance: PongAI | null = null;
+// Game state
 let numHit: number = 0;
 let speedIncrement: number = 0.02;
 let ballSpeedReachedMax: boolean = false;
@@ -33,57 +29,63 @@ let gameIsFinished = false;
 let isZooming = false;
 let paddleSpeed: number = 0.15;
 let resizePending = false;
-let ballSpeed: {x: number, z: number} = { x: 0, z: 0.1 };
 
-// Score
-let score1: number = 0, score2: number = 0;
-let lastScorer: 1 | 2 | null = null;
+// Field
+const fieldThickness: number = 0.5;
+const fieldSize: { width: number, height: number } = { width: 12, height: 12 };
+const fieldHalf = fieldSize.width / 2
 
 // Tournament
-let isTournament: number = 0;
+let isTournament: number = 0; // 0 = no tournament, 1 = tournament
 let isLastTournamentMatch = false;
 let currentPlayer1 = "";
 let currentPlayer2 = "";
 let matchEndCallback: ((winner: string) => void) | null = null;
 
-// Pause menu variables
-let enterButton: HTMLElement | null = null;
-let spaceButton: HTMLElement | null = null;
-let spaceAndEnterIsPrint = false;
-let buttonHasBeenCreated = false;
+// Score
+let score1: number = 0, score2: number = 0;
+let lastScorer: 1 | 2 | null = null;
 
-// Keys configuration
+// Ball
+const MAX_BALL_SPEED: number = 0.2;
+let ballSpeed: {x: number, z: number} = { x: 0, z: 0.1 };
+
+// Keys
 interface KeyConfig {
 	key: string;
 	side: string;
 	top: string;
 	code: string;
 }
+const keysPrint: KeyConfig[] = [
+	{ key: "A", side: "left", top: "25%", code: "KeyA" },  // Position for A
+	{ key: "D", side: "left", top: "40%", code: "KeyD" },  // Position for D
+	{ key: "←", side: "right", top: "25%", code: "ArrowLeft" }, // Position for ←
+	{ key: "→", side: "right", top: "40%", code: "ArrowRight" }  // Position for →
+];
 
 interface KeyState {
 	pressed: boolean;
 	element: HTMLElement | null;
 }
-
-const keysPrint: KeyConfig[] = [
-	{ key: "A", side: "left", top: "25%", code: "KeyA" },
-	{ key: "D", side: "left", top: "40%", code: "KeyD" },
-	{ key: "←", side: "right", top: "25%", code: "ArrowLeft" },
-	{ key: "→", side: "right", top: "40%", code: "ArrowRight" }
-];
-
 const keyMap = new Map<string, KeyState>();
 const codeToDetectedKey: Record<string, string> = {};
 
 const canvas = document.getElementById('canvas') as unknown as HTMLCanvasElement;
-if (!canvas) throw new Error("Canvas element not found");
+if (!canvas)
+	throw new Error("Canvas element not found");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
+// UI
 const pongGlobalContainer = document.getElementById("pong-global-container") as HTMLDivElement;
-const overlay = document.getElementById("overlay") as HTMLDivElement;
-const countdownContainer = document.getElementById("countdown-container") as HTMLDivElement;
-const menu = document.getElementById("menu") as HTMLDivElement;
-const goElement = document.getElementById("countdown-go") as HTMLSpanElement;
-const countdownElement = document.getElementById("countdown") as HTMLSpanElement;
+let overlay = document.getElementById("overlay") as HTMLDivElement;
+let countdownContainer = document.getElementById("countdown-container") as HTMLDivElement;
+let menu = document.getElementById("menu") as HTMLDivElement;
+let goElement = document.getElementById("countdown-go") as HTMLSpanElement;
+let countdownElement = document.getElementById("countdown") as HTMLSpanElement;
+
+// Mode selection
 const modeSelection = document.getElementById("mode-selection") as HTMLElement | null;
 const tournamentButton = document.getElementById('tournamentButton') as HTMLElement | null;
 const tournamentButtonContainer = document.getElementById('tournament-button-container') as HTMLElement | null;
@@ -97,69 +99,29 @@ const backToMenuFromRanked = document.getElementById('back-to-menu-from-ranked')
 const rankedButton = document.getElementById('rankedButton') as HTMLElement | null;
 const rankedSelectionContainer = document.getElementById('ranked-selection-container') as HTMLElement | null;
 
+// Babylon
 const engine: BABYLON.Engine = new BABYLON.Engine(canvas, true);
 const scene: BABYLON.Scene = new BABYLON.Scene(engine);
 scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
+// Camera
 const camera: BABYLON.UniversalCamera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 8, 10), scene);
 camera.setTarget(BABYLON.Vector3.Zero());
 camera.minZ = 0.1;
 camera.maxZ = 1000;
 camera.inputs.clear();
 
+// Babylon (options)
 const light: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 5, 5), scene);
 light.intensity = 0.8;
-
 const pipeline: BABYLON.DefaultRenderingPipeline = new BABYLON.DefaultRenderingPipeline("defaultPipeline", true, scene, [camera]);
 pipeline.bloomEnabled = true;
 pipeline.bloomThreshold = 0.4;
 pipeline.bloomKernel = 16;
 
-let ball: BABYLON.Mesh;
-let paddle1: BABYLON.Mesh;
-let paddle2: BABYLON.Mesh;
-let circles: BABYLON.InstancedMesh[] = [];
-let paddle1ParticleEffect: BABYLON.ParticleSystem;
-let paddle2ParticleEffect: BABYLON.ParticleSystem;
+const fieldHeight: number = fieldThickness + 0.5;
 
-let scoreElement: HTMLDivElement;
-let styleKeys: HTMLStyleElement;
-let pauseMenu: HTMLDivElement;
-let fpsDisplay: HTMLDivElement;
-
-function color3ToCSS(color: BABYLON.Color3): string {
-	const r = Math.round(color.r * 255);
-	const g = Math.round(color.g * 255);
-	const b = Math.round(color.b * 255);
-	return `rgb(${r}, ${g}, ${b})`;
-}
-
-const updateCanvasSize = throttle(() => {
-	if (resizePending) return;
-	resizePending = true;
-	requestAnimationFrame(() => {
-		const containerWidth = window.innerWidth;
-		const containerHeight = window.innerHeight;
-
-		canvas.width = containerWidth;
-		canvas.height = containerHeight;
-
-		const aspectRatio = containerWidth / containerHeight;
-		const BASE_FOV = BABYLON.Tools.ToRadians(150);
-		camera.fov = Math.min(BASE_FOV, BASE_FOV / aspectRatio);
-		engine.setHardwareScalingLevel(1);
-		engine.resize(true);
-
-		const scaleFactor = Math.min(containerWidth / 1280, containerHeight / 720);
-		document.documentElement.style.setProperty("--scale-factor", scaleFactor.toString());
-
-		updateScoreSize();
-		updateKeySize();
-
-		resizePending = false;
-	});
-});
-
+// Create ball
 function createBall(): BABYLON.Mesh {
 	const ball: BABYLON.Mesh = BABYLON.MeshBuilder.CreateSphere("ball", {diameter: 0.4, segments: 8, updatable: false}, scene);
 	const ballMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
@@ -176,7 +138,10 @@ function createBall(): BABYLON.Mesh {
 	return ball;
 }
 
-function createCapsuleMesh(radius: number, height: number, scene: BABYLON.Scene, color: BABYLON.Color3): BABYLON.Mesh {
+let ball = createBall();
+
+// Create paddles
+const createCapsuleMesh = (radius: number, height: number, scene: BABYLON.Scene, color: BABYLON.Color3): BABYLON.Mesh => {
     const capsule = BABYLON.MeshBuilder.CreateCapsule("capsule", {radius: radius, height: height + radius * 2, tessellation: 12, subdivisions: 8}, scene);
 
     const material = new BABYLON.StandardMaterial("paddleMaterial", scene);
@@ -188,9 +153,9 @@ function createCapsuleMesh(radius: number, height: number, scene: BABYLON.Scene,
 	capsule.freezeNormals();
 
     return capsule;
-}
+};
 
-function createPaddles(scene: BABYLON.Scene, fieldHeight: number) {
+const createPaddles = (scene: BABYLON.Scene, fieldHeight: number) => {
     const radius = 0.25;
     const height = 1.5;
 
@@ -208,8 +173,11 @@ function createPaddles(scene: BABYLON.Scene, fieldHeight: number) {
     paddle2.position.set(0, fieldHeight + 0.2, -6.5);
     
     return { paddle1, paddle2 };
-}
+};
 
+let { paddle1, paddle2 } = createPaddles(scene, fieldHeight);
+
+// Create field lines
 function createHalfCircle(centerX: number, centerZ: number, radius: number, startAngle: number, endAngle: number): BABYLON.Vector3[] {
 	const points: BABYLON.Vector3[] = [];
 	const segments = 16;
@@ -269,8 +237,12 @@ function createFieldLines(scene: BABYLON.Scene): void {
 	fieldmiddle.freezeWorldMatrix();
 	leftHalfCircle.freezeWorldMatrix();
 	rightHalfCircle.freezeWorldMatrix();
+
 }
 
+createFieldLines(scene);
+
+// Create circles for scoring effects
 function createCircle(radius: number = 0.3): BABYLON.Mesh {
 	const circleTemplate: BABYLON.Mesh = BABYLON.MeshBuilder.CreateDisc("circle", {radius: radius, tessellation: 16, updatable: false}, scene);
 	const circleMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("circleMaterial", scene);
@@ -300,6 +272,114 @@ function createCircleGrid(): BABYLON.InstancedMesh[] {
 		}
 	}
 	return circles;
+}
+
+let circles: BABYLON.InstancedMesh[] = createCircleGrid();
+
+// Score
+const scoreElement: HTMLDivElement = document.createElement('div');
+scoreElement.style.position = 'absolute';
+scoreElement.style.top = '20px';
+scoreElement.style.left = '50%';
+scoreElement.style.transform = 'translateX(-50%)';
+scoreElement.style.fontSize = '48px';
+scoreElement.style.fontFamily = '"Orbitron", sans-serif';
+scoreElement.style.letterSpacing = '4px';
+scoreElement.style.color = '#0ff';
+scoreElement.style.textShadow = '0 0 3px #0ff, 0 0 5px #0ff, 0 0 8px #00f, 0 0 12px #00f';
+scoreElement.style.display = 'none';
+scoreElement.style.transition = 'transform 0.1s ease-out';
+scoreElement.style.animation = 'neonGlow 1.5s infinite alternate';
+document.body.appendChild(scoreElement);
+
+if (!document.getElementById('neon-style')) {
+	const style: HTMLStyleElement = document.createElement('style');
+	style.id = 'neon-style';
+	style.textContent = `@keyframes neonGlow {
+		0% { text-shadow: 0 0 2px #0ff,  0 0 4px #0ff,  0 0 6px #00f, 0 0 8px #00f; }
+		100% { text-shadow: 0 0 3px #0ff, 0 0 5px #0ff, 0 0 7px #00f, 0 0 10px #00f; }
+	}`;
+	document.head.appendChild(style);
+}
+
+const updateScoreSize = () => {
+	const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
+	scoreElement.style.fontSize = `${48 * scaleFactor}px`;
+	scoreElement.style.top = `${20 * scaleFactor}px`;
+	scoreElement.style.letterSpacing = `${4 * scaleFactor}px`;
+};
+
+function updateScores(): void {
+	scoreElement.textContent = `${score1} - ${score2}`;
+	scoreElement.style.transform = 'translateX(-50%) scale(1.2)';
+	setTimeout(() => {
+		scoreElement.style.transform = 'translateX(-50%) scale(1)';
+	}, 100);
+}
+
+
+// Key display style
+const styleKeys: HTMLStyleElement = document.createElement("style");
+styleKeys.textContent = `
+	.key-display {
+		width: 50px;
+		height: 50px;
+		border-radius: 8px;
+		background: rgba(255, 255, 255, 0.2);
+		color: white;
+		opacity: 0.5;
+		font-size: 24px;
+		font-family: 'Orbitron', sans-serif;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 2px solid rgba(255, 255, 255, 0.4);
+		box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+		transition: transform 0.1s ease-out, background 0.1s ease-out;
+	}
+
+	.left { left: 20px; }
+	.right { right: 20px; }
+
+	.key-pressed {
+		transform: scale(1.1);
+		background: rgba(255, 255, 255, 0.2);
+		border: 2px solid rgba(255, 255, 255, 0.6);
+		box-shadow: 0 0 5px rgba(255, 255, 255, 0.6), 0 0 10px rgba(255, 255, 255, 0.6);
+	}
+`;
+document.head.appendChild(styleKeys);
+
+// Pause menu
+const pauseMenu = document.createElement("div");
+pauseMenu.id = "pause-menu";
+pauseMenu.innerHTML = `
+	<div class="pause-content">
+		<h2>PAUSE</h2>
+		<button id="resume-button">Resume</button>
+		<button id="home-button">Home</button>
+		<div id="home-confirmation">
+			<h2>Are you sure ?</h2>
+			<div class="button-container">
+				<button id="confirm-yes">Yes</button>
+				<button id="confirm-no">No</button>
+			</div>
+		</div>
+	</div>`;
+document.body.appendChild(pauseMenu);
+
+// Circle effects
+function setCirclesColor(color: BABYLON.Color3): void {
+	if (circles[0].sourceMesh && circles[0].sourceMesh.material)
+		(circles[0].sourceMesh.material as BABYLON.StandardMaterial).diffuseColor = color;
+}
+
+function highlightCircles(playerColor: BABYLON.Color3): void {
+	isPaused = true;
+	setCirclesColor(playerColor);
+	setTimeout(() => {
+		setCirclesColor(new BABYLON.Color3(0, 0, 0));
+	}, 1000);
 }
 
 function createGoalEffect(color: BABYLON.Color4, scene: BABYLON.Scene): BABYLON.ParticleSystem {
@@ -335,130 +415,44 @@ function createGoalEffect(color: BABYLON.Color4, scene: BABYLON.Scene): BABYLON.
 	return particleSystem;
 }
 
-function createScoreElement(): HTMLDivElement {
-	const element: HTMLDivElement = document.createElement('div');
-	element.style.position = 'absolute';
-	element.style.top = '20px';
-	element.style.left = '50%';
-	element.style.transform = 'translateX(-50%)';
-	element.style.fontSize = '48px';
-	element.style.fontFamily = '"Orbitron", sans-serif';
-	element.style.letterSpacing = '4px';
-	element.style.color = '#0ff';
-	element.style.textShadow = '0 0 3px #0ff, 0 0 5px #0ff, 0 0 8px #00f, 0 0 12px #00f';
-	element.style.display = 'none';
-	element.style.transition = 'transform 0.1s ease-out';
-	element.style.animation = 'neonGlow 1.5s infinite alternate';
-	document.body.appendChild(element);
-	return element;
+const paddle1ParticleEffect = createGoalEffect(player1Color4, scene);
+const paddle2ParticleEffect = createGoalEffect(player2Color4, scene);
+
+function highlightGoalEffect(particleSystem: BABYLON.ParticleSystem, position: BABYLON.Vector3) {
+	particleSystem.emitter = position.clone();
+	let clone = particleSystem.clone(particleSystem.name, particleSystem.emitter);
+	clone.start()
+	setTimeout(() => clone.stop(), 1000);
 }
 
-function createStyleKeys(): HTMLStyleElement {
-	const style: HTMLStyleElement = document.createElement("style");
-	style.textContent = `
-		.key-display {
-			width: 50px;
-			height: 50px;
-			border-radius: 8px;
-			background: rgba(255, 255, 255, 0.2);
-			color: white;
-			opacity: 0.5;
-			font-size: 24px;
-			font-family: 'Orbitron', sans-serif;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			border: 2px solid rgba(255, 255, 255, 0.4);
-			box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
-			transition: transform 0.1s ease-out, background 0.1s ease-out;
-		}
+// Resizing
+const updateCanvasSize = throttle(() => {
+	if (resizePending)
+		return;
+	resizePending = true;
+	requestAnimationFrame(() => {
+		const containerWidth = window.innerWidth;
+		const containerHeight = window.innerHeight;
 
-		.left { left: 20px; }
-		.right { right: 20px; }
+		canvas.width = containerWidth;
+		canvas.height = containerHeight;
 
-		.key-pressed {
-			transform: scale(1.1);
-			background: rgba(255, 255, 255, 0.2);
-			border: 2px solid rgba(255, 255, 255, 0.6);
-			box-shadow: 0 0 5px rgba(255, 255, 255, 0.6), 0 0 10px rgba(255, 255, 255, 0.6);
-		}
-	`;
-	document.head.appendChild(style);
-	return style;
-}
+		const aspectRatio = containerWidth / containerHeight;
+		const BASE_FOV = BABYLON.Tools.ToRadians(150);
+		camera.fov = Math.min(BASE_FOV, BASE_FOV / aspectRatio);
+		engine.resize(true);
 
-function createPauseMenu(): HTMLDivElement {
-	const menu = document.createElement("div");
-	menu.id = "pause-menu";
-	menu.innerHTML = `
-		<div class="pause-content">
-			<h2>PAUSE</h2>
-			<button id="resume-button">Resume</button>
-			<button id="home-button">Home</button>
-			<div id="home-confirmation">
-				<h2>Are you sure ?</h2>
-				<div class="button-container">
-					<button id="confirm-yes">Yes</button>
-					<button id="confirm-no">No</button>
-				</div>
-			</div>
-		</div>`;
-	document.body.appendChild(menu);
-	return menu;
-}
+		const scaleFactor = Math.min(containerWidth / 1280, containerHeight / 720);
+		document.documentElement.style.setProperty("--scale-factor", scaleFactor.toString());
 
-function createNeonStyle(): void {
-	if (!document.getElementById('neon-style')) {
-		const style: HTMLStyleElement = document.createElement('style');
-		style.id = 'neon-style';
-		style.textContent = `@keyframes neonGlow {
-			0% { text-shadow: 0 0 2px #0ff,  0 0 4px #0ff,  0 0 6px #00f, 0 0 8px #00f; }
-			100% { text-shadow: 0 0 3px #0ff, 0 0 5px #0ff, 0 0 7px #00f, 0 0 10px #00f; }
-		}`;
-		document.head.appendChild(style);
-	}
-}
+		updateScoreSize();
+		updateKeySize();
 
-function createButtonOnce(text: string, className: string): void {
-	const button = document.createElement('div');
-	button.classList.add('key-display', className);
-	button.textContent = text;
-	document.body.appendChild(button);
-	if (className === 'key-enter') {
-		enterButton = button;
-	} else if (className === 'key-space') {
-		spaceButton = button;
-	}
-	button.style.position = 'absolute';
-	button.style.top = '20%';
-	if (className === 'key-enter') {
-		button.style.left = '40%';
-	} else if (className === 'key-space') {
-		button.style.right = '40%';
-	}
-	buttonHasBeenCreated = true;
-}
+		resizePending = false;
+	});
+});
 
-function createFPSDisplay(): HTMLDivElement {
-	const display = document.createElement('div');
-	display.style.position = 'absolute';
-	display.style.top = '10px';
-	display.style.left = '10px';
-	display.style.color = '#0ff';
-	display.style.fontFamily = '"Orbitron", sans-serif';
-	display.style.zIndex = '1000';
-	document.body.appendChild(display);
-	return display;
-}
-
-function updateScoreSize(): void {
-	const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
-	scoreElement.style.fontSize = `${48 * scaleFactor}px`;
-	scoreElement.style.top = `${20 * scaleFactor}px`;
-	scoreElement.style.letterSpacing = `${4 * scaleFactor}px`;
-}
-
-function updateKeySize(): void {
+const updateKeySize = () => {
 	const scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale-factor"));
 	document.querySelectorAll(".key-display").forEach((key) => {
 		const element = key as HTMLElement;
@@ -467,38 +461,12 @@ function updateKeySize(): void {
 		element.style.fontSize = `${24 * scaleFactor}px`;
 		element.style.borderRadius = `${8 * scaleFactor}px`;
 	});
-}
+};
 
-function updateScores(): void {
-	scoreElement.textContent = `${score1} - ${score2}`;
-	scoreElement.style.transform = 'translateX(-50%) scale(1.2)';
-	setTimeout(() => {
-		scoreElement.style.transform = 'translateX(-50%) scale(1)';
-	}, 100);
-}
-
-function setCirclesColor(color: BABYLON.Color3): void {
-	if (circles[0].sourceMesh && circles[0].sourceMesh.material)
-		(circles[0].sourceMesh.material as BABYLON.StandardMaterial).diffuseColor = color;
-}
-
-function highlightCircles(playerColor: BABYLON.Color3): void {
-	isPaused = true;
-	setCirclesColor(playerColor);
-	setTimeout(() => {
-		setCirclesColor(new BABYLON.Color3(0, 0, 0));
-	}, 1000);
-}
-
-function highlightGoalEffect(particleSystem: BABYLON.ParticleSystem, position: BABYLON.Vector3): void {
-	particleSystem.emitter = position.clone();
-	let clone = particleSystem.clone(particleSystem.name, particleSystem.emitter);
-	clone.start()
-	setTimeout(() => clone.stop(), 1000);
-}
-
+// Camera effects
 function zoomOutEffect(callback?: () => void): void {
-	if (isZooming) return;
+	if (isZooming)
+		return;
 	isZooming = true;
 	const targetPositionZ = 12;
 	const zoomSpeed = 0.01;
@@ -511,18 +479,22 @@ function zoomOutEffect(callback?: () => void): void {
 			camera.position.z = targetPositionZ;
 			scene.onBeforeRenderObservable.removeCallback(zoomOutAnimation);
 			isZooming = false;
-			if (callback) callback();
+			if (callback)
+				callback();
 		}
 	}
 	scene.onBeforeRenderObservable.add(zoomOutAnimation);
 }
 
-function handleKeyDown(event: KeyboardEvent): void {
+// Keyboard controls
+function handleKeyDown(event: KeyboardEvent) {
 	const code = event.code;
 
-	if (event.repeat) return;
+	if (event.repeat)
+		return;
 
-	if (keyMap.has(code)) {
+	if (keyMap.has(code))
+	{
 		const KeyState = keyMap.get(code)!;
 		KeyState.pressed = true;
 
@@ -530,7 +502,8 @@ function handleKeyDown(event: KeyboardEvent): void {
 			KeyState.element.classList.add('key-pressed');
 
 		if (code === 'Space' || code === 'Enter') {
-			if (gameIsFinished) return;
+			if (gameIsFinished)
+				return;
 			hideButtons();
 			isPaused = false;
 		}
@@ -540,7 +513,7 @@ function handleKeyDown(event: KeyboardEvent): void {
 	}
 }
 
-function handleKeyUp(event: KeyboardEvent): void {
+function handleKeyUp(event: KeyboardEvent) {
 	const code = event.code;
 
 	if (keyMap.has(code)) {
@@ -572,7 +545,7 @@ const layoutDetectionHandler = (e: KeyboardEvent) => {
 	}
 };
 
-function initKeyControls(): void {
+function initKeyControls() {
 	const gameKeys = ["KeyA", "KeyD", "ArrowLeft", "ArrowRight", "Escape", "Space", "Enter"];
 
 	gameKeys.forEach(code => {
@@ -598,32 +571,41 @@ function initKeyControls(): void {
 	window.addEventListener('keydown', handleKeyDown);
 	window.addEventListener('keyup', handleKeyUp);
 	window.addEventListener("blur", () => {
-		if (!isPlaying || gameIsFinished) return;
-		if (!isPaused) togglePause();
+		if (!isPlaying || gameIsFinished)
+			return;
+		if (!isPaused)
+			togglePause();
 	});
 }
 
+// Ai highlight keys
 function simulatKeyPress(action: number): void {
 	if (keyMap.get("ArrowLeft")?.element)
 		keyMap.get("ArrowLeft")!.element!.classList.remove("key-pressed");
 	if (keyMap.get("ArrowRight")?.element)
 		keyMap.get("ArrowRight")!.element!.classList.remove("key-pressed");
-	if (action === 0 && keyMap.get("ArrowLeft")?.element && paddle2.position.x < 5) {
+	if (action === 0 && keyMap.get("ArrowLeft")?.element && paddle2.position.x < 5)
+	{
 		paddle2.position.x += paddleSpeed;
 		keyMap.get("ArrowLeft")!.element!.classList.add("key-pressed");
 	}
-	else if (action === 1 && keyMap.get("ArrowRight")?.element && paddle2.position.x > -5) {
+	else if (action === 1 && keyMap.get("ArrowRight")?.element && paddle2.position.x > -5)
+	{
 		paddle2.position.x -= paddleSpeed;
 		keyMap.get("ArrowRight")!.element!.classList.add("key-pressed");
 	}
 }
 
+
+// Paddle movement
 function movePaddles(): void {
-	if (pongAIInstance) {
+	if (pongAIInstance)
+	{
 		const action = pongAIInstance.getAction(ball, ballSpeed, paddle2, paddleSpeed, paddle1.position.x);
 		simulatKeyPress(action);
 	}
-	else {
+	else
+	{
 		if (keyMap.get("ArrowLeft")?.pressed && paddle2.position.x < 5)
 			paddle2.position.x += paddleSpeed;
 		if (keyMap.get("ArrowRight")?.pressed && paddle2.position.x > -5)
@@ -635,6 +617,7 @@ function movePaddles(): void {
 		paddle1.position.x -= paddleSpeed;
 }
 
+// Collision wall/paddle --> scoring
 function checkCollision(): void {
 	// Paddle1 (green)
 	if (ballSpeed.z > 0 && ball.position.z > 6 && ball.position.z < 7) {
@@ -712,6 +695,44 @@ function checkCollision(): void {
 	}
 }
 
+// Game state management
+let enterButton: HTMLElement | null = null;
+let spaceButton: HTMLElement | null = null;
+let spaceAndEnterIsPrint = false;
+let buttonHasBeenCreated = false;
+
+function createButtonOnce(text: string, className: string): void {
+	const button = document.createElement('div');
+	button.classList.add('key-display', className);
+	button.textContent = text;
+	document.body.appendChild(button);
+	if (className === 'key-enter') {
+		enterButton = button;
+	} else if (className === 'key-space') {
+		spaceButton = button;
+	}
+	button.style.position = 'absolute';
+	button.style.top = '20%';
+	if (className === 'key-enter') {
+		button.style.left = '40%';
+	} else if (className === 'key-space') {
+		button.style.right = '40%';
+	}
+	buttonHasBeenCreated = true;
+}
+
+function showButtons() {
+	enterButton!.style.display = 'flex';
+	spaceButton!.style.display = 'flex';
+}
+
+function hideButtons(): void {
+	spaceAndEnterIsPrint = false;
+	enterButton!.style.display = 'none';
+	spaceButton!.style.display = 'none';
+}
+
+// Game Control
 function reset(): void {
 	paddle1.position.set(0, fieldHeight + 0.2, 6.5);
 	paddle2.position.set(0, fieldHeight + 0.2, -6.5);
@@ -741,67 +762,7 @@ function reset(): void {
 	}
 }
 
-function showButtons(): void {
-	enterButton!.style.display = 'flex';
-	spaceButton!.style.display = 'flex';
-}
-
-function hideButtons(): void {
-	spaceAndEnterIsPrint = false;
-	enterButton!.style.display = 'none';
-	spaceButton!.style.display = 'none';
-}
-
-function togglePause(): void {
-	isPaused = true;
-	if (isPaused) {
-		pauseMenu.style.display = "block";
-		countdownContainer.style.display = "block";
-		overlay.style.display = "block";
-	} else {
-		pauseMenu.style.display = "none";
-		countdownContainer.style.display = "none";
-		overlay.style.display = "none";
-	}
-}
-
-function startGame(): void {
-	countdownContainer.style.display = "none";
-	isPaused = false;
-	isPlaying = true;
-	scoreElement.style.display = "block";
-	overlay.style.display = "none";
-}
-
-function startCountdown(callback: () => void): void {
-	menu.style.display = "none";
-	countdownContainer.style.display = "block";
-	countdownElement.style.opacity = "1";
-	goElement.style.opacity = "0";
-	let count = 3;
-	countdownElement.textContent = count.toString();
-
-	function updateCountdown(): void {
-		if (count > 0) {
-			countdownElement.textContent = count.toString();
-			count--;
-			setTimeout(updateCountdown, 1000);
-		} else {
-			countdownElement.style.opacity = "0";
-			goElement.style.display = "block";
-			goElement.style.opacity = "1";
-			goElement.style.animation = "goFlash 2s ease-out forwards";
-			setTimeout(() => {
-				goElement.style.display = "none";
-				countdownComplete = true;
-				if (callback) callback();
-			}, 2000);
-		}
-	}
-	updateCountdown();
-}
-
-function restartGame(callback?: () => void): void {
+function restartGame(callback?: () => void) {
 	gameIsFinished = false;
 	score1 = 0;
 	score2 = 0;
@@ -815,7 +776,8 @@ function restartGame(callback?: () => void): void {
 	updateScores();
 
 	startCountdown(() => {
-		if (callback) callback();
+		if (callback)
+			callback();
 	});
 }
 
@@ -906,11 +868,79 @@ function endGame(): void {
 	}, 2500);
 }
 
+function togglePause() {
+	isPaused = true;
+	if (isPaused) {
+		pauseMenu.style.display = "block";
+		countdownContainer.style.display = "block";
+		overlay.style.display = "block";
+	} else {
+		pauseMenu.style.display = "none";
+		countdownContainer.style.display = "none";
+		overlay.style.display = "none";
+	}
+}
+
+function startGame(): void {
+	countdownContainer.style.display = "none";
+	isPaused = false;
+	isPlaying = true;
+	scoreElement.style.display = "block";
+	overlay.style.display = "none";
+}
+
+function startCountdown(callback: () => void): void {
+	menu.style.display = "none";
+	countdownContainer.style.display = "block";
+	countdownElement.style.opacity = "1";
+	goElement.style.opacity = "0";
+	let count = 3;
+	countdownElement.textContent = count.toString();
+
+	function updateCountdown(): void {
+		if (count > 0) {
+			countdownElement.textContent = count.toString();
+			count--;
+			setTimeout(updateCountdown, 1000);
+		} else {
+			countdownElement.style.opacity = "0";
+			goElement.style.display = "block";
+			goElement.style.opacity = "1";
+			goElement.style.animation = "goFlash 2s ease-out forwards";
+			setTimeout(() => {
+				goElement.style.display = "none";
+				countdownComplete = true;
+				if (callback)
+					callback();
+			}, 2000);
+		}
+	}
+	updateCountdown();
+}
+
+rankedButton?.addEventListener("click", () => {
+	menu.style.display = "none";
+    backToMenuFromRanked!.style.display = "flex";
+});
+
+backToMenuFromRanked?.addEventListener("click", () => {
+	backToMenuFromRanked!.style.display = "none";
+	menu.style.display = "block";
+});
+
+// Tournament
+function color3ToCSS(color: BABYLON.Color3): string {
+	const r = Math.round(color.r * 255);
+	const g = Math.round(color.g * 255);
+	const b = Math.round(color.b * 255);
+	return `rgb(${r}, ${g}, ${b})`;
+}
+
 function onMatchEnd(callback: (winner: string) => void): void {
 	matchEndCallback = callback;
 }
 
-function showMatchInfo(player1: string, player2: string): void {
+function showMatchInfo(player1: string, player2: string) {
 	const matchInfo = document.getElementById("match-info");
 	if (!matchInfo) return;
 
@@ -925,7 +955,7 @@ function showMatchInfo(player1: string, player2: string): void {
 	matchInfo.style.display = "block";
 }
 
-function showTournament(players: string[]): void {
+function showTournament(players: string[]) {
 	const shuffled = players.sort(() => Math.random() - 0.5);
 	const rounds: string[][] = [];
 	for (let i = 0; i < shuffled.length; i += 2) {
@@ -976,12 +1006,12 @@ function showTournament(players: string[]): void {
 	}
 }
 
-function startTournamentGame(rounds: string[][]): void {
+function startTournamentGame(rounds: string[][]) {
 	let currentMatchIndex = 0;
 	const winners: string[] = [];
 	isLastTournamentMatch = rounds.length === 1;
 
-	function playNextMatch(): void {
+	function playNextMatch() {
 		if (currentMatchIndex >= rounds.length) {
 			startTournamentGame(pairWinners(winners));
 			return;
@@ -1012,72 +1042,7 @@ function pairWinners(players: string[]): string[][] {
 	return rounds;
 }
 
-// =============================
-// EVENT LISTENERS
-// =============================
-function setupEventListeners(): void {
-	document.getElementById("playButton")?.addEventListener("click", () => {
-		menu.style.display = "none";
-		document.getElementById("mode-selection-container")!.style.display = "flex";
-		document.getElementById("back-to-menu-from-play")!.style.display = "flex";
-	});
-
-	backToMenuFromPlay?.addEventListener("click", () => {
-		menu.style.display = "block";
-		document.getElementById("mode-selection-container")!.style.display = "none";
-		backToMenuFromPlay!.style.display = "none";
-	});
-
-	document.getElementById("aiMode")?.addEventListener("click", () => {
-		backToMenuFromPlay!.style.display = "none";
-		modeSelection!.style.display = "none";
-		pongAIInstance = new PongAI();
-		isPaused = true;
-		startCountdown(() => {
-			startGame();
-		});
-	});
-
-	document.getElementById("humanMode")?.addEventListener("click", () => {
-		backToMenuFromPlay!.style.display = "none";
-		modeSelection!.style.display = "none";
-		isPaused = true;
-		startCountdown(startGame);
-	});
-
-	// Pause menu
-	document.getElementById("home-button")!.addEventListener("click", () => {
-		document.getElementById("home-confirmation")!.style.display = "flex";
-	});
-
-	document.getElementById("confirm-yes")!.addEventListener("click", () => {
-		location.reload();
-	});
-
-	document.getElementById("confirm-no")!.addEventListener("click", () => {
-		document.getElementById("home-confirmation")!.style.display = "none";
-	});
-
-	document.getElementById("resume-button")!.addEventListener("click", () => {
-		pauseMenu.style.display = "none";
-		countdownContainer.style.display = "none";
-		overlay.style.display = "none";
-		if (spaceAndEnterIsPrint) return;
-		isPaused = false;
-	});
-
-	// Ranked button
-	rankedButton?.addEventListener("click", () => {
-		menu.style.display = "none";
-		backToMenuFromRanked!.style.display = "flex";
-	});
-
-	backToMenuFromRanked?.addEventListener("click", () => {
-		backToMenuFromRanked!.style.display = "none";
-		menu.style.display = "block";
-	});
-
-	// Tournament
+document.addEventListener('DOMContentLoaded', function() {
 	if (tournamentButton && menu && tournamentButtonContainer && playerCountSelector && playerInputs && continueButton) {
 		tournamentButton.addEventListener('click', function () {
 			menu.style.display = 'none';
@@ -1122,7 +1087,7 @@ function setupEventListeners(): void {
 				const allInputs = playerInputs.querySelectorAll('input');
 				allInputs.forEach(input => {
 					input.addEventListener('input', () => {
-						const allFilled = Array.from(allInputs).every(input => input.value.trim() !== '');
+						const allFilled = Array.from(allInputs).every(input => input.value.trim() !== ''); // Transform into array, check if all inputs are filled
 						continueButton.style.display = allFilled ? 'block' : 'none';
 					});
 				});
@@ -1139,18 +1104,78 @@ function setupEventListeners(): void {
 			}
 		});
 	}
+});
 
-	window.addEventListener('resize', () => {
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
-		engine.resize();
+// Pause menu / event handlers
+document.getElementById("home-button")!.addEventListener("click", () => {
+	document.getElementById("home-confirmation")!.style.display = "flex"; // Display confirmation
+});
+
+document.getElementById("confirm-yes")!.addEventListener("click", () => {
+	location.reload();
+});
+
+document.getElementById("confirm-no")!.addEventListener("click", () => {
+	document.getElementById("home-confirmation")!.style.display = "none"; // Just hide the confirmation
+});
+
+document.getElementById("resume-button")!.addEventListener("click", () => {
+	pauseMenu.style.display = "none";
+	countdownContainer.style.display = "none";
+	overlay.style.display = "none";
+	if (spaceAndEnterIsPrint) return;
+	isPaused = false;
+});
+
+document.getElementById("playButton")?.addEventListener("click", () => {
+	menu.style.display = "none";
+	document.getElementById("mode-selection-container")!.style.display = "flex";
+	document.getElementById("back-to-menu-from-play")!.style.display = "flex";
+});
+
+backToMenuFromPlay?.addEventListener("click", () => {
+	menu.style.display = "block";
+	document.getElementById("mode-selection-container")!.style.display = "none";
+	backToMenuFromPlay!.style.display = "none";
+});
+
+document.getElementById("aiMode")?.addEventListener("click", () => {
+	backToMenuFromPlay!.style.display = "none";
+	modeSelection!.style.display = "none";
+	pongAIInstance = new PongAI();
+	isPaused = true;
+	startCountdown(() => {
+		startGame();
 	});
-}
+});
 
+document.getElementById("humanMode")?.addEventListener("click", () => {
+	backToMenuFromPlay!.style.display = "none";
+	modeSelection!.style.display = "none";
+	isPaused = true;
+	startCountdown(startGame);
+});
+
+window.addEventListener('resize', () => {
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+	engine.resize();
+});
+
+// FPS display
+const fpsDisplay = document.createElement('div');
+fpsDisplay.style.position = 'absolute';
+fpsDisplay.style.top = '10px';
+fpsDisplay.style.left = '10px';
+fpsDisplay.style.color = '#0ff';
+fpsDisplay.style.fontFamily = '"Orbitron", sans-serif';
+fpsDisplay.style.zIndex = '1000';
+document.body.appendChild(fpsDisplay);
 let frameCount = 0;
 let lastTime = performance.now();
 let fps = 0;
-function measureFPS(): void {
+
+function measureFPS() {
 	frameCount++;
 	const now = performance.now();
 
@@ -1164,40 +1189,20 @@ function measureFPS(): void {
 	requestAnimationFrame(measureFPS);
 }
 
-function initializeGame(): void {
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
+measureFPS();
+initKeyControls();
+updateCanvasSize();
+const resizeObserver = new ResizeObserver(updateCanvasSize);
+resizeObserver.observe(pongGlobalContainer);
+updateScores();
 
-	createFieldLines(scene);
-	circles = createCircleGrid();
-	({ paddle1, paddle2 } = createPaddles(scene, fieldHeight));
-	ball = createBall();
-	paddle1ParticleEffect = createGoalEffect(player1Color4, scene);
-	paddle2ParticleEffect = createGoalEffect(player2Color4, scene);
-	scoreElement = createScoreElement();
-	styleKeys = createStyleKeys();
-	pauseMenu = createPauseMenu();
-	fpsDisplay = createFPSDisplay();
-	createNeonStyle();
-
-	initKeyControls();
-	updateCanvasSize();
-	updateScores();
-
-	const resizeObserver = new ResizeObserver(updateCanvasSize);
-	resizeObserver.observe(pongGlobalContainer);
-	setupEventListeners();
-	measureFPS();
-
-	engine.runRenderLoop(() => {
-		if (!isPaused && countdownComplete) {
-			movePaddles();
-			ball.position.x += ballSpeed.x;
-			ball.position.z += ballSpeed.z;
-			checkCollision();
-		}
-		scene.render();
-	});
-}
-
-document.addEventListener('DOMContentLoaded', initializeGame);
+// Render loop
+engine.runRenderLoop(() => {
+	if (!isPaused && countdownComplete) {
+		movePaddles();
+		ball.position.x += ballSpeed.x;
+		ball.position.z += ballSpeed.z;
+		checkCollision();
+	}
+	scene.render();
+});

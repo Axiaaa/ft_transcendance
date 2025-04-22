@@ -1,6 +1,7 @@
 // @ts-ignore
 const tf = window.tf;
 
+
 export class PongAI
 {
 	private model: any;
