@@ -360,9 +360,9 @@ function updateScores(): void {
 const styleKeys: HTMLStyleElement = document.createElement("style");
 styleKeys.textContent = `
 	.key-display {
-		width: 50px;
-		height: 50px;
-		border-radius: 8px;
+		width: calc(50px / var(--scale-factor));
+		height: calc(50px / var(--scale-factor));
+		border-radius: calc(8px / var(--scale-factor));
 		background: rgba(255, 255, 255, 0.2);
 		color: white;
 		opacity: 0.5;
@@ -739,6 +739,12 @@ let spaceButton: HTMLElement | null = null;
 let spaceAndEnterIsPrint = false;
 let buttonHasBeenCreated = false;
 
+if (!buttonHasBeenCreated) {
+	createButtonOnce('Enter', 'key-enter');
+	createButtonOnce('Space', 'key-space');
+	hideButtons();
+}
+
 function createButtonOnce(text: string, className: string): void {
 	const button = document.createElement('div');
 	button.classList.add('key-display', className);
@@ -760,6 +766,7 @@ function createButtonOnce(text: string, className: string): void {
 }
 
 function showButtons() {
+	spaceAndEnterIsPrint = true;
 	enterButton!.style.display = 'flex';
 	spaceButton!.style.display = 'flex';
 }
@@ -790,13 +797,7 @@ function reset(): void {
 		return;
 
 	if (score1 !== 10 && score2 !== 10) {
-		if (!buttonHasBeenCreated) {
-			createButtonOnce('Enter', 'key-enter');
-			createButtonOnce('Space', 'key-space');
-		} else {
-			showButtons();
-		}
-		spaceAndEnterIsPrint = true;
+		showButtons();
 	}
 }
 
