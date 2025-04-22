@@ -4,10 +4,12 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@babylonjs/gui": "6.27.0",
     "@babylonjs/core": "6.27.0",
+    "@babylonjs/gui": "6.27.0",
     "@babylonjs/loaders": "6.27.0",
     "@tensorflow/tfjs": "4.22.0",
+    "babylonjs": "^8.3.1",
+    "babylonjs-loaders": "^8.3.1",
     "typescript": "5.8.3",
     "typescript-cookie": "1.0.6",
     "xp.css": "0.2.6"

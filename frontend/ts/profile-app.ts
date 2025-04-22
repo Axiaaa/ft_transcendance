@@ -1,6 +1,6 @@
 import { openAppWindow } from "./app-icon.js";
 import { sendNotification } from "./notification.js";
-import { getCurrentUser } from "./API.js";
+import { getCurrentUser, getMatchDetails, getUser, getUserById, getUserByUsername, getUserMatchHistory, isUserOnline } from "./API.js";
 
 function openProfile(AppLauncher: string, profileTab?: string): void
 {
@@ -12,28 +12,28 @@ function openProfile(AppLauncher: string, profileTab?: string): void
 		appTaskbarIcon.style.display = 'flex';
 		appTaskbarIcon.style.backgroundColor = 'rgba(137, 163, 206, 0.49)';
 		let GeneralContent = document.getElementById('profile-app-content-main-right-General-content') as HTMLElement;
-		let TournamentsContent = document.getElementById('profile-app-content-main-right-Tournaments-content') as HTMLElement;
+		let HistoryMatchContent = document.getElementById('profile-app-content-main-right-HistoryMatch-content') as HTMLElement;
 		let StatsContent = document.getElementById('profile-app-content-main-right-Stats-content') as HTMLElement;
-		if (GeneralContent && TournamentsContent && StatsContent)
+		if (GeneralContent && HistoryMatchContent && StatsContent)
 		{
 			if (profileTab)
 			{
 				if (profileTab === 'general')
 				{
 					GeneralContent.style.display = 'flex';
-					TournamentsContent.style.display = 'none';
+					HistoryMatchContent.style.display = 'none';
 					StatsContent.style.display = 'none';
 				}
-				else if (profileTab === 'tournaments')
+				else if (profileTab === 'HistoryMatch')
 				{
 					GeneralContent.style.display = 'none';
-					TournamentsContent.style.display = 'flex';
+					HistoryMatchContent.style.display = 'flex';
 					StatsContent.style.display = 'none';
 				}
 				else if (profileTab === 'stats')
 				{
 					GeneralContent.style.display = 'none';
-					TournamentsContent.style.display = 'none';
+					HistoryMatchContent.style.display = 'none';
 					StatsContent.style.display = 'flex';
 				}
 			}
@@ -81,7 +81,7 @@ function createCategorieTab(Name: string, Icon: string, Container: HTMLElement)
 	categorieTitle.innerText = Name;
 	categorieTitle.style.color = 'white';
 	categorieTitle.style.textAlign = 'left';
-	categorieTitle.style.margin = '13px 5px';
+	categorieTitle.style.margin = '13px 4px';
 	categorieTitle.style.fontSize = '15px';
 
 	return categorie;
@@ -122,131 +122,215 @@ function createCategorieContainer(Name: string, Container: HTMLElement)
 	return categorie;
 }
 
-function addTournamentHistory(Container: HTMLElement, Player1: string, Player2: string, Score1: number, Score2: number)
+async function addTournamentHistory(Container: HTMLElement, Player1: string, Player2: string, Score1: number, Score2: number, matchDate: Date = new Date())
 {
 	if (!Container) return;
 	let tournamentHistoryEntry = document.createElement('div');
 	Container.appendChild(tournamentHistoryEntry);
-	tournamentHistoryEntry.style.width = 'calc(100% - 30px)';
-	tournamentHistoryEntry.style.height = 'auto';
+	tournamentHistoryEntry.style.width = 'calc(100% - 50px)';
+	tournamentHistoryEntry.style.padding = '10px 15px';
+	tournamentHistoryEntry.style.margin = '8px 10px';
+	tournamentHistoryEntry.style.border = '1px solid rgba(0, 0, 0, 0.4)';
+	tournamentHistoryEntry.style.borderRadius = '4px';
+	tournamentHistoryEntry.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+	tournamentHistoryEntry.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.15)';
 	tournamentHistoryEntry.style.display = 'flex';
-	tournamentHistoryEntry.style.flexDirection = 'row';
-	tournamentHistoryEntry.style.alignItems = 'center';
-	tournamentHistoryEntry.style.justifyContent = 'space-between';
-	tournamentHistoryEntry.style.padding = '5px 10px';
-	tournamentHistoryEntry.style.margin = '10px 0px';
-	tournamentHistoryEntry.style.marginTop = '0px';
-	tournamentHistoryEntry.style.border = '1px solid rgba(0, 0, 0, 0.58)';
-	tournamentHistoryEntry.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+	tournamentHistoryEntry.style.flexDirection = 'column';
 
-	// Column 1: Player 1
-	const player1Column = document.createElement('div');
-	player1Column.style.display = 'flex';
-	player1Column.style.flexDirection = 'column';
-	player1Column.style.alignItems = 'center';
-	tournamentHistoryEntry.appendChild(player1Column);
+	// Date information section
+	const dateSection = document.createElement('div');
+	dateSection.style.width = '100%';
+	dateSection.style.marginBottom = '8px';
+	dateSection.style.paddingBottom = '5px';
+	dateSection.style.borderBottom = '1px solid rgba(255, 255, 255, 0.2)';
+	dateSection.style.display = 'flex';
+	dateSection.style.justifyContent = 'space-between';
+	tournamentHistoryEntry.appendChild(dateSection);
+	
+	// Format the date nicely
+	const formattedDate = matchDate.toLocaleDateString('en-US', {
+		year: 'numeric', 
+		month: 'short', 
+		day: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit'
+	});
+	
+	// Calculate time elapsed
+	const now = new Date();
+	const diffMs = now.getTime() - matchDate.getTime();
+	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+	const diffHrs = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+	let timeAgo = '';
+	
+	if (diffDays > 0) {
+		timeAgo = `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+	} else if (diffHrs > 0) {
+		timeAgo = `${diffHrs} hour${diffHrs !== 1 ? 's' : ''} ago`;
+	} else {
+		const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+		timeAgo = `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+	}
+	
+	const dateDisplay = document.createElement('span');
+	dateDisplay.innerText = formattedDate;
+	dateDisplay.style.color = 'rgba(255, 255, 255, 0.7)';
+	dateDisplay.style.fontSize = '12px';
+	dateDisplay.style.fontStyle = 'italic';
+	dateSection.appendChild(dateDisplay);
+	
+	const timeAgoDisplay = document.createElement('span');
+	timeAgoDisplay.innerText = timeAgo;
+	timeAgoDisplay.style.color = 'rgba(255, 255, 255, 0.7)';
+	timeAgoDisplay.style.fontSize = '12px';
+	timeAgoDisplay.style.fontStyle = 'italic';
+	dateSection.appendChild(timeAgoDisplay);
 
-	const player1Label = document.createElement('h3');
-	player1Label.innerText = 'Player 1';
-	player1Label.style.color = 'white';
-	player1Label.style.margin = '0 0 5px 0';
-	player1Label.style.fontSize = '12px';
-	player1Column.appendChild(player1Label);
+	// Match details section
+	const matchDetailsContainer = document.createElement('div');
+	matchDetailsContainer.style.display = 'flex';
+	matchDetailsContainer.style.justifyContent = 'space-between';
+	matchDetailsContainer.style.alignItems = 'center';
+	matchDetailsContainer.style.marginTop = '5px';
+	tournamentHistoryEntry.appendChild(matchDetailsContainer);
 
-	const player1Name = document.createElement('h3');
+	// Player 1 info
+	const player1Container = document.createElement('div');
+	player1Container.style.flex = '2';
+	player1Container.style.textAlign = 'center';
+	player1Container.style.padding = '5px';
+	player1Container.style.backgroundColor = Score1 > Score2 ? 'rgba(75, 192, 75, 0.2)' : 'transparent';
+	player1Container.style.borderRadius = '3px';
+	player1Container.style.display = 'flex';
+	player1Container.style.flexDirection = 'column';
+	player1Container.style.alignItems = 'center';
+	matchDetailsContainer.appendChild(player1Container);
+
+	// Player 1 avatar
+	const player1AvatarContainer = document.createElement('div');
+	player1AvatarContainer.style.width = '40px';
+	player1AvatarContainer.style.height = '40px';
+	player1AvatarContainer.style.marginBottom = '5px';
+	player1AvatarContainer.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+	player1AvatarContainer.style.borderRadius = '50%';
+	player1AvatarContainer.style.overflow = 'hidden';
+	player1AvatarContainer.style.backgroundColor = 'white';
+	player1Container.appendChild(player1AvatarContainer);
+
+	const player1Avatar = document.createElement('img');
+	{
+		let player1User = await getUserByUsername(Player1);
+		player1Avatar.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar
+		if (player1User)
+			player1Avatar.src = player1User.avatar || './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar
+	}
+	player1Avatar.style.width = '100%';
+	player1Avatar.style.height = '100%';
+	player1Avatar.style.objectFit = 'cover';
+	player1AvatarContainer.appendChild(player1Avatar);
+
+	const player1Name = document.createElement('div');
 	player1Name.innerText = Player1;
 	player1Name.style.color = 'white';
-	player1Name.style.fontWeight = 'bold';
-	player1Name.style.fontSize = '10px';
-	player1Column.appendChild(player1Name);
+	player1Name.style.fontWeight = Score1 > Score2 ? 'bold' : 'normal';
+	player1Name.style.fontSize = '14px';
+	player1Container.appendChild(player1Name);
 
-	// Column 2: VS
-	const vsColumn = document.createElement('div');
-	vsColumn.style.display = 'flex';
-	vsColumn.style.alignItems = 'center';
-	tournamentHistoryEntry.appendChild(vsColumn);
+	// VS and score display
+	const scoreContainer = document.createElement('div');
+	scoreContainer.style.flex = '1';
+	scoreContainer.style.display = 'flex';
+	scoreContainer.style.flexDirection = 'column';
+	scoreContainer.style.alignItems = 'center';
+	scoreContainer.style.padding = '0 10px';
+	matchDetailsContainer.appendChild(scoreContainer);
 
-	const vsText = document.createElement('h3');
+	const scoreText = document.createElement('div');
+	scoreText.innerText = `${Score1} - ${Score2}`;
+	scoreText.style.color = 'white';
+	scoreText.style.fontSize = '16px';
+	scoreText.style.fontWeight = 'bold';
+	scoreText.style.padding = '3px 8px';
+	scoreText.style.backgroundColor = 'rgba(0, 0, 0, 0.25)';
+	scoreText.style.borderRadius = '10px';
+	scoreText.style.margin = '3px 0';
+	scoreContainer.appendChild(scoreText);
+
+	const vsText = document.createElement('div');
 	vsText.innerText = 'VS';
-	vsText.style.color = 'white';
-	vsText.style.fontWeight = 'bold';
-	vsText.style.fontSize = '18px';
-	vsColumn.appendChild(vsText);
+	vsText.style.color = 'rgba(255, 255, 255, 0.6)';
+	vsText.style.fontSize = '12px';
+	scoreContainer.appendChild(vsText);
 
-	// Column 3: Player 2
-	const player2Column = document.createElement('div');
-	player2Column.style.display = 'flex';
-	player2Column.style.flexDirection = 'column';
-	player2Column.style.alignItems = 'center';
-	tournamentHistoryEntry.appendChild(player2Column);
+	// Player 2 info
+	const player2Container = document.createElement('div');
+	player2Container.style.flex = '2';
+	player2Container.style.textAlign = 'center';
+	player2Container.style.padding = '5px';
+	player2Container.style.backgroundColor = Score2 > Score1 ? 'rgba(75, 192, 75, 0.2)' : 'transparent';
+	player2Container.style.borderRadius = '3px';
+	player2Container.style.display = 'flex';
+	player2Container.style.flexDirection = 'column';
+	player2Container.style.alignItems = 'center';
+	matchDetailsContainer.appendChild(player2Container);
 
-	const player2Label = document.createElement('h3');
-	player2Label.innerText = 'Player 2';
-	player2Label.style.color = 'white';
-	player2Label.style.margin = '0 0 5px 0';
-	player2Label.style.fontSize = '12px';
-	player2Column.appendChild(player2Label);
+	// Player 2 avatar
+	const player2AvatarContainer = document.createElement('div');
+	player2AvatarContainer.style.width = '40px';
+	player2AvatarContainer.style.height = '40px';
+	player2AvatarContainer.style.marginBottom = '5px';
+	player2AvatarContainer.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+	player2AvatarContainer.style.borderRadius = '50%';
+	player2AvatarContainer.style.overflow = 'hidden';
+	player2AvatarContainer.style.backgroundColor = 'white';
+	player2Container.appendChild(player2AvatarContainer);
 
-	const player2Name = document.createElement('h3');
+	const player2Avatar = document.createElement('img');
+	{
+		let player2User = await getUserByUsername(Player2);
+		player2Avatar.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar
+		if (player2User)
+			player2Avatar.src = player2User.avatar || './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar
+	}
+	player2Avatar.style.width = '100%';
+	player2Avatar.style.height = '100%';
+	player2Avatar.style.objectFit = 'cover';
+	player2AvatarContainer.appendChild(player2Avatar);
+
+	const player2Name = document.createElement('div');
 	player2Name.innerText = Player2;
 	player2Name.style.color = 'white';
-	player2Name.style.fontWeight = 'auto';
-	player2Name.style.fontSize = '10px';
-	player2Column.appendChild(player2Name);
+	player2Name.style.fontWeight = Score2 > Score1 ? 'bold' : 'normal';
+	player2Name.style.fontSize = '14px';
+	player2Container.appendChild(player2Name);
 
-	// Column 4: Score
-	const scoreColumn = document.createElement('div');
-	scoreColumn.style.display = 'flex';
-	scoreColumn.style.flexDirection = 'column';
-	scoreColumn.style.alignItems = 'center';
-	tournamentHistoryEntry.appendChild(scoreColumn);
-
-	const scoreLabel = document.createElement('h3');
-	scoreLabel.innerText = 'Score';
-	scoreLabel.style.color = 'white';
-	scoreLabel.style.margin = '0 0 5px 0';
-	scoreLabel.style.fontSize = '12px';
-	scoreColumn.appendChild(scoreLabel);
-
-	const scoreText = document.createElement('h3');
-	scoreText.innerText = `${Score1} / ${Score2}`;
-	scoreText.style.color = 'white';
-	scoreText.style.fontWeight = 'auto';
-	scoreText.style.fontSize = '10px';
-	scoreColumn.appendChild(scoreText);
-
-	// Column 5: Winner
-	const winnerColumn = document.createElement('div');
-	winnerColumn.style.display = 'flex';
-	winnerColumn.style.flexDirection = 'column';
-	winnerColumn.style.alignItems = 'center';
-	tournamentHistoryEntry.appendChild(winnerColumn);
-
-	const winnerLabel = document.createElement('h3');
-	winnerLabel.innerText = 'Winner';
-	winnerLabel.style.color = 'white';
-	winnerLabel.style.margin = '0 0 5px 0';
-	winnerLabel.style.fontSize = '12px';
-	winnerColumn.appendChild(winnerLabel);
-
-	const winnerName = document.createElement('h3');
+	// Winner display
 	const winner = Score1 > Score2 ? Player1 : Player2;
-	winnerName.innerText = winner;
-	winnerName.style.color = 'white';
-	winnerName.style.fontWeight = 'auto';
-	winnerName.style.fontSize = '10px';
-	winnerColumn.appendChild(winnerName);
+	const winnerContainer = document.createElement('div');
+	winnerContainer.style.width = '100%';
+	winnerContainer.style.textAlign = 'right';
+	winnerContainer.style.marginTop = '8px';
+	winnerContainer.style.paddingTop = '5px';
+	winnerContainer.style.borderTop = '1px solid rgba(255, 255, 255, 0.2)';
+	tournamentHistoryEntry.appendChild(winnerContainer);
+
+	const winnerDisplay = document.createElement('div');
+	winnerDisplay.innerHTML = `Winner: <span style="font-weight:bold">${winner}</span>`;
+	winnerDisplay.style.color = 'white';
+	winnerDisplay.style.fontSize = '13px';
+	winnerContainer.appendChild(winnerDisplay);
 
 	return tournamentHistoryEntry;
 }
 
 
-document.addEventListener('DOMContentLoaded', async () => {
+export async function initProfileApp()
+{
 
 	let App = document.getElementById('profile-app-window') as HTMLElement;
 	if (!App) return;
 	App.style.width = '470px';
-	App.style.minWidth = '470px';
+	App.style.minWidth = '570px';
 	App.style.height = '370px';
 	let AppContent = App.children[1] as HTMLElement;
 	if (!AppContent)
@@ -261,11 +345,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 			openProfile('start-menu-profile-main', 'general');
 		});
 	}
-	let AppLauncherTournaments = document.getElementById('start-menu-profile-my-tournaments') as HTMLElement;
-	if (AppLauncherTournaments)
+	let AppLauncherHistoryMatch = document.getElementById('start-menu-profile-my-history') as HTMLElement;
+	if (AppLauncherHistoryMatch)
 	{
-		AppLauncherTournaments.addEventListener('click', () => {
-			openProfile('start-menu-profile-my-tournaments', 'tournaments');
+		AppLauncherHistoryMatch.addEventListener('click', () => {
+			openProfile('start-menu-profile-my-history', 'HistoryMatch');
 		});
 	}
 	let AppLauncherStats = document.getElementById('start-menu-profile-my-stats') as HTMLElement;
@@ -300,7 +384,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		{
 			// Categories tabs
 			let General = createCategorieTab('General', './img/Utils/infos-icon.png', leftContainer);
-			let Tournaments = createCategorieTab('Tournaments', './img/Start_Menu/cup-icon.png', leftContainer);
+			let HistoryMatch = createCategorieTab('Match History', './img/Start_Menu/cup-icon.png', leftContainer);
 			let Stats = createCategorieTab('Stats', './img/Start_Menu/stats-icon.png', leftContainer);
 		}
 	}
@@ -314,10 +398,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 		rightContainer.style.maxWidth = 'calc(100% - 150px)';
 		rightContainer.style.height = '100%';
 		rightContainer.style.overflow = 'auto';
+		
 		{
 			// Categories content
 			let GeneralCategorie = document.getElementById('profile-app-content-main-left-General') as HTMLElement;
-			let TournamentsCategorie = document.getElementById('profile-app-content-main-left-Tournaments') as HTMLElement;
+			let HistoryMatchCategorie = document.getElementById('profile-app-content-main-left-Match History') as HTMLElement;
 			let StatsCategorie = document.getElementById('profile-app-content-main-left-Stats') as HTMLElement;
 
 			
@@ -349,7 +434,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 					profileInfoContainer.appendChild(avatarContainer);
 
 					// User avatar image
-					// API CALL NEEDED: Fetch user's profile picture from the backend
 					let avatarImg = document.createElement('img');
 					avatarImg.alt = 'User Avatar';
 					avatarImg.classList.add('avatar-preview');
@@ -360,7 +444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 					avatarContainer.appendChild(avatarImg);
 
 					let usernameDisplay = document.createElement('h2');
-					usernameDisplay.innerText = 'Loading...'; // Placeholder text while fetching username
+					usernameDisplay.innerText = 'Loading...';
 					usernameDisplay.classList.add('user-name-text');
 					usernameDisplay.style.color = '#333';
 					usernameDisplay.style.fontSize = '18px';
@@ -377,12 +461,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 					profileInfoContainer.appendChild(statusContainer);
 
 					// Online status indicator (circle)
-					// API CALL NEEDED: Fetch user's online status from the backend
 					let statusIndicator = document.createElement('div');
 					statusIndicator.style.width = '12px';
 					statusIndicator.style.height = '12px';
 					statusIndicator.style.borderRadius = '50%';
-					statusIndicator.style.backgroundColor = '#4CAF50'; // Green for online - should be dynamic based on API response
+					statusIndicator.style.backgroundColor = '#4CAF50'; // Green for online
 					statusIndicator.style.marginRight = '5px';
 					statusIndicator.style.border = '1px solid rgba(0, 0, 0, 0.3)';
 					statusIndicator.style.boxShadow = '0 0 3px rgba(0, 0, 0, 0.2)';
@@ -391,15 +474,39 @@ document.addEventListener('DOMContentLoaded', async () => {
 					// Status text
 					// Related to the same API CALL as status indicator
 					let statusText = document.createElement('span');
-					statusText.innerText = 'Online'; // Should be dynamic based on API response
+					statusText.innerText = 'Online'; 
 					statusText.style.color = '#333';
 					statusText.style.fontSize = '14px';
 					statusContainer.appendChild(statusText);
+					{
+						let currentUser = getCurrentUser(sessionStorage.getItem('wxp_token') as string);
+						let isOnline = isUserOnline((await currentUser).username);
+						if (!isOnline)
+						{
+							statusIndicator.style.backgroundColor = '#F44336'; // Red for offline
+							statusText.innerText = 'Offline';
+						}
+					}
 
 					// Last login information
-					// API CALL NEEDED: Fetch user's last login timestamp from the backend
 					let lastLoginInfo = document.createElement('p');
-					lastLoginInfo.innerText = 'Last login: Today at 9:45 AM'; // Should be dynamic based on API response
+					lastLoginInfo.innerText = 'Last login:' + ' Loading...';
+					{
+						let currentUser = getCurrentUser(sessionStorage.getItem('wxp_token') as string);
+						let lastLogin = (await currentUser).last_login;
+						let lastLoginDate = new Date(lastLogin);
+						let options: Intl.DateTimeFormatOptions = {
+							year: 'numeric',
+							month: '2-digit',
+							day: '2-digit',
+							hour: '2-digit',
+							minute: '2-digit',
+							second: '2-digit',
+							hour12: false,
+						};
+						let formattedDate = lastLoginDate.toLocaleString('en-US', options);
+						lastLoginInfo.innerText = 'Last login: ' + formattedDate;
+					} // Replace with actual last login info from API
 					lastLoginInfo.style.color = '#555';
 					lastLoginInfo.style.fontSize = '12px';
 					lastLoginInfo.style.margin = '10px 0 5px 0';
@@ -435,7 +542,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 						editProfileButton.style.backgroundColor = '#F0F0F0';
 						editProfileButton.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
 					});
-					// API CALL NEEDED: On button click, open edit profile form and save changes to the backend
 					editProfileButton.addEventListener('click', () => {
 						// Open edit profile modal or navigate to edit profile page
 						// Implement form to update user profile data
@@ -454,13 +560,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 				}
 			}
 			
-			let TournamentsContent = createCategorieContainer('Tournaments', rightContainer);
-			if (TournamentsContent)
+			let HistoryMatchContent = createCategorieContainer('HistoryMatch', rightContainer);
+			if (HistoryMatchContent)
 			{
-				{
+				
 					
 					let TournamentHistoryTitle = document.createElement('h3');
-					TournamentsContent.appendChild(TournamentHistoryTitle);
+					HistoryMatchContent.appendChild(TournamentHistoryTitle);
 					TournamentHistoryTitle.innerText = 'Tournament History';
 					TournamentHistoryTitle.style.color = 'white';
 					TournamentHistoryTitle.style.textAlign = 'left';
@@ -469,7 +575,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 					TournamentHistoryTitle.style.fontWeight = 'bold';
 					TournamentHistoryTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
 					let TournamentHistory = document.createElement('div');
-					TournamentsContent.appendChild(TournamentHistory);
+					HistoryMatchContent.appendChild(TournamentHistory);
 					TournamentHistory.style.width = '100%';
 					TournamentHistory.style.height = '100%';
 					TournamentHistory.style.display = 'flex';
@@ -480,8 +586,123 @@ document.addEventListener('DOMContentLoaded', async () => {
 					TournamentHistory.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
 
 					// API Call to get the tournament history
-					let tournament1 = addTournamentHistory(TournamentHistory, 'Michel', 'Francis', 0, 2);
-				}
+					
+						const updateHistory = async () => {
+							try {
+								console.log('Fetching tournament history of user ' + sessionStorage.getItem('wxp_user_id'));
+								let matchHistory = getUserMatchHistory(sessionStorage.getItem('wxp_token') as string);
+								console.log('HistoryTab is: ' + matchHistory);
+								
+								// Keep track of matches added to prevent duplicates
+								const matchesAdded = new Set();
+								
+								(await matchHistory).forEach(async (matchId) => {
+									// Skip if this match ID is already displayed
+									if (matchesAdded.has(matchId)) {
+										console.log(`Match ${matchId} already added, skipping duplicate`);
+										return;
+									}
+									
+									let matchHistoryData = await getMatchDetails(matchId);
+									console.log('HistoryData is: ' + matchHistoryData);
+									if (matchHistoryData) {
+										interface MatchData {
+											player1: string;
+											player2: string;
+											score: string;
+											winner: string;
+											created_at: string;
+										}
+										
+										// Process the single match
+										const match = matchHistoryData as unknown as MatchData;
+										let player1_id = match.player1;
+										let player2_id = match.player2;
+										let player1 = getUserById(Number(player1_id));
+										let player2 = getUserById(Number(player2_id));
+										let player1Name = (await player1).username;
+										let player2Name = (await player2).username;
+										let score = match.score.split(' - ');
+										let score1 = parseInt(score[0]);
+										let score2 = parseInt(score[1]);
+										// Convert ISO 8601 format date string (e.g. "2025-04-22T19:52:19.071Z") to Date object
+										let matchDate = new Date(match.created_at);
+										console.log('Match date is: ' + matchDate);
+										let winner = match.winner;
+										
+										// Mark this match as added
+										matchesAdded.add(matchId);
+										
+										if (winner === player1Name)
+											addTournamentHistory(TournamentHistory, player1Name, player2Name, score1, score2, matchDate);
+										else
+											addTournamentHistory(TournamentHistory, player2Name, player1Name, score2, score1, matchDate);
+									}
+								})
+							}
+							catch (error) {
+								console.error('Error fetching tournament history:', error);
+								sendNotification('Error', 'Failed to load tournament history.', 'error');
+							}
+							// EXAMPLE HISTORY ELEMENT let tournament1 = addTournamentHistory(TournamentHistory, 'Michel', 'Francis', 0, 2);
+						}
+					updateHistory();
+					// Add refresh button container
+					let refreshContainer = document.createElement('div');
+					refreshContainer.style.width = '100%';
+					refreshContainer.style.display = 'flex';
+					refreshContainer.style.justifyContent = 'flex-end';
+					refreshContainer.style.marginBottom = '10px';
+					TournamentHistory.parentNode?.insertBefore(refreshContainer, TournamentHistory);
+
+					// Create refresh button
+					let refreshButton = document.createElement('button');
+					refreshButton.innerText = 'Refresh History';
+					refreshButton.style.padding = '3px 10px';
+					refreshButton.style.backgroundColor = '#ECE9D8';
+					refreshButton.style.border = '1px solid #ACA899';
+					refreshButton.style.borderRadius = '3px';
+					refreshButton.style.color = '#000';
+					refreshButton.style.fontSize = '12px';
+					refreshButton.style.cursor = 'pointer';
+					refreshButton.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
+					refreshContainer.appendChild(refreshButton);
+
+					// Add hover and click effects
+					refreshButton.addEventListener('mouseenter', () => {
+						refreshButton.style.backgroundColor = '#F0F0F0';
+					});
+					refreshButton.addEventListener('mouseleave', () => {
+						refreshButton.style.backgroundColor = '#ECE9D8';
+					});
+					refreshButton.addEventListener('mousedown', () => {
+						refreshButton.style.backgroundColor = '#DCDAC0';
+						refreshButton.style.boxShadow = 'inset 1px 1px 3px rgba(0, 0, 0, 0.2)';
+					});
+					refreshButton.addEventListener('mouseup', () => {
+						refreshButton.style.backgroundColor = '#F0F0F0';
+						refreshButton.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
+					});
+
+					// Add click handler to refresh the history
+					refreshButton.addEventListener('click', () => {
+						// Clear existing history items
+						while (TournamentHistory.firstChild) {
+						refreshButton.style.pointerEvents = 'none';
+						refreshButton.style.opacity = '0.5';
+						refreshButton.textContent = 'Loading...';
+							TournamentHistory.removeChild(TournamentHistory.firstChild);
+						}
+						// Refresh the history
+						updateHistory();
+						setTimeout(() => {
+							refreshButton.style.pointerEvents = 'auto';
+							refreshButton.style.opacity = '1';
+							refreshButton.textContent = 'Refresh History';
+						}
+						, 1000);
+					});
+				
 			}
 
 			let StatsContent = createCategorieContainer('Stats', rightContainer);
@@ -605,21 +826,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 				statsNote.style.marginTop = '10px';
 				statsNote.style.fontStyle = 'italic';
 			}
-			if (GeneralContent && TournamentsContent && StatsContent)
+			if (GeneralContent && HistoryMatchContent && StatsContent)
 			{
 				if (GeneralCategorie)
 				{
 					GeneralCategorie.addEventListener('click', () => {
 						GeneralContent.style.display = 'flex';
-						TournamentsContent.style.display = 'none';
+						HistoryMatchContent.style.display = 'none';
 						StatsContent.style.display = 'none';
 					});
 				}
-				if (TournamentsCategorie)
+				if (HistoryMatchCategorie)
 				{
-					TournamentsCategorie.addEventListener('click', () => {
+					HistoryMatchCategorie.addEventListener('click', () => {
 						GeneralContent.style.display = 'none';
-						TournamentsContent.style.display = 'flex';
+						HistoryMatchContent.style.display = 'flex';
 						StatsContent.style.display = 'none';
 					});
 				}
@@ -627,11 +848,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 				{
 					StatsCategorie.addEventListener('click', () => {
 						GeneralContent.style.display = 'none';
-						TournamentsContent.style.display = 'none';
+						HistoryMatchContent.style.display = 'none';
 						StatsContent.style.display = 'flex';
 					});
 				}
 			}
 		}
 	}
-});
+};

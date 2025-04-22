@@ -1,10 +1,11 @@
 import { sendNotification } from "./notification.js";
-import { getCurrentUser, getUserAvatar, getUserBackground, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
+import { getCurrentUser, getMatchDetails, getUserAvatar, getUserBackground, getUserMatchHistory, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
 import { disconnectUser } from "./start-menu.js";
 import { initSocialApp, removeSocialApp } from "./social-app.js";
 
 
 import { throttle } from "./utils.js";
+import { initProfileApp } from "./profile-app.js";
 
 let userBackground = document.createElement('img');
 userBackground.id = 'user-background';
@@ -264,21 +265,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// SANDBOX AREA
 	{
-		// let CurrentUser = await getUserById(1);
-		// if (!CurrentUser) {
-		// 	CurrentUser = await createUser({username: 'Guest', password: 'guest', email: 'guest@guest.com'});
-		// }
 		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
 			try {
-
-			const currentUserToken = sessionStorage.getItem('wxp_token');
-			let currentUser = await getCurrentUser(currentUserToken);
-			if (currentUser) {
+				const currentUserToken = sessionStorage.getItem('wxp_token');
+				
+				let currentUser = await getCurrentUser(currentUserToken);
+				if (currentUser) {
 					sendNotification('User Data', `User ID: ${currentUser.id}, Username: ${currentUser.username}, Email: ${currentUser.email}`, './img/Utils/API-icon.png');
 					console.log("User ID: " + currentUser.id + " Username: " + currentUser.username);
 					console.log("User Data:", currentUser);
-			}
+				}
+				if (currentUserToken) {
+					const userMatchHistory = await getUserMatchHistory(currentUserToken);
+					const matchDatas = await getMatchDetails(userMatchHistory[0])
+					if (userMatchHistory) {
+						console.log("User Match History:", matchDatas);
+						sendNotification('User Match History', `Match History: ${JSON.stringify(matchDatas)}`, './img/Utils/API-icon.png');
+					}
+				}
 			}
 			catch (error) {
 				console.error('Error fetching user:', error);
@@ -287,6 +292,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 					sendNotification('Session Error', `Failed to get user: ${errorMessage}`, './img/Utils/API-icon.png');
 				}
 			}
+			
 		});
 	}
 });
@@ -549,6 +555,7 @@ export async function initApps()
 {
 	console.log("Initializing all apps...");
 	await initSocialApp();
+	await initProfileApp();
 }
 
 export async function removeApps()

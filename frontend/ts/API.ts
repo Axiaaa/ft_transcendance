@@ -26,6 +26,16 @@ interface User {
 	token: string;
 }
 
+interface Match {
+    id: number;
+    player1: string,
+    player2: string,
+    winner: string | null,
+    score: string,
+    created_at: Date,
+}
+
+
 /**
  * API configuration
  */
@@ -304,15 +314,16 @@ export async function deleteUser(userId: number): Promise<User> {
 
 export async function getUserByUsername(username: string): Promise<User | null> {
 	try {
-		const response = await apiFetch(`/users?username=${encodeURIComponent(username)}`);
-		const users: User[] = await response.json();
-		
-		if (users.length > 0) {
-			return users[0];
-		} else {
-			return null;
+		const response = await getAllUsers();
+		const user = response.find(user => user.username === username);
+		if (!user) {
+			const error = new Error(`User with username ${username} not found`);
+			(error as any).status = 404;
+			throw error;
 		}
-	} catch (error) {
+		return user;
+	}
+	catch (error) {
 		console.error('Error fetching user by username:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		if (typeof sendNotification === 'function') {
@@ -860,3 +871,59 @@ export async function ifUserExist(username: string): Promise<boolean> {
 		throw error;
 	}
 }
+
+export async function isUserOnline(username: string): Promise<boolean> {
+	try {
+		const user = await getUserByUsername(username);
+		if (user) {
+			return user.is_online;
+		}
+		return false;
+	} catch (error) {
+		console.error('Error checking if user is online:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to check user online status: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+}
+
+export async function getUserMatchHistory(token: string): Promise<Array<number>> {
+	try {
+		const response = await getCurrentUser(token);
+		if (response.history) {
+			return response.history;
+		}
+		throw new Error('No match history found for this user');
+	} catch (error) {
+		console.error('Error fetching user match history:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to fetch match history: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+}
+
+export async function getMatchDetails(matchId: number): Promise<Match | null> {
+	try {
+		const response = await apiFetch(`/matchs/${matchId}`);
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+		const match = await response.json();
+		return match;
+	}
+	catch (error) {
+		console.error('Error fetching match details:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to fetch match details: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
+	}
+};
+
+
+
