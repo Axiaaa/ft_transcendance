@@ -802,6 +802,7 @@ function reset(): void {
 }
 
 function restartGame(callback?: () => void) {
+	countdownComplete = false;
 	gameIsFinished = false;
 	score1 = 0;
 	score2 = 0;
@@ -989,7 +990,6 @@ function startGame(): void {
 }
 
 function startCountdown(callback: () => void): void {
-	countdownComplete = false;
 	menu.style.display = "none";
 	countdownContainer.style.display = "block";
 	countdownElement.style.opacity = "1";
