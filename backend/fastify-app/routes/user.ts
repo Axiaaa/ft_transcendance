@@ -13,6 +13,31 @@ declare module "fastify" {
   }
 }
 
+/**
+ * Sets up user-related routes for the Fastify instance.
+ * 
+ * @param server - The Fastify instance to register routes with
+ * 
+ * @remarks
+ * This function sets up the following routes:
+ * 
+ * - `GET /users`: Retrieve all users in the system
+ * - `GET /users/:token`: Get a specific user by their token
+ * - `GET /users/login`: Authenticate a user with username and password (query parameters)
+ * - `POST /users/login`: Create a new user
+ * - `PATCH /users/:token`: Update a user's information
+ * - `DELETE /users/:token`: Delete a user
+ * - `GET /users/:token/friends`: Get a user's friends
+ * - `POST /users/:token/friends`: Add a friend to a user
+ * - `DELETE /users/:token/friends/:friend_username`: Remove a friend from a user's friend list
+ * - `GET /users/:token/pending_friends`: Get a user's pending friend requests
+ * - `POST /users/:token/pending_friends`: Add a pending friend request
+ * - `DELETE /users/:token/pending_friends/:friend_username`: Remove a pending friend request
+ * 
+ * All routes include appropriate rate limiting and error handling.
+ * 
+ * @returns A Promise that resolves when all routes have been registered
+ */
 export async function userRoutes(server : FastifyInstance) {
 
     server.route({
@@ -240,8 +265,36 @@ export async function userRoutes(server : FastifyInstance) {
             return;
         }   
         if (user.friend_list.find(f => f === friend.id) == undefined) {
+            // Add friend to user's friend list
             const req_message = await user.addFriend(friend.id);
-            req_message === null ? reply.code(201).send({ id : user.id}) : reply.code(409).send({ error : req_message });
+            if (req_message !== null) {
+                reply.code(409).send({ error: req_message });
+                return;
+            }
+            
+            // Add user to friend's friend list
+            const friend_req_message = await friend.addFriend(user.id);
+            if (friend_req_message !== null) {
+                // Rollback if adding user to friend's list fails
+                await user.removeFriend(friend.id);
+                reply.code(409).send({ error: friend_req_message });
+                return;
+            }
+            
+            // Verify both database updates were successful
+            const updated_user = await getUserFromDb({ token });
+            const updated_friend = await getUserFromDb({ username: friend_username });
+            
+            if (!updated_user?.friend_list.includes(friend.id) || 
+                !updated_friend?.friend_list.includes(user.id)) {
+                // Something went wrong, rollback changes
+                await user.removeFriend(friend.id);
+                await friend.removeFriend(user.id);
+                reply.code(500).send({ error: "Failed to update both users' friend lists" });
+                return;
+            }
+            
+            reply.code(201).send({ id: user.id });
             return;
         } else  
             reply.code(409).send({error: "Friend already in friend list"});
@@ -255,22 +308,41 @@ export async function userRoutes(server : FastifyInstance) {
             rateLimit: RateLimits.friends,
         },
         handler : async (request, reply) => {
-        const { token, friend_username } = request.params;
-        const user = await getUserFromDb({ token });
-        if (user == null) {
-            reply.code(404).send({error: "User not found"});
-            return;
-        }
-        const friend = await getUserFromDb({username: friend_username});
-        if (friend == null) {
-            reply.code(404).send({error: "Friend not found"});
-            return;
-        }
-        if (user.friend_list.find(f => f === friend.id)) {
-            const req_message = await user.removeFriend(friend.id);
-            req_message === null ? reply.code(204).send() : reply.code(409).send({ error : req_message });            
-        } else
-            reply.code(404).send({error: "Friend not found in friend list"});
+            const { token, friend_username } = request.params;
+            const user = await getUserFromDb({ token });
+            if (user == null) {
+                reply.code(404).send({error: "User not found"});
+                return;
+            }
+            const friend = await getUserFromDb({username: friend_username});
+            if (friend == null) {
+                reply.code(404).send({error: "Friend not found"});
+                return;
+            }
+            if (user.friend_list.find(f => f === friend.id)) {
+                const req_message = await user.removeFriend(friend.id);
+                if (req_message !== null) {
+                    reply.code(409).send({ error: req_message });
+                    return;
+                }
+                const friend_req_message = await friend.removeFriend(user.id);
+                if (friend_req_message !== null) {
+                    await user.addFriend(friend.id);
+                    reply.code(409).send({ error: friend_req_message });
+                    return;
+                }
+                const updated_user = await getUserFromDb({ token });
+                const updated_friend = await getUserFromDb({ username: friend_username });
+                if (updated_user?.friend_list.includes(friend.id) ||
+                    updated_friend?.friend_list.includes(user.id)) {
+                    await user.addFriend(friend.id);
+                    await friend.addFriend(user.id);
+                    reply.code(500).send({ error: "Failed to update both users' friend lists" });
+                    return;
+                }
+                reply.code(204).send();
+            } else
+                reply.code(404).send({error: "Friend not found in friend list"});
         }
 });
 
@@ -323,7 +395,7 @@ export async function userRoutes(server : FastifyInstance) {
             return;
         }
         if (user.pending_friend_list.find(f => f === friend.id) == undefined) {
-            const req_message = await user.addPendingFriend(friend.id);
+            const req_message = await friend.addPendingFriend(user.id);
             req_message === null ? reply.code(201).send({ id : user.id}) : reply.code(409).send({ error : req_message });
             return;
         } else  

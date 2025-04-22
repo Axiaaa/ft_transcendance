@@ -1,6 +1,9 @@
 import { sendNotification } from "./notification.js";
 import { getCurrentUser, getUserAvatar, getUserBackground, isAvatarUserExists, isBackgroundUserExists } from "./API.js";
 import { disconnectUser } from "./start-menu.js";
+import { initSocialApp, removeSocialApp } from "./social-app.js";
+
+
 import { throttle } from "./utils.js";
 
 let userBackground = document.createElement('img');
@@ -540,4 +543,16 @@ export async function updateAllUserNames()
 	for (let i = 0; i < userNames.length; i++) {
 		userNames[i].innerText = userName;
 	}
+}
+
+export async function initApps()
+{
+	console.log("Initializing all apps...");
+	await initSocialApp();
+}
+
+export async function removeApps()
+{
+	await removeSocialApp();
+	console.log("Removing all apps...");
 }

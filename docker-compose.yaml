@@ -96,6 +96,7 @@ services:
     networks:
       - ft_transcendence
     healthcheck:
+    
         test: ['CMD-SHELL', '[ -f config/certs/elasticsearch/elasticsearch.crt ]']
         interval: 5s
         timeout: 10s

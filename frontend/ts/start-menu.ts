@@ -1,4 +1,4 @@
-import { clearBrowserCache, setFont } from "./system.js";
+import { clearBrowserCache, removeApps, setFont } from "./system.js";
 import { updateUser } from "./API.js";
 import { openAppWindow } from "./app-icon.js";
 
@@ -22,6 +22,7 @@ export function disconnectUser()
 				console.error('Error updating user status:', error);
 			});
 		setFont(0, 0);
+		removeApps();
 	}
 }
 

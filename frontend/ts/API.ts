@@ -102,7 +102,17 @@ async function apiFetch(url: string, options: RequestInit = {}, useJsonContentTy
 export async function getAllUsers(): Promise<User[]> {
 	try {
 		const response = await apiFetch('/users');
-		return await response.json();
+		const data = await response.json();
+		
+		// Ensure we return an array of users
+		if (Array.isArray(data)) {
+			return data;
+		} else if (data && typeof data === 'object' && 'users' in data) {
+			return data.users;
+		} else {
+			console.error('Unexpected response format from /users endpoint:', data);
+			return [];
+		}
 	} catch (error) {
 		console.error('Error fetching users:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
@@ -112,22 +122,24 @@ export async function getAllUsers(): Promise<User[]> {
 		throw error;
 	}
 }
-
 /**
- * Get user by ID
+ * Get user by ID by filtering from all users
  * @param userId - User ID
  * @returns Promise with User object
  * @throws Will throw an error if the user is not found
  */
 export async function getUserById(userId: number): Promise<User> {
 	try {
-		const response = await apiFetch(`/users/${userId}`);
-		if (!response.ok) {
-			const error = new Error(`HTTP error! status: ${response.status}`);
-			(error as any).status = response.status;
+		const allUsers = await getAllUsers();
+		const user = allUsers.find(user => user.id === userId);
+		
+		if (!user) {
+			const error = new Error(`User with ID ${userId} not found`);
+			(error as any).status = 404;
 			throw error;
 		}
-		return await response.json();
+		
+		return user;
 	} catch (error) {
 		console.error('Error fetching user by ID:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
@@ -498,7 +510,11 @@ These functions handle friend list operations such as getting friends, sending r
  */
 export async function getUserFriends(token: string): Promise<number[]> {
 	try {
-		const response = await apiFetch(`/users/${token}/friends`);
+		const response = await apiFetch(`/users/${token}/friends`, 
+			{
+				method: 'GET'
+			}
+		)
 		
 		if (!response.ok) {
 		if (response.status === 404) {
@@ -515,40 +531,6 @@ export async function getUserFriends(token: string): Promise<number[]> {
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		if (typeof sendNotification === 'function') {
 		sendNotification('API Error', `Failed to fetch friends: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
-		throw error;
-	}
-}
-
-/**
- * Gets a specific friend by their ID
- * @param token - The token of the user
- * @param friendId - The ID of the friend to retrieve
- * @returns Promise with the User object of the friend
- * @throws Error if the specified ID is not in the user's friend list
- */
-export async function getFriendFromID(token: string, friendId: number): Promise<User> {
-	try {
-		// First, check if the ID is in the user's friend list
-		const friendIds = await getUserFriends(token);
-		
-		if (!friendIds.includes(friendId)) {
-			throw new Error(`User ID ${friendId} is not in your friend list`);
-		}
-		
-		// Then get the user details for that ID
-		const response = await apiFetch(`/users/${friendId}`);
-		
-		if (!response.ok) {
-			throw new Error(`Failed to fetch friend: ${response.status}`);
-		}
-		
-		return await response.json();
-	} catch (error) {
-		console.error('Error fetching friend by ID:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to fetch friend: ${errorMessage}`, './img/Utils/API-icon.png');
 		}
 		throw error;
 	}
@@ -599,12 +581,12 @@ export async function getPendingFriendRequestsDetails(token: string): Promise<Us
 		
 		// Then fetch details for each pending friend
 		const pendingDetailsPromises = pendingIds.map(async (id) => {
-		const response = await apiFetch(`/users/${id}`);
-		if (!response.ok) {
+		  try {
+			return await getUserById(id);
+		  } catch (error) {
 			console.warn(`Could not fetch details for pending friend ID ${id}`);
 			return null;
-		}
-		return await response.json();
+		  }
 		});
 		
 		const pendingDetails = await Promise.all(pendingDetailsPromises);
@@ -627,24 +609,42 @@ export async function getPendingFriendRequestsDetails(token: string): Promise<Us
  */
 export async function sendFriendRequest(token: string, targetUsername: string): Promise<void> {
 	try {
+		// Check if the user is already a friend
+		const isAlreadyFriend = await isUserFriend(token, targetUsername);
+		if (isAlreadyFriend) {
+			if (typeof sendNotification === 'function') {
+				sendNotification('Friend Request', `${targetUsername} is already in your friend list`, './img/Utils/friend-icon.png');
+			}
+			return;
+		}
+
+		// Check if there's already a pending request
+		const hasPendingRequest = await hasPendingFriendRequest(token, targetUsername);
+		if (hasPendingRequest) {
+			if (typeof sendNotification === 'function') {
+				sendNotification('Friend Request', `Friend request to ${targetUsername} is already pending`, './img/Utils/friend-icon.png');
+			}
+			return;
+		}
+
 		const response = await apiFetch(`/users/${token}/pending_friends`, {
-		method: 'POST',
-		body: JSON.stringify({ friend_username: targetUsername })
+			method: 'POST',
+			body: JSON.stringify({ friend_username: targetUsername })
 		});
 		
 		if (!response.ok) {
-		const errorData = await response.json();
-		throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+			const errorData = await response.json();
+			throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
 		}
 		
 		if (typeof sendNotification === 'function') {
-		sendNotification('Friend Request', `Friend request sent to ${targetUsername}`, './img/Utils/friend-icon.png');
+			sendNotification('Friend Request', `Friend request sent to ${targetUsername}`, './img/Utils/friend-icon.png');
 		}
 	} catch (error) {
 		console.error('Error sending friend request:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		if (typeof sendNotification === 'function') {
-		sendNotification('API Error', `Failed to send friend request: ${errorMessage}`, './img/Utils/API-icon.png');
+			sendNotification('API Error', `Failed to send friend request: ${errorMessage}`, './img/Utils/API-icon.png');
 		}
 		throw error;
 	}
@@ -653,14 +653,15 @@ export async function sendFriendRequest(token: string, targetUsername: string): 
 /**
  * Accepts a friend request from another user
  * @param token - The token of the accepting user
- * @param senderUsername - The username of the user who sent the request
+ * @param friend_username - The username of the user who sent the request
  * @returns Promise indicating success
  */
-export async function acceptFriendRequest(token: string, senderUsername: string): Promise<void> {
+export async function acceptFriendRequest(token: string, friend_username: string): Promise<void> {
 	try {
 		// First, remove from pending list
-		const deleteResponse = await apiFetch(`/users/${token}/pending_friends/${senderUsername}`, {
-		method: 'DELETE'
+		const deleteResponse = await apiFetch(`/users/${token}/pending_friends/${friend_username}`, {
+		method: 'DELETE',
+		body: JSON.stringify({ friend_username: friend_username })
 		});
 		
 		if (!deleteResponse.ok) {
@@ -671,22 +672,22 @@ export async function acceptFriendRequest(token: string, senderUsername: string)
 		// Then add to friend list
 		const addResponse = await apiFetch(`/users/${token}/friends`, {
 		method: 'POST',
-		body: JSON.stringify({ friend_username: senderUsername })
+		body: JSON.stringify({ friend_username: friend_username })
 		});
 		
 		if (!addResponse.ok) {
-		const errorData = await addResponse.json();
-		throw new Error(errorData.error || `HTTP error! Status: ${addResponse.status}`);
+			const errorData = await addResponse.json();
+			throw new Error(errorData.error || `HTTP error! Status: ${addResponse.status}`);
 		}
 		
 		if (typeof sendNotification === 'function') {
-		sendNotification('Friend Request', `You are now friends with ${senderUsername}`, './img/Utils/friend-icon.png');
+			sendNotification('Friend Request', `You are now friends with ${friend_username}`, './img/Utils/friend-icon.png');
 		}
 	} catch (error) {
 		console.error('Error accepting friend request:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		if (typeof sendNotification === 'function') {
-		sendNotification('API Error', `Failed to accept friend request: ${errorMessage}`, './img/Utils/API-icon.png');
+			sendNotification('API Error', `Failed to accept friend request: ${errorMessage}`, './img/Utils/API-icon.png');
 		}
 		throw error;
 	}
@@ -695,14 +696,15 @@ export async function acceptFriendRequest(token: string, senderUsername: string)
 /**
  * Declines a friend request from another user
  * @param token - The token of the declining user
- * @param senderUsername - The username of the user who sent the request
+ * @param friend_username - The username of the user who sent the request
  * @returns Promise indicating success
  */
-export async function declineFriendRequest(token: string, senderUsername: string): Promise<void> {
+export async function declineFriendRequest(token: string, friend_username: string): Promise<void> {
 	try {
 		// Simply remove from pending list
-		const response = await apiFetch(`/users/${token}/pending_friends/${senderUsername}`, {
-		method: 'DELETE'
+		const response = await apiFetch(`/users/${token}/pending_friends/${friend_username}`, {
+		method: 'DELETE',
+		body: JSON.stringify({ friend_username: friend_username })
 		});
 		
 		if (!response.ok) {
@@ -711,7 +713,7 @@ export async function declineFriendRequest(token: string, senderUsername: string
 		}
 		
 		if (typeof sendNotification === 'function') {
-		sendNotification('Friend Request', `Friend request from ${senderUsername} declined`, './img/Utils/friend-icon.png');
+		sendNotification('Friend Request', `Friend request from ${friend_username} declined`, './img/Utils/friend-icon.png');
 		}
 	} catch (error) {
 		console.error('Error declining friend request:', error);
@@ -732,7 +734,8 @@ export async function declineFriendRequest(token: string, senderUsername: string
 export async function removeFriend(token: string, friendUsername: string): Promise<void> {
 	try {
 		const response = await apiFetch(`/users/${token}/friends/${friendUsername}`, {
-		method: 'DELETE'
+		method: 'DELETE',
+		body: JSON.stringify({ friend_username: friendUsername })
 		});
 		
 		if (!response.ok) {
@@ -769,12 +772,12 @@ export async function getUserFriendsDetails(token: string): Promise<User[]> {
 		
 		// Then fetch details for each friend
 		const friendDetailsPromises = friendIds.map(async (id) => {
-		const response = await apiFetch(`/users/${id}`);
-		if (!response.ok) {
-			console.warn(`Could not fetch details for friend ID ${id}`);
-			return null;
-		}
-		return await response.json();
+			try {
+				return await getUserById(id);
+			} catch (error) {
+				console.warn(`Could not fetch details for friend ID ${id}`);
+				return null;
+			}
 		});
 		
 		const friendDetails = await Promise.all(friendDetailsPromises);
@@ -841,5 +844,19 @@ export async function getFriendshipStatus(token: string, otherUsername: string):
 	} catch (error) {
 		console.error('Error getting friendship status:', error);
 		return 'none';
+	}
+}
+
+export async function ifUserExist(username: string): Promise<boolean> {
+	try {
+		const user = await getUserByUsername(username);
+		return user !== null;
+	} catch (error) {
+		console.error('Error checking if user exists:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to check user existence: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;
 	}
 }

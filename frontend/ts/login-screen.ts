@@ -1,6 +1,7 @@
 import { getUser } from "./API.js";
 import { createUser } from "./API.js";
-import { initHistoryAPI, resetUserImages, updateAllUserNames, updateUserImages } from "./system.js";
+import { initSocialApp } from "./social-app.js";
+import { initApps, initHistoryAPI, resetUserImages, updateAllUserNames, updateUserImages } from "./system.js";
 import { goToDesktopPage } from "./system.js";
 import { goToLoginPage } from "./system.js";
 
@@ -277,11 +278,12 @@ export async function showError(message: string) {
                       signUpUsername.value = "";
                       signUpPassword.value = "";
                       signUpConfirmPassword.value = "";
+					  initApps();
                       await resetUserImages();
 					  await updateAllUserNames();
                       setTimeout(() => {
                         goToDesktopPage();
-                      }, 200);
+                      }, 300);
 										}
 										catch (error)
 										{
@@ -374,12 +376,13 @@ export async function showError(message: string) {
 						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
 						signInUsername.value = "";
 						signInPassword.value = "";
+						initApps();
 						await resetUserImages();
 						await updateUserImages();
 						await updateAllUserNames();
 						setTimeout(() => {
 							goToDesktopPage();
-						}, 200);
+						}, 300);
 					} 
 					catch (error) {
 						const existingErrorBox = document.querySelector('.error-box');
@@ -387,6 +390,7 @@ export async function showError(message: string) {
 								existingErrorBox.remove();
 							}
 							showError("Username or password is incorrect.");
+						console.error("Login Error:", error);
 						signInUsername.value = "";
 						signInPassword.value = "";
 					}
