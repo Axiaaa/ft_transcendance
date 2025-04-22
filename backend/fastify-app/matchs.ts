@@ -11,23 +11,20 @@ export class Match implements IMatch {
     public winner: string | null;
     public score: string;
     public created_at: Date;
-    public is_tournament: boolean;
-    public tournament_id: number | null;
 
     constructor(
         player1: string,
         player2: string,
-        isTournament : boolean,
-        tournament_id? : number
+        winner: string,
+        score: string,
+        created_at: Date,
     ) {
         this.id = 0; //Id value is only a placeholder, It'll be set in the DB
         this.player1 = player1;
         this.player2 = player2;
-        this.winner = null;
-        this.score = "0 - 0";
-        this.created_at = new Date();
-        this.is_tournament = isTournament;
-        this.tournament_id = tournament_id ? tournament_id : null;
+        this.winner = winner;
+        this.score = score;
+        this.created_at = created_at;
     }
 
 
@@ -41,8 +38,8 @@ export class Match implements IMatch {
         server.log.info(`${this.player1}`)
         try {
             const insertMatch = db.prepare(`
-                INSERT INTO matchs (player1, player2, winner, score, created_at, is_tournament, tournament_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO matchs (player1, player2, winner, score, created_at)
+                VALUES (?, ?, ?, ?, ?)
                 `);
 
             db.transaction(() => {
@@ -52,8 +49,6 @@ export class Match implements IMatch {
                     this.winner,
                     this.score,
                     Number(this.created_at),
-                    this.is_tournament ? 1 : 0,
-                    this.tournament_id
                 );
                 
                 this.id = result.lastInsertRowid as number;
@@ -99,19 +94,19 @@ export class Match implements IMatch {
 
         try {
             //If both players are deleted, delete the match
-            if (this.player1 == null && this.player2 == null && this.is_tournament == false) {
+            if (this.player1 == null && this.player2 == null) {
                 this.deleteMatchInDb();
                 return "Match deleted because both players no longer exist";
             }
 
             const updateMatch = db.prepare(`
                 UPDATE matchs
-                SET player1 = ?, player2 = ?, winner = ?, created_at = ?, score = ?, is_tournament = ?
+                SET player1 = ?, player2 = ?, winner = ?, created_at = ?, score = ?
                 WHERE id = ?
                 `);
 
             db.transaction(() => {
-                updateMatch.run(this.player1, this.player2, this.winner, Number(this.created_at), this.score, this.is_tournament ? 1 : 0, this.id);
+                updateMatch.run(this.player1, this.player2, this.winner, Number(this.created_at), this.score, this.id);
             })();
 
             server.log.info(`Match ${this.id} updated in the DB`);
@@ -136,17 +131,14 @@ export async function getMatchFromDb(id : number) : Promise<Match | null> {
             winner: string;
             score: string;
             created_at: Date;
-            is_tournament: boolean;
-            tournament_id: number | null;
         } | undefined;
 
         if (!matchRow) return null;
 
-        let match = new Match(matchRow.player1, matchRow.player2, matchRow.is_tournament ? true : false);
+        let match = new Match(matchRow.player1, matchRow.player2, matchRow.winner, matchRow.score, new Date(matchRow.created_at));
         match.id = matchRow.id;
         match.score = matchRow.score;
         match.created_at = new Date(matchRow.created_at);
-        match.tournament_id = matchRow.tournament_id;
 
         if (matchRow.winner != null) {
             if (await getUserFromDb({ id : Number(matchRow.winner)}) == null) {
