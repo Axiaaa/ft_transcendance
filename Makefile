@@ -1,4 +1,4 @@
-all : build up defaultuser
+all : build up
 
 start : up
 
@@ -26,9 +26,4 @@ clean : destroy
 		
 re : destroy all
 
-defaultuser : 
-	curl -k -X POST https://localhost/api/users/login \
-       -H "Content-Type: application/json" \
-	   -d '{"username": "$(shell grep DEFAULT_USER .env | cut -d '=' -f2)", "password": "$(shell grep DEFAULT_PASSWORD .env | cut -d '=' -f2)"}'
-
-.PHONY: all build up down logs clean destroy re start stop defaultuser
+.PHONY: all build up down logs clean destroy re start stop

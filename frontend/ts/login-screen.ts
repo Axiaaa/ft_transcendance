@@ -398,6 +398,31 @@ export async function showError(message: string) {
 			}
 		});
 	}
+
+	{
+		let guestProfile = document.getElementById("test-profile") as HTMLElement;
+		if (guestProfile)
+		{
+			guestProfile.style.filter = 'grayscale(100%)';
+			guestProfile.style.opacity = '0.7';
+			guestProfile.style.pointerEvents = 'none';
+			guestProfile.style.cursor = 'not-allowed';
+
+			const unavailableText = document.createElement('div');
+			unavailableText.textContent = 'Not available in this version yet';
+			unavailableText.style.position = 'absolute';
+			unavailableText.style.bottom = '30px';
+			unavailableText.style.left = '10px';
+			unavailableText.style.width = '100%';
+			unavailableText.style.textAlign = 'center';
+			unavailableText.style.fontSize = '12px';
+			unavailableText.style.color = '#ff0000';
+			unavailableText.style.fontWeight = 'bold';
+
+			guestProfile.style.position = 'relative';
+			guestProfile.appendChild(unavailableText);
+		}
+	}
 }
 
 export { updateUserImages, resetUserImages };
