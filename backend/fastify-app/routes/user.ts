@@ -133,6 +133,11 @@ export async function userRoutes(server : FastifyInstance) {
                 reply.code(400).send({error: "Username and password are required"});
                 return;
             }
+            const existingUsername = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+            if (existingUsername) {
+                reply.code(409).send({error: "Username already exists"});
+                return;
+            }
             const existingUser = await getUserFromHash(username, password);
             if (existingUser) {
                 reply.code(409).send({error: "Username already exists"});
