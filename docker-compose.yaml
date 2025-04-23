@@ -180,7 +180,7 @@ services:
    networks:
     - ft_transcendence
    healthcheck:
-     test: ["CMD-SHELL", "curl -k -s https://elastic:${ELASTIC_PASSWORD}@localhost:5601/api/alerting/_health | grep -q '\"status\":\"green\"'"]
+     test: ["CMD-SHELL", "curl -k -s -f https://elastic:${ELASTIC_PASSWORD}@localhost:5601/api/status | grep -q '\"overall\":{\"level\":\"available\"'"]
      interval: 1s
      timeout: 5s
      retries: 120

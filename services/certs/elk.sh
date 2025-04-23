@@ -68,5 +68,33 @@ find . -type f -exec chmod 640 \{\} \;;
 echo "Waiting for Elasticsearch availability";
 until curl -s --cacert config/certs/ca/ca.crt https://elasticsearch:9200 | grep -q "missing authentication credentials"; do sleep 15; done;
 echo "Setting kibana_system password";
-until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://elasticsearch:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+max_retries=10
+count=0
+while [ $count -lt $max_retries ]; do
+    echo "Attempt $((count+1))/$max_retries: Setting kibana_system password..."
+    
+    response=$(curl -s -m 30 --write-out "\n%{http_code}" --cacert config/certs/ca/ca.crt \
+        -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" \
+        https://elasticsearch:9200/_security/user/kibana_system/_password \
+        -d "{\"password\":\"${KIBANA_PASSWORD}\"}")
+    
+    status_code=$(echo "$response" | tail -n1)
+    body=$(echo "$response" | sed '$d')
+    
+    echo "Response code: $status_code"
+    
+    if [ "$status_code" = "200" ]; then
+        echo "Password updated successfully"
+        break
+    else
+        echo "Failed to set password: $body"
+        count=$((count+1))
+        sleep 15
+    fi
+done
+
+if [ $count -eq $max_retries ]; then
+    echo "Failed to set kibana_system password after $max_retries attempts"
+    exit 1
+fi
 echo "All done!";
