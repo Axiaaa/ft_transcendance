@@ -1,7 +1,6 @@
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { PongAI } from './pong-ai.js';
-import { getCurrentUser, getUser } from "../ts/API.js";
 import { throttle } from '../ts/utils.js'
 
 declare var confetti: any;
@@ -795,9 +794,6 @@ async function apiFetch(url: string, options: RequestInit = {}, useJsonContentTy
 		};
 	}
 	
-	console.log('API Fetch:', `${API_CONFIG.baseUrl}${url}`, options);
-	console.log('Headers:', headers);
-	console.log('Body:', options.body);
 	const response = await fetch(`${API_CONFIG.baseUrl}${url}`, {
 		...options,
 		headers
@@ -1198,7 +1194,6 @@ document.getElementById("home-button")!.addEventListener("click", () => {
 });
 
 document.getElementById("confirm-yes")!.addEventListener("click", () => {
-	console.log("Home button");
 	location.reload();
 });
 
@@ -1394,6 +1389,25 @@ export async function getUserRanked(username: string, password: string): Promise
 	}
 }
 
+
+export async function getCurrentUser(token : string | null): Promise<User> {
+	if (token === null) {
+		throw new Error('Token isn\'t valid, try to log in again');
+	}
+	try {
+		// This endpoint should be adjusted based on your actual API
+		const response = await apiFetch(`/users/${token}`);
+		
+		const user = await response.json();
+		
+		return user;
+	} catch (error) {
+		console.error('Error fetching current user:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		throw error;
+	}
+}
+
 let rankedMatch = false;
 rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 	event.preventDefault();
@@ -1406,25 +1420,28 @@ rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 				if (existingErrorBox) {
 					existingErrorBox.remove();
 				}
-				const Second_user = await getUserRanked(username, password);
-				if (Second_user && Second_user.id === Number(sessionStorage.getItem("wxp_user_id"))) {
+				if ( sessionStorage.getItem("wxp_user_name") == username) {
 					showError("User already logged in.");
 					loginInput.value = "";
 					passwordInput.value = "";
-					return;
 				}
+				else
+				{
+				const Second_user = await getUserRanked(username, password);
 				sessionStorage.setItem("second_wxp_token", Second_user.token);
 				sessionStorage.setItem("second_wxp_user_id", Second_user.id != null ? Second_user.id.toString() : "");
 				loginInput.value = "";
 				passwordInput.value = "";
-				startCountdown(startGame);
-				const temp_p1 = await getCurrentUser(sessionStorage.getItem("wxp_token")!);
-				const temp_p2 = await getCurrentUser(sessionStorage.getItem("second_wxp_token")!);
-				showMatchInfo(temp_p1.username, temp_p2.username);
 				backToMenuFromRanked!.style.display = "none";
 				rankedMatch = true;
 				rankedSelectionContainer.style.display = "none";
 				menu.style.display = "none";
+				startCountdown(startGame);
+				//ces deux lignes font bug : si on se connecte de nouveau avec le compte de base, les token changent et ca bug
+				const temp_p1 = await getCurrentUser(sessionStorage.getItem("wxp_token")!);
+				const temp_p2 = await getCurrentUser(sessionStorage.getItem("second_wxp_token")!);
+				showMatchInfo(temp_p1.username, temp_p2.username);
+				}
 			}
 			catch (error) {
 				const existingErrorBox = document.querySelector('.error-box');

@@ -567,7 +567,7 @@ export async function initProfileApp()
 					
 					let TournamentHistoryTitle = document.createElement('h3');
 					HistoryMatchContent.appendChild(TournamentHistoryTitle);
-					TournamentHistoryTitle.innerText = 'Tournament History';
+					TournamentHistoryTitle.innerText = 'Match History';
 					TournamentHistoryTitle.style.color = 'white';
 					TournamentHistoryTitle.style.textAlign = 'left';
 					TournamentHistoryTitle.style.margin = '10px 10px';
@@ -769,18 +769,14 @@ export async function initProfileApp()
 									const score1 = parseInt(score[0]);
 									const score2 = parseInt(score[1]);
 									const winner = match.winner;
-													
+
+									if (winner === currentId)
+										wins += 1;
+									else
+										losses += 1;			
 									if (currentId === player1_id) {
-										if (winner === "1")
-											wins += 1;
-										else
-											losses += 1;
 										pointsScored += score1;
 									} else if (currentId === player2_id) {
-										if (winner === "2")
-											wins += 1;
-										else
-											losses += 1;
 										pointsScored += score2;
 									}
 								}
