@@ -1,7 +1,6 @@
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { PongAI } from './pong-ai.js';
-import { getCurrentUser, getUser } from "../ts/API.js";
 import { throttle } from '../ts/utils.js'
 
 declare var confetti: any;
@@ -1391,6 +1390,26 @@ export async function getUserRanked(username: string, password: string): Promise
 		console.error('Error fetching user:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		throw error;	
+	}
+}
+
+
+export async function getCurrentUser(token : string | null): Promise<User> {
+	if (token === null) {
+		throw new Error('Token isn\'t valid, try to log in again');
+	}
+	try {
+		// This endpoint should be adjusted based on your actual API
+		const response = await apiFetch(`/users/${token}`);
+		
+		const user = await response.json();
+		console.log("Current User:", user);
+		
+		return user;
+	} catch (error) {
+		console.error('Error fetching current user:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		throw error;
 	}
 }
 
