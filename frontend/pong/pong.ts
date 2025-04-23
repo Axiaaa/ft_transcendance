@@ -794,9 +794,6 @@ async function apiFetch(url: string, options: RequestInit = {}, useJsonContentTy
 		};
 	}
 	
-	console.log('API Fetch:', `${API_CONFIG.baseUrl}${url}`, options);
-	console.log('Headers:', headers);
-	console.log('Body:', options.body);
 	const response = await fetch(`${API_CONFIG.baseUrl}${url}`, {
 		...options,
 		headers
@@ -1197,7 +1194,6 @@ document.getElementById("home-button")!.addEventListener("click", () => {
 });
 
 document.getElementById("confirm-yes")!.addEventListener("click", () => {
-	console.log("Home button");
 	location.reload();
 });
 
@@ -1403,7 +1399,6 @@ export async function getCurrentUser(token : string | null): Promise<User> {
 		const response = await apiFetch(`/users/${token}`);
 		
 		const user = await response.json();
-		console.log("Current User:", user);
 		
 		return user;
 	} catch (error) {

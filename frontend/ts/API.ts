@@ -79,9 +79,6 @@ async function apiFetch(url: string, options: RequestInit = {}, useJsonContentTy
 		};
 	}
 	
-	console.log('API Fetch:', `${API_CONFIG.baseUrl}${url}`, options);
-	console.log('Headers:', headers);
-	console.log('Body:', options.body);
 	const response = await fetch(`${API_CONFIG.baseUrl}${url}`, {
 		...options,
 		headers
@@ -199,11 +196,10 @@ export async function getCurrentUser(token : string | null): Promise<User> {
 		const response = await apiFetch(`/users/${token}`);
 		
 		const user = await response.json();
-		console.log("Current User:", user);
 		
-		if (user && typeof sendNotification === 'function') {
-			sendNotification('User Session', `Logged in as: ${user.username}`, './img/Utils/API-icon.png');
-		}
+		// if (user && typeof sendNotification === 'function') {
+		// 	sendNotification('User Session', `Logged in as: ${user.username}`, './img/Utils/API-icon.png');
+		// }
 		
 		return user;
 	} catch (error) {
@@ -361,8 +357,6 @@ export async function uploadFile(userId: number, file: File, fileType: string): 
 		sendNotification('Error file upload', 'File size exceeds 5MB limit', "./img/Utils/error-icon.png");
 		return null;
 	}
-	console.log("File size: " + ((file.size) / 1024 / 1024).toFixed(2) + "MB");
-	console.log("File type: " + file.type);
 	const formData = new FormData();
 	formData.append('file', file);
 	// formData.append('metadata', JSON.stringify({ userId, fileType }));
@@ -374,7 +368,6 @@ export async function uploadFile(userId: number, file: File, fileType: string): 
 		
 		if (response.ok) {
 			const result = await response.json();
-			console.log('File uploaded successfully:', result);
 			sendNotification('File Uploaded', `File uploaded successfully: ${result.message}`, "./img/Utils/API-icon.png");
 			return response;
 		} else {
@@ -393,7 +386,6 @@ export async function uploadFile(userId: number, file: File, fileType: string): 
 
 export async function deleteUserAvatar(userId: number): Promise<void> {
 	try {
-		console.log(`Attempting to delete avatar for user ${userId}`);
 		
 		const response = await apiFetch(`/user_images/avatar/${userId}`, {
 			method: 'DELETE'
@@ -401,7 +393,6 @@ export async function deleteUserAvatar(userId: number): Promise<void> {
 		
 		if (response.ok) {
 			const result = await response.json();
-			console.log('Avatar deleted successfully');
 			sendNotification('Avatar Deleted', `Avatar deleted successfully: ${result.message}`, "./img/Utils/API-icon.png");
 			resetUserImages();
 			return;
@@ -444,13 +435,11 @@ export async function isBackgroundUserExists(userId: number): Promise<boolean> {
 
 export async function deleteUserBackground(userId: number): Promise<void> {
 	try {
-		console.log(`Attempting to delete background for user ${userId}`);
 		const response = await apiFetch(`/user_images/wallpaper/${userId}`, {
 			method: 'DELETE'
 		}, false, true);
 		if (response.ok) {
 			const result = await response.json();
-			console.log('Background deleted successfully');
 			sendNotification('Background Deleted', `Background deleted successfully: ${result.message}`, "./img/Utils/API-icon.png");
 			resetUserImages();
 			return;
@@ -473,8 +462,6 @@ export async function getUserAvatar(userId: number): Promise<string> {
 		const response = await apiFetch(`/user_images/avatar/${userId}`, {
 			method: 'GET'
 		});
-		console.log("Get user " + userId + " avatar");
-		console.log("Response: ", response);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch avatar: ${response.status}`);
 		}
