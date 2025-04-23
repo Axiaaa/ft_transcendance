@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			disconnectUser();
 			clearBrowserCache();
 			loginScreen.style.display = 'block';
+			location.reload();
 		});
 	}
 	{
