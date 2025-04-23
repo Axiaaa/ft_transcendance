@@ -21,11 +21,11 @@ export async function createDirectory(path: string) {
 async function checkImageValidity(file: MultipartFile): Promise<boolean> {
 	const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 	if (!validImageTypes.includes(file.mimetype)) {
-		throw new Error('Invalid image type');
+		return false;
 	}
 	const buffer = await file.toBuffer();
 	if (buffer.length > 5 * 1024 * 1024) { // 5MB limit
-		throw new Error('File size exceeds limit of 5MB');
+		return false;
 	}
 	// Check file signature (magic numbers)
 	if (file.mimetype === 'image/png') {
@@ -39,7 +39,7 @@ async function checkImageValidity(file: MultipartFile): Promise<boolean> {
 				buffer[5] !== 0x0A || 
 				buffer[6] !== 0x1A || 
 				buffer[7] !== 0x0A) {
-			throw new Error('Invalid PNG file');
+				return false;
 		}
 	} else if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg') {
 		// JPEG signature: starts with FF D8 FF
@@ -47,7 +47,7 @@ async function checkImageValidity(file: MultipartFile): Promise<boolean> {
 				buffer[0] !== 0xFF || 
 				buffer[1] !== 0xD8 || 
 				buffer[2] !== 0xFF) {
-			throw new Error('Invalid JPEG / JPG file');
+				return false;
 		}
 	}
 	return true;
