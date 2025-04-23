@@ -68,7 +68,7 @@ find . -type f -exec chmod 640 \{\} \;;
 echo "Waiting for Elasticsearch availability";
 until curl -s --cacert config/certs/ca/ca.crt https://elasticsearch:9200 | grep -q "missing authentication credentials"; do sleep 15; done;
 echo "Setting kibana_system password";
-max_retries=10
+max_retries=5
 count=0
 while [ $count -lt $max_retries ]; do
     echo "Attempt $((count+1))/$max_retries: Setting kibana_system password..."
@@ -89,7 +89,7 @@ while [ $count -lt $max_retries ]; do
     else
         echo "Failed to set password: $body"
         count=$((count+1))
-        sleep 15
+        sleep 5
     fi
 done
 

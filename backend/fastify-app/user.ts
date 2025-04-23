@@ -326,7 +326,7 @@ export async function getUserFromHash(username: string, password: string): Promi
     try {
         const hash_password = sha256.hmac(salt, password);
         const existingUser = db.prepare('SELECT * FROM users WHERE username = ? AND password = ?')
-        const userRow = existingUser.get(username, password) as { 
+        const userRow = existingUser.get(username, hash_password) as { 
             id: number;
             username: string;
             email: string;
