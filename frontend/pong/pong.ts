@@ -1400,6 +1400,13 @@ rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 	if (loginInput && passwordInput) {
 		const username = loginInput.value;
 		const password = passwordInput.value;
+		if (/[^A-Za-z0-9]/.test(username))
+			{
+				showError("Username must only contain lowercase letters, uppercase letters, and numbers.");
+				loginInput.value = "";
+				passwordInput.value = "";
+				return ;
+			}
 		if (username && password) {
 			try {
 				const existingErrorBox = document.querySelector('.error-box');
