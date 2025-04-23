@@ -240,7 +240,7 @@ export async function userRoutes(server : FastifyInstance) {
             return;
         }
         if (user.friend_list.length === 0) {
-            reply.code(404).send({error: "Empty friend list"});
+            reply.code(204).send({error: "Empty friend list"});
             return;
         }
         return user.friend_list;
@@ -296,7 +296,7 @@ export async function userRoutes(server : FastifyInstance) {
                 // Something went wrong, rollback changes
                 await user.removeFriend(friend.id);
                 await friend.removeFriend(user.id);
-                reply.code(500).send({ error: "Failed to update both users' friend lists" });
+                reply.code(409).send({ error: "Failed to update both users' friend lists" });
                 return;
             }
             
@@ -343,7 +343,7 @@ export async function userRoutes(server : FastifyInstance) {
                     updated_friend?.friend_list.includes(user.id)) {
                     await user.addFriend(friend.id);
                     await friend.addFriend(user.id);
-                    reply.code(500).send({ error: "Failed to update both users' friend lists" });
+                    reply.code(409).send({ error: "Failed to update both users' friend lists" });
                     return;
                 }
                 reply.code(204).send();
@@ -366,7 +366,7 @@ export async function userRoutes(server : FastifyInstance) {
             return;
         }
         if (user.pending_friend_list.length === 0) {
-            reply.code(404).send({error: "Empty pending friend list"});
+            reply.code(204).send({error: "Empty pending friend list"});
             return;
         }
         return user.pending_friend_list;

@@ -146,23 +146,23 @@ async function addTournamentHistory(Container: HTMLElement, Player1: string, Pla
 	dateSection.style.display = 'flex';
 	dateSection.style.justifyContent = 'space-between';
 	tournamentHistoryEntry.appendChild(dateSection);
-	
+
 	// Format the date nicely
 	const formattedDate = matchDate.toLocaleDateString('en-US', {
-		year: 'numeric', 
-		month: 'short', 
+		year: 'numeric',
+		month: 'short',
 		day: 'numeric',
 		hour: '2-digit',
 		minute: '2-digit'
 	});
-	
+
 	// Calculate time elapsed
 	const now = new Date();
 	const diffMs = now.getTime() - matchDate.getTime();
 	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 	const diffHrs = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 	let timeAgo = '';
-	
+
 	if (diffDays > 0) {
 		timeAgo = `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
 	} else if (diffHrs > 0) {
@@ -171,14 +171,14 @@ async function addTournamentHistory(Container: HTMLElement, Player1: string, Pla
 		const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 		timeAgo = `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
 	}
-	
+
 	const dateDisplay = document.createElement('span');
 	dateDisplay.innerText = formattedDate;
 	dateDisplay.style.color = 'rgba(255, 255, 255, 0.7)';
 	dateDisplay.style.fontSize = '12px';
 	dateDisplay.style.fontStyle = 'italic';
 	dateSection.appendChild(dateDisplay);
-	
+
 	const timeAgoDisplay = document.createElement('span');
 	timeAgoDisplay.innerText = timeAgo;
 	timeAgoDisplay.style.color = 'rgba(255, 255, 255, 0.7)';
@@ -398,14 +398,14 @@ export async function initProfileApp()
 		rightContainer.style.maxWidth = 'calc(100% - 150px)';
 		rightContainer.style.height = '100%';
 		rightContainer.style.overflow = 'auto';
-		
+
 		{
 			// Categories content
 			let GeneralCategorie = document.getElementById('profile-app-content-main-left-General') as HTMLElement;
 			let HistoryMatchCategorie = document.getElementById('profile-app-content-main-left-Match History') as HTMLElement;
 			let StatsCategorie = document.getElementById('profile-app-content-main-left-Stats') as HTMLElement;
 
-			
+
 			let GeneralContent = createCategorieContainer('General', rightContainer);
 			if (GeneralContent)
 			{
@@ -474,7 +474,7 @@ export async function initProfileApp()
 					// Status text
 					// Related to the same API CALL as status indicator
 					let statusText = document.createElement('span');
-					statusText.innerText = 'Online'; 
+					statusText.innerText = 'Online';
 					statusText.style.color = '#333';
 					statusText.style.fontSize = '14px';
 					statusContainer.appendChild(statusText);
@@ -559,12 +559,12 @@ export async function initProfileApp()
 					});
 				}
 			}
-			
+
 			let HistoryMatchContent = createCategorieContainer('HistoryMatch', rightContainer);
 			if (HistoryMatchContent)
 			{
-				
-					
+
+
 					let TournamentHistoryTitle = document.createElement('h3');
 					HistoryMatchContent.appendChild(TournamentHistoryTitle);
 					TournamentHistoryTitle.innerText = 'Match History';
@@ -586,23 +586,23 @@ export async function initProfileApp()
 					TournamentHistory.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
 
 					// API Call to get the tournament history
-					
+
 						const updateHistory = async () => {
 							try {
 								console.log('Fetching tournament history of user ' + sessionStorage.getItem('wxp_user_id'));
 								let matchHistory = getUserMatchHistory(sessionStorage.getItem('wxp_token') as string);
 								console.log('HistoryTab is: ' + matchHistory);
-								
+
 								// Keep track of matches added to prevent duplicates
 								const matchesAdded = new Set();
-								
+
 								(await matchHistory).forEach(async (matchId) => {
 									// Skip if this match ID is already displayed
 									if (matchesAdded.has(matchId)) {
 										console.log(`Match ${matchId} already added, skipping duplicate`);
 										return;
 									}
-									
+
 									let matchHistoryData = await getMatchDetails(matchId);
 									if (matchHistoryData) {
 										interface MatchData {
@@ -612,7 +612,7 @@ export async function initProfileApp()
 											winner: string;
 											created_at: string;
 										}
-										
+
 										// Process the single match
 										const match = matchHistoryData as unknown as MatchData;
 										let player1_id = match.player1;
@@ -627,10 +627,10 @@ export async function initProfileApp()
 										// Convert ISO 8601 format date string (e.g. "2025-04-22T19:52:19.071Z") to Date object
 										let matchDate = new Date(match.created_at);
 										let winner = match.winner;
-										
+
 										// Mark this match as added
 										matchesAdded.add(matchId);
-										
+
 										if (winner === player1Name)
 											addTournamentHistory(TournamentHistory, player1Name, player2Name, score1, score2, matchDate);
 										else
@@ -700,7 +700,7 @@ export async function initProfileApp()
 						}
 						, 1000);
 					});
-				
+
 			}
 
 			let StatsContent = createCategorieContainer('Stats', rightContainer);
@@ -794,8 +794,8 @@ export async function initProfileApp()
 				winLossSection.style.backdropFilter = 'blur(5px)';
 
 				let winLossTitle = document.createElement('h3');
-				winLossSection.appendChild(winLossTitle);
-				winLossTitle.innerText = 'Win/Loss Ratio';
+				StatsContent.appendChild(winLossTitle);
+				winLossTitle.innerText = 'Win/Loss: loading...';
 				winLossTitle.style.color = 'white';
 				winLossTitle.style.fontSize = '18px';
 				winLossTitle.style.marginBottom = '12px';
