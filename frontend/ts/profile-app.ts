@@ -146,23 +146,23 @@ async function addTournamentHistory(Container: HTMLElement, Player1: string, Pla
 	dateSection.style.display = 'flex';
 	dateSection.style.justifyContent = 'space-between';
 	tournamentHistoryEntry.appendChild(dateSection);
-	
+
 	// Format the date nicely
 	const formattedDate = matchDate.toLocaleDateString('en-US', {
-		year: 'numeric', 
-		month: 'short', 
+		year: 'numeric',
+		month: 'short',
 		day: 'numeric',
 		hour: '2-digit',
 		minute: '2-digit'
 	});
-	
+
 	// Calculate time elapsed
 	const now = new Date();
 	const diffMs = now.getTime() - matchDate.getTime();
 	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 	const diffHrs = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 	let timeAgo = '';
-	
+
 	if (diffDays > 0) {
 		timeAgo = `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
 	} else if (diffHrs > 0) {
@@ -171,14 +171,14 @@ async function addTournamentHistory(Container: HTMLElement, Player1: string, Pla
 		const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 		timeAgo = `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
 	}
-	
+
 	const dateDisplay = document.createElement('span');
 	dateDisplay.innerText = formattedDate;
 	dateDisplay.style.color = 'rgba(255, 255, 255, 0.7)';
 	dateDisplay.style.fontSize = '12px';
 	dateDisplay.style.fontStyle = 'italic';
 	dateSection.appendChild(dateDisplay);
-	
+
 	const timeAgoDisplay = document.createElement('span');
 	timeAgoDisplay.innerText = timeAgo;
 	timeAgoDisplay.style.color = 'rgba(255, 255, 255, 0.7)';
@@ -398,14 +398,14 @@ export async function initProfileApp()
 		rightContainer.style.maxWidth = 'calc(100% - 150px)';
 		rightContainer.style.height = '100%';
 		rightContainer.style.overflow = 'auto';
-		
+
 		{
 			// Categories content
 			let GeneralCategorie = document.getElementById('profile-app-content-main-left-General') as HTMLElement;
 			let HistoryMatchCategorie = document.getElementById('profile-app-content-main-left-Match History') as HTMLElement;
 			let StatsCategorie = document.getElementById('profile-app-content-main-left-Stats') as HTMLElement;
 
-			
+
 			let GeneralContent = createCategorieContainer('General', rightContainer);
 			if (GeneralContent)
 			{
@@ -474,7 +474,7 @@ export async function initProfileApp()
 					// Status text
 					// Related to the same API CALL as status indicator
 					let statusText = document.createElement('span');
-					statusText.innerText = 'Online'; 
+					statusText.innerText = 'Online';
 					statusText.style.color = '#333';
 					statusText.style.fontSize = '14px';
 					statusContainer.appendChild(statusText);
@@ -559,12 +559,12 @@ export async function initProfileApp()
 					});
 				}
 			}
-			
+
 			let HistoryMatchContent = createCategorieContainer('HistoryMatch', rightContainer);
 			if (HistoryMatchContent)
 			{
-				
-					
+
+
 					let TournamentHistoryTitle = document.createElement('h3');
 					HistoryMatchContent.appendChild(TournamentHistoryTitle);
 					TournamentHistoryTitle.innerText = 'Match History';
@@ -586,23 +586,23 @@ export async function initProfileApp()
 					TournamentHistory.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
 
 					// API Call to get the tournament history
-					
+
 						const updateHistory = async () => {
 							try {
 								console.log('Fetching tournament history of user ' + sessionStorage.getItem('wxp_user_id'));
 								let matchHistory = getUserMatchHistory(sessionStorage.getItem('wxp_token') as string);
 								console.log('HistoryTab is: ' + matchHistory);
-								
+
 								// Keep track of matches added to prevent duplicates
 								const matchesAdded = new Set();
-								
+
 								(await matchHistory).forEach(async (matchId) => {
 									// Skip if this match ID is already displayed
 									if (matchesAdded.has(matchId)) {
 										console.log(`Match ${matchId} already added, skipping duplicate`);
 										return;
 									}
-									
+
 									let matchHistoryData = await getMatchDetails(matchId);
 									if (matchHistoryData) {
 										interface MatchData {
@@ -612,7 +612,7 @@ export async function initProfileApp()
 											winner: string;
 											created_at: string;
 										}
-										
+
 										// Process the single match
 										const match = matchHistoryData as unknown as MatchData;
 										let player1_id = match.player1;
@@ -627,10 +627,10 @@ export async function initProfileApp()
 										// Convert ISO 8601 format date string (e.g. "2025-04-22T19:52:19.071Z") to Date object
 										let matchDate = new Date(match.created_at);
 										let winner = match.winner;
-										
+
 										// Mark this match as added
 										matchesAdded.add(matchId);
-										
+
 										if (winner === player1Name)
 											addTournamentHistory(TournamentHistory, player1Name, player2Name, score1, score2, matchDate);
 										else
@@ -700,56 +700,35 @@ export async function initProfileApp()
 						}
 						, 1000);
 					});
-				
+
 			}
 
 			let StatsContent = createCategorieContainer('Stats', rightContainer);
 			if (StatsContent)
 			{
-				// Win/Loss section
-				let winLossSection = document.createElement('div');
-				StatsContent.appendChild(winLossSection);
-				winLossSection.style.margin = '10px 0';
-				winLossSection.style.padding = '10px';
-				winLossSection.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
-				winLossSection.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-				winLossSection.style.borderRadius = '3px';
+
+				let wins = 0;
+				let losses = 0;
+				let pointsScored = 0;
 
 				let winLossTitle = document.createElement('h3');
-				winLossSection.appendChild(winLossTitle);
-				winLossTitle.innerText = 'Win/Loss Ratio';
+				StatsContent.appendChild(winLossTitle);
+				winLossTitle.innerText = 'Win/Loss: loading...';
 				winLossTitle.style.color = 'white';
 				winLossTitle.style.fontSize = '18px';
 				winLossTitle.style.marginBottom = '10px';
 				winLossTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
-
-				// Win/Loss visualization
-				let winLossBar = document.createElement('div');
-				winLossSection.appendChild(winLossBar);
-				winLossBar.style.width = '100%';
-				winLossBar.style.height = '25px';
-				winLossBar.style.backgroundColor = '#d3d3d3';
-				winLossBar.style.border = '1px solid #666';
-				winLossBar.style.position = 'relative';
-				winLossBar.style.borderRadius = '2px';
-				winLossBar.style.boxShadow = 'inset 0 0 5px rgba(0, 0, 0, 0.2)';
-
-				// API Call to get the win/loss ratio
-				let wins = 0;
-				let losses = 0;
-				let pointsScored = 0;
-				
 				const updateStats = async () => {
 					try {
 						wins = 0;
 						losses = 0;
 						pointsScored = 0;
-				
+
 						const token = sessionStorage.getItem('wxp_token') as string;
 						const matchHistory = await getUserMatchHistory(token);
 						const currentUser = await getCurrentUser(token);
 						const currentId = currentUser.id?.toString();
-				
+
 						const matchPromises = matchHistory.map(async (matchId) => {
 							try {
 								const matchHistoryData = await getMatchDetails(matchId);
@@ -761,7 +740,7 @@ export async function initProfileApp()
 										winner: string;
 										created_at: string;
 									}
-				
+
 									const match = matchHistoryData as unknown as MatchData;
 									const player1_id = match.player1;
 									const player2_id = match.player2;
@@ -769,12 +748,12 @@ export async function initProfileApp()
 									const score1 = parseInt(score[0]);
 									const score2 = parseInt(score[1]);
 									const winner = match.winner;
-
-									if (winner === currentId)
-										wins += 1;
-									else
-										losses += 1;			
+													
 									if (currentId === player1_id) {
+										if (winner === "1")
+											wins += 1;
+										else
+											losses += 1;
 										pointsScored += score1;
 									} else if (currentId === player2_id) {
 										pointsScored += score2;
@@ -784,23 +763,23 @@ export async function initProfileApp()
 								console.error('Error in the stats', error);
 							}
 						});
-				
+
 						await Promise.all(matchPromises);
-						
-						
+
+
 						updateStatsUI();
 					} catch (error) {
 						console.error('Error fetching Stats:', error);
 						sendNotification('Error', 'Failed to load Stats.', 'error');
 			}
 				};
-				
+
 				const updateStatsUI = () => {
 					const winRate = (wins + losses === 0) ? 0 : Math.round((wins / (wins + losses)) * 100);
 					const winBar = document.querySelector('[style*="backgroundColor: rgb(75, 192, 75)"]') as HTMLElement;
 					if (winBar)
 						winBar.style.width = `${winRate}%`;
-					
+					winLossTitle.innerText = 'Win/Loss: Wins:' + wins + ' / Losses:' + losses;
 					const ratioText = document.querySelector('[innerText*="Win Rate"]') as HTMLElement;
 					if (ratioText)
 						ratioText.innerText = `Win Rate: ${winRate}% (${wins} wins, ${losses} losses)`;
@@ -813,7 +792,7 @@ export async function initProfileApp()
 							const totalMatchesCell = rows[0].querySelector('td:last-child');
 							if (totalMatchesCell)
 								totalMatchesCell.innerHTML = totalMatches.toString();
-							
+
 							const pointsScoredCell = rows[1].querySelector('td:last-child');
 							if (pointsScoredCell)
 								pointsScoredCell.innerHTML = pointsScored.toString();
@@ -821,25 +800,8 @@ export async function initProfileApp()
 					}
 				};
 				await updateStats();
-				
+
 				let winRate = Math.round((wins / (wins + losses)) * 100);
-
-				let winBar = document.createElement('div');
-				winLossBar.appendChild(winBar);
-				winBar.style.width = `${winRate}%`;
-				winBar.style.height = '100%';
-				winBar.style.backgroundColor = 'rgb(75, 192, 75)';
-				winBar.style.display = 'inline-block';
-				winBar.style.borderRadius = '2px 0 0 2px';
-
-				let ratioText = document.createElement('div');
-				winLossSection.appendChild(ratioText);
-				ratioText.innerText = `Win Rate: ${winRate}% (${wins} wins, ${losses} losses)`;
-				ratioText.style.color = 'white';
-				ratioText.style.fontSize = '14px';
-				ratioText.style.marginTop = '5px';
-				ratioText.style.textAlign = 'center';
-
 				// Game Statistics section
 				let statsSection = document.createElement('div');
 				StatsContent.appendChild(statsSection);
@@ -878,14 +840,14 @@ export async function initProfileApp()
 					let row = document.createElement('tr');
 					statsTable.appendChild(row);
 					row.style.borderBottom = '1px solid rgba(255, 255, 255, 0.2)';
-					
+
 					let labelCell = document.createElement('td');
 					row.appendChild(labelCell);
 					labelCell.innerText = stat.label;
 					labelCell.style.padding = '8px';
 					labelCell.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
 					labelCell.style.fontWeight = 'bold';
-					
+
 					let valueCell = document.createElement('td');
 					row.appendChild(valueCell);
 					valueCell.innerText = stat.value.toString();
@@ -901,6 +863,57 @@ export async function initProfileApp()
 				statsNote.style.fontSize = '12px';
 				statsNote.style.marginTop = '10px';
 				statsNote.style.fontStyle = 'italic';
+									// Add refresh button container
+					let refreshContainer = document.createElement('div');
+					refreshContainer.style.width = '100%';
+					refreshContainer.style.display = 'flex';
+					refreshContainer.style.justifyContent = 'flex-end';
+					refreshContainer.style.marginBottom = '10px';
+					StatsContent.parentNode?.insertBefore(refreshContainer, StatsContent);
+
+					// Create refresh button
+					let refreshButton = document.createElement('button');
+					refreshButton.innerText = 'Refresh History';
+					refreshButton.style.padding = '3px 10px';
+					refreshButton.style.marginTop = '20px';
+					refreshButton.style.marginRight = '20px';
+					refreshButton.style.backgroundColor = '#ECE9D8';
+					refreshButton.style.border = '1px solid #ACA899';
+					refreshButton.style.borderRadius = '3px';
+					refreshButton.style.color = '#000';
+					refreshButton.style.fontSize = '12px';
+					refreshButton.style.cursor = 'pointer';
+					refreshButton.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
+					refreshContainer.appendChild(refreshButton);
+
+					// Add hover and click effects
+					refreshButton.addEventListener('mouseenter', () => {
+						refreshButton.style.backgroundColor = '#F0F0F0';
+					});
+					refreshButton.addEventListener('mouseleave', () => {
+						refreshButton.style.backgroundColor = '#ECE9D8';
+					});
+					refreshButton.addEventListener('mousedown', () => {
+						refreshButton.style.backgroundColor = '#DCDAC0';
+						refreshButton.style.boxShadow = 'inset 1px 1px 3px rgba(0, 0, 0, 0.2)';
+					});
+					refreshButton.addEventListener('mouseup', () => {
+						refreshButton.style.backgroundColor = '#F0F0F0';
+						refreshButton.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
+					});
+
+					// Add click handler to refresh the history
+					refreshButton.addEventListener('click', () => {
+						// Clear existing history items
+						updateStats();
+						setTimeout(() => {
+							refreshButton.style.pointerEvents = 'auto';
+							refreshButton.style.opacity = '1';
+							refreshButton.textContent = 'Refresh History';
+						}
+						, 1000);
+					});
+
 			}
 			if (GeneralContent && HistoryMatchContent && StatsContent)
 			{
