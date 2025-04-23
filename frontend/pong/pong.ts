@@ -1425,25 +1425,28 @@ rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 				if (existingErrorBox) {
 					existingErrorBox.remove();
 				}
-				const Second_user = await getUserRanked(username, password);
-				if (Second_user && Second_user.id === Number(sessionStorage.getItem("wxp_user_id"))) {
+				if ( sessionStorage.getItem("wxp_user_name") == username) {
 					showError("User already logged in.");
 					loginInput.value = "";
 					passwordInput.value = "";
-					return;
 				}
+				else
+				{
+				const Second_user = await getUserRanked(username, password);
 				sessionStorage.setItem("second_wxp_token", Second_user.token);
 				sessionStorage.setItem("second_wxp_user_id", Second_user.id != null ? Second_user.id.toString() : "");
 				loginInput.value = "";
 				passwordInput.value = "";
-				startCountdown(startGame);
-				const temp_p1 = await getCurrentUser(sessionStorage.getItem("wxp_token")!);
-				const temp_p2 = await getCurrentUser(sessionStorage.getItem("second_wxp_token")!);
-				showMatchInfo(temp_p1.username, temp_p2.username);
 				backToMenuFromRanked!.style.display = "none";
 				rankedMatch = true;
 				rankedSelectionContainer.style.display = "none";
 				menu.style.display = "none";
+				startCountdown(startGame);
+				//ces deux lignes font bug : si on se connecte de nouveau avec le compte de base, les token changent et ca bug
+				const temp_p1 = await getCurrentUser(sessionStorage.getItem("wxp_token")!);
+				const temp_p2 = await getCurrentUser(sessionStorage.getItem("second_wxp_token")!);
+				showMatchInfo(temp_p1.username, temp_p2.username);
+				}
 			}
 			catch (error) {
 				const existingErrorBox = document.querySelector('.error-box');
