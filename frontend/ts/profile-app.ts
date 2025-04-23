@@ -604,7 +604,6 @@ export async function initProfileApp()
 									}
 									
 									let matchHistoryData = await getMatchDetails(matchId);
-									console.log('HistoryData is: ' + matchHistoryData);
 									if (matchHistoryData) {
 										interface MatchData {
 											player1: string;
@@ -627,7 +626,6 @@ export async function initProfileApp()
 										let score2 = parseInt(score[1]);
 										// Convert ISO 8601 format date string (e.g. "2025-04-22T19:52:19.071Z") to Date object
 										let matchDate = new Date(match.created_at);
-										console.log('Match date is: ' + matchDate);
 										let winner = match.winner;
 										
 										// Mark this match as added
@@ -737,10 +735,98 @@ export async function initProfileApp()
 				winLossBar.style.boxShadow = 'inset 0 0 5px rgba(0, 0, 0, 0.2)';
 
 				// API Call to get the win/loss ratio
-					// Dummy data - replace with API call
-				const wins = 15;
-				const losses = 7;
-				const winRate = Math.round((wins / (wins + losses)) * 100);
+				let wins = 0;
+				let losses = 0;
+				let pointsScored = 0;
+				
+				const updateStats = async () => {
+					try {
+						wins = 0;
+						losses = 0;
+						pointsScored = 0;
+				
+						const token = sessionStorage.getItem('wxp_token') as string;
+						const matchHistory = await getUserMatchHistory(token);
+						const currentUser = await getCurrentUser(token);
+						const currentId = currentUser.id?.toString();
+				
+						const matchPromises = matchHistory.map(async (matchId) => {
+							try {
+								const matchHistoryData = await getMatchDetails(matchId);
+								if (matchHistoryData) {
+									interface MatchData {
+										player1: string;
+										player2: string;
+										score: string;
+										winner: string;
+										created_at: string;
+									}
+				
+									const match = matchHistoryData as unknown as MatchData;
+									const player1_id = match.player1;
+									const player2_id = match.player2;
+									const score = match.score.split(' - ');
+									const score1 = parseInt(score[0]);
+									const score2 = parseInt(score[1]);
+									const winner = match.winner;
+													
+									if (currentId === player1_id) {
+										if (winner === "1")
+											wins += 1;
+										else
+											losses += 1;
+										pointsScored += score1;
+									} else if (currentId === player2_id) {
+										if (winner === "2")
+											wins += 1;
+										else
+											losses += 1;
+										pointsScored += score2;
+									}
+								}
+							} catch (error) {
+								console.error('Error in the stats', error);
+							}
+						});
+				
+						await Promise.all(matchPromises);
+						
+						
+						updateStatsUI();
+					} catch (error) {
+						console.error('Error fetching Stats:', error);
+						sendNotification('Error', 'Failed to load Stats.', 'error');
+			}
+				};
+				
+				const updateStatsUI = () => {
+					const winRate = (wins + losses === 0) ? 0 : Math.round((wins / (wins + losses)) * 100);
+					const winBar = document.querySelector('[style*="backgroundColor: rgb(75, 192, 75)"]') as HTMLElement;
+					if (winBar)
+						winBar.style.width = `${winRate}%`;
+					
+					const ratioText = document.querySelector('[innerText*="Win Rate"]') as HTMLElement;
+					if (ratioText)
+						ratioText.innerText = `Win Rate: ${winRate}% (${wins} wins, ${losses} losses)`;
+
+					const totalMatches = wins + losses;
+					const statsTable = document.querySelector('table');
+					if (statsTable) {
+						const rows = statsTable.querySelectorAll('tr');
+						if (rows.length >= 2) {
+							const totalMatchesCell = rows[0].querySelector('td:last-child');
+							if (totalMatchesCell)
+								totalMatchesCell.innerHTML = totalMatches.toString();
+							
+							const pointsScoredCell = rows[1].querySelector('td:last-child');
+							if (pointsScoredCell)
+								pointsScoredCell.innerHTML = pointsScored.toString();
+						}
+					}
+				};
+				await updateStats();
+				
+				let winRate = Math.round((wins / (wins + losses)) * 100);
 
 				let winBar = document.createElement('div');
 				winLossBar.appendChild(winBar);
@@ -787,15 +873,9 @@ export async function initProfileApp()
 				// API Call to get the game statistics
 					// Dummy data - replace with API call
 				const totalMatches = wins + losses;
-				const pointsScored = 254;
-				const avgMatchDuration = '3m 42s';
-				const highestScore = 11;
-
 				const statsData = [
 					{ label: 'Total Matches', value: totalMatches },
 					{ label: 'Points Scored', value: pointsScored },
-					{ label: 'Average Match Duration', value: avgMatchDuration },
-					{ label: 'Highest Score', value: highestScore }
 				];
 
 				statsData.forEach(stat => {

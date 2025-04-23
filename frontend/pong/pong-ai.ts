@@ -19,7 +19,7 @@ export class PongAI
 	{
 		try
 		{
-			let modelPath = './model/model.json';
+			let modelPath = '../../pong/model/model.json';
 			this.model = await tf.loadLayersModel(modelPath);
 			this.isLoaded = true;
 		} catch (error)

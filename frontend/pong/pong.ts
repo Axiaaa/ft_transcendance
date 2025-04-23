@@ -900,9 +900,7 @@ function endGame(): void {
 				document.body.appendChild(restartButton);
 			}, totalDelay);
 		}
-		console.log("Hello2");
 		if (!(isTournament === 1 && isFinal)) {
-			console.log("Hello1");
 			const restartButton = document.createElement("button-endgame");
 			if (isTournament === 1 && !isFinal) {
 				restartButton.textContent = "Next Match";
