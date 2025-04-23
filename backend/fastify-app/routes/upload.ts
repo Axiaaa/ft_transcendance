@@ -61,25 +61,25 @@ export async function uploadRoutes(server: FastifyInstance) {
 		const user = await getUserFromDb({ id: Number(id) });
 		if (user == null) {
 			reply.code(404).send({error: "User not found"});
-			throw new Error("User not found");
+			return;
 		}
 		const file = await request.file();
 		if (!file) {
 			reply.code(400).send({error: "No file provided"});
-			throw new Error("No file provided");
+			return;
 		}
 		if (type !== "avatar" && type !== "wallpaper") {
 			reply.code(400).send({error: "Invalid type"});
-			throw new Error("Invalid type");
+			return;
 		}
 		if (!await checkImageValidity(file)) {
 			reply.code(400).send({error: "Invalid image file"});
-			throw new Error("Invalid image file");
+			return;
 		}
 		const bufferdata = await file.toBuffer();
 		if (!bufferdata) {
 			reply.code(400).send({error: "Failed to read file"});
-			throw new Error("Failed to read file");
+			return;
 		}
 		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
 		const frontFilePath = join(FRONT_VOLUME_DIR, `${id}_${type}.png`);
@@ -87,7 +87,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 			const user = await getUserFromDb({ id: Number(id) });
 			if (user == null) {
 				reply.code(404).send({error: "User not found"});
-				throw new Error("User not found");
+				return;
 			}
 			user.avatar = frontFilePath;
 			await updateUserAvatar(user, frontFilePath);
@@ -96,7 +96,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 			const user = await getUserFromDb({ id: Number(id) });
 			if (user == null) {
 				reply.code(404).send({error: "User not found"});
-				throw new Error("User not found");
+				return;
 			}
 			user.background = frontFilePath;
 			await updateUserBackground(user, frontFilePath);
@@ -105,7 +105,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 		fs.writeFile(filePath, bufferdata, (err) => {
 			if (err) {
 				reply.code(400).send({error: "Failed to save file"});
-				throw new Error("Failed to save file");
+				return;
 			}
 		});
 		reply.code(200).send({message: "File uploaded successfully"});
@@ -117,13 +117,13 @@ export async function uploadRoutes(server: FastifyInstance) {
 		const user = await getUserFromDb({ id: Number(id) });
 		if (user == null) {
 			reply.code(404).send({error: "User not found"});
-			throw new Error("User not found");
+			return;
 		}
 		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
 		const fileFrontPath = join(FRONT_VOLUME_DIR, `${id}_${type}.png`);
 		if (!fs.existsSync(filePath)) {
 			reply.code(404).send({error: "File not found"});
-			throw new Error("File not found");
+			return;
 		}
 		reply.code(200).send(fileFrontPath);
 	});
@@ -133,17 +133,17 @@ export async function uploadRoutes(server: FastifyInstance) {
 		const user = await getUserFromDb({ id: Number(id) });
 		if (user == null) {
 			reply.code(404).send({error: "User not found"});
-			throw new Error("User not found");
+			return;
 		}
 		if (type !== "avatar" && type !== "wallpaper") {
 			reply.code(400).send({error: "Invalid type"});
-			throw new Error("Invalid type");
+			return;
 		}
 		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
 		const frontFilePath = join(FRONT_VOLUME_DIR, `${id}_${type}.png`);
 		if (!fs.existsSync(filePath)) {
 			reply.code(404).send({error: "File not found"});
-			throw new Error("File not found");
+			return;
 		}
 
 		try {
