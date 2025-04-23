@@ -24,14 +24,14 @@
 
 // Temporarily disabled rate limits for testing
 export const RateLimits = {
-  login: withError({ max: 999999, timeWindow: '1 minute' }),
-  getUsers: withError({ max: 999999, timeWindow: '2 minutes' }),
-  heavyApi: withError({ max: 999999, timeWindow: '1 minute' }),
-  signup: withError({ max: 999999, timeWindow: '1 minute' }),
-  patch_user: withError({ max: 999999, timeWindow: '1 minute' }),
-  delete_user: withError({ max: 999999, timeWindow: '1 minute' }),
-  friends: withError({ max: 999999, timeWindow: '1 minute' }),
-  Tournament: withError({ max: 999999, timeWindow: '1 minute' }),
-  matchs: withError({ max: 999999, timeWindow: '1 minute' }),
-  upload: withError({ max: 999999, timeWindow: '1 minute' })
+  login: withError({ max: 100, timeWindow: '1 minute' }),
+  getUsers: withError({ max: 100, timeWindow: '1 minutes' }),
+  heavyApi: withError({ max: 1000, timeWindow: '1 minute' }),
+  signup: withError({ max: 100, timeWindow: '1 minute' }),
+  patch_user: withError({ max: 100, timeWindow: '1 minute' }),
+  delete_user: withError({ max: 100, timeWindow: '1 minute' }),
+  friends: withError({ max: 1000, timeWindow: '1 minute' }),
+  Tournament: withError({ max: 100, timeWindow: '1 minute' }),
+  matchs: withError({ max: 100, timeWindow: '1 minute' }),
+  upload: withError({ max: 100, timeWindow: '1 minute' })
 };

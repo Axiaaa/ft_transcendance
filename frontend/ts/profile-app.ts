@@ -748,12 +748,12 @@ export async function initProfileApp()
 									const score1 = parseInt(score[0]);
 									const score2 = parseInt(score[1]);
 									const winner = match.winner;
-
-									if (winner === currentId)
-										wins += 1;
-									else
-										losses += 1;
+													
 									if (currentId === player1_id) {
+										if (winner === "1")
+											wins += 1;
+										else
+											losses += 1;
 										pointsScored += score1;
 									} else if (currentId === player2_id) {
 										pointsScored += score2;

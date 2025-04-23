@@ -275,6 +275,7 @@ export async function showError(message: string) {
 											const newUser = await createUser({ username, password });
 											sessionStorage.setItem("wxp_token", newUser.token);
 											sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
+											sessionStorage.setItem("wxp_user_name", newUser.username);
 											signUpUsername.value = "";
 											signUpPassword.value = "";
 											signUpConfirmPassword.value = "";
@@ -376,6 +377,7 @@ export async function showError(message: string) {
 						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
 						signInUsername.value = "";
 						signInPassword.value = "";
+						sessionStorage.setItem("wxp_user_name", user.username);
 						initApps();
 						await resetUserImages();
 						await updateUserImages();
