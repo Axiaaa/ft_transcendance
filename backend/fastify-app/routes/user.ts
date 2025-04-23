@@ -243,7 +243,7 @@ export async function userRoutes(server : FastifyInstance) {
             reply.code(204).send({error: "Empty friend list"});
             return;
         }
-        return user.friend_list;
+        return reply.code(200).send(user.friend_list);
         }
     });
 
@@ -369,7 +369,7 @@ export async function userRoutes(server : FastifyInstance) {
             reply.code(204).send({error: "Empty pending friend list"});
             return;
         }
-        return user.pending_friend_list;
+            return user.pending_friend_list;
         }
 });
 

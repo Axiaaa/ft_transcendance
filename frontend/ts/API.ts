@@ -35,6 +35,8 @@ interface Match {
     created_at: Date,
 }
 
+const DEFAULT_AVATAR_URL = "./img/Start_Menu/demo-user-profile-icon.jpg";
+const DEFAULT_BACKGROUND_URL = "./img/Desktop/linus-wallpaper.jpg";
 
 /**
  * API configuration
@@ -64,7 +66,6 @@ const API_CONFIG = {
  * @returns Promise with response
  */
 async function apiFetch(url: string, options: RequestInit = {}, useJsonContentType = true, nojson?: boolean): Promise<Response> {
-	// const credentials = btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`);
 	
 	let headers: HeadersInit = {
 		'Authorization': `Bearer ${sessionStorage.getItem('wxp_token')}`,
@@ -83,13 +84,14 @@ async function apiFetch(url: string, options: RequestInit = {}, useJsonContentTy
 		...options,
 		headers
 	});
-	
-	// if (!response.ok) {
-	// 	const error = new Error(`HTTP error! status: ${response.status}`);
-	// 	(error as any).status = response.status;
-	// 	throw error;
-	// }
-	
+
+	if (!response.ok) {
+		const errorData = await response.json();
+		const error = new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+		(error as any).status = response.status;
+		throw error;
+	}
+
 	return response;
 }
 
@@ -414,6 +416,8 @@ export async function isAvatarUserExists(userId: number): Promise<boolean> {
 		const response = await apiFetch(`/user_images/avatar/${userId}`, {
 			method: 'GET'
 		});
+		if (response.status == 204)
+			return false;
 		return response.ok;
 	} catch (error) {
 		console.error('Error checking avatar existence:', error);
@@ -426,6 +430,8 @@ export async function isBackgroundUserExists(userId: number): Promise<boolean> {
 		const response = await apiFetch(`/user_images/wallpaper/${userId}`, {
 			method: 'GET'
 		});
+		if (response.status == 204)
+			return false;
 		return response.ok;
 	} catch (error) {
 		console.error('Error checking background existence:', error);
@@ -510,21 +516,37 @@ export async function getUserFriends(token: string): Promise<number[]> {
 	try {
 		const response = await apiFetch(`/users/${token}/friends`, 
 			{
-				method: 'GET'
+				method: 'GET', 
+				headers: {
+					'Content-Type': 'application/json'
+				}
 			}
 		)
 		
 		if (!response.ok) {
-		if (response.status === 404) {
-			// Empty friend list or user not found
-			return [];
+			if (response.status === 404) {
+				// Empty friend list or user not found
+				return [];
+			}
+			if (response.status === 204) {
+				// No content, meaning no friends
+				return [];
+			}
+			throw new Error(`HTTP error! Status: ${response.status}`);
 		}
-		throw new Error(`HTTP error! Status: ${response.status}`);
+		
+		// Also check for 204 here as it's considered a successful response (ok)
+		if (response.status === 204) {
+			// No content, meaning no friends
+			return [];
 		}
 		
 		const friendIds = await response.json();
 		return friendIds;
 	} catch (error) {
+		if (error instanceof TypeError) {
+
+		}
 		console.error('Error fetching user friends:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		if (typeof sendNotification === 'function') {
@@ -549,6 +571,11 @@ export async function getPendingFriendRequests(token: string): Promise<number[]>
 			return [];
 		}
 		throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+		
+		// Handle 204 No Content response
+		if (response.status === 204) {
+			return [];
 		}
 		
 		const pendingIds = await response.json();

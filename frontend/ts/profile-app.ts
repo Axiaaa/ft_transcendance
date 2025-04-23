@@ -642,12 +642,11 @@ export async function initProfileApp()
 								console.error('Error fetching tournament history:', error);
 								sendNotification('Error', 'Failed to load tournament history.', 'error');
 							}
-							// EXAMPLE HISTORY ELEMENT let tournament1 = addTournamentHistory(TournamentHistory, 'Michel', 'Francis', 0, 2);
 						}
 					updateHistory();
 					// Add refresh button container
 					let refreshContainer = document.createElement('div');
-					refreshContainer.style.width = '100%';
+					refreshContainer.style.width = 'calc(50% + 50px)';
 					refreshContainer.style.display = 'flex';
 					refreshContainer.style.justifyContent = 'flex-end';
 					refreshContainer.style.marginBottom = '10px';
@@ -684,9 +683,10 @@ export async function initProfileApp()
 
 					// Add click handler to refresh the history
 					refreshButton.addEventListener('click', () => {
+						refreshButton.style.pointerEvents = 'none';
+						refreshButton.disabled = true;
 						// Clear existing history items
 						while (TournamentHistory.firstChild) {
-						refreshButton.style.pointerEvents = 'none';
 						refreshButton.style.opacity = '0.5';
 						refreshButton.textContent = 'Loading...';
 							TournamentHistory.removeChild(TournamentHistory.firstChild);
@@ -697,6 +697,7 @@ export async function initProfileApp()
 							refreshButton.style.pointerEvents = 'auto';
 							refreshButton.style.opacity = '1';
 							refreshButton.textContent = 'Refresh History';
+							refreshButton.disabled = false;
 						}
 						, 1000);
 					});
@@ -793,15 +794,6 @@ export async function initProfileApp()
 				winLossSection.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
 				winLossSection.style.backdropFilter = 'blur(5px)';
 
-				let winLossTitle = document.createElement('h3');
-				StatsContent.appendChild(winLossTitle);
-				winLossTitle.innerText = 'Win/Loss: loading...';
-				winLossTitle.style.color = 'white';
-				winLossTitle.style.fontSize = '18px';
-				winLossTitle.style.marginBottom = '12px';
-				winLossTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
-				winLossTitle.style.borderBottom = '1px solid rgba(255, 255, 255, 0.2)';
-				winLossTitle.style.paddingBottom = '8px';
 
 				// Win/Loss visualization with improved styling
 				let winLossBar = document.createElement('div');
@@ -999,6 +991,7 @@ export async function initProfileApp()
 				// Refresh button click handler
 				refreshButton.addEventListener('click', () => {
 					refreshButton.disabled = true;
+					refreshButton.style.pointerEvents = 'none';
 					refreshButton.style.opacity = '0.6';
 					refreshButton.innerText = 'Loading...';
 					updateStats();
@@ -1006,6 +999,7 @@ export async function initProfileApp()
 						refreshButton.disabled = false;
 						refreshButton.style.opacity = '1';
 						refreshButton.innerText = 'Refresh Stats';
+						refreshButton.style.pointerEvents = 'auto';
 					}, 1000);
 				});
 			}

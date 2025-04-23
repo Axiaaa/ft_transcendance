@@ -122,7 +122,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
 		const fileFrontPath = join(FRONT_VOLUME_DIR, `${id}_${type}.png`);
 		if (!fs.existsSync(filePath)) {
-			reply.code(404).send({error: "File not found"});
+			reply.code(204).send({error: "File not found"});
 			return;
 		}
 		reply.code(200).send(fileFrontPath);
@@ -142,7 +142,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 		const filePath = join(BACK_VOLUME_DIR, `${id}_${type}.png`);
 		const frontFilePath = join(FRONT_VOLUME_DIR, `${id}_${type}.png`);
 		if (!fs.existsSync(filePath)) {
-			reply.code(404).send({error: "File not found"});
+			reply.code(204).send({error: "File not found"});
 			return;
 		}
 

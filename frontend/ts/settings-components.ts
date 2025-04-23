@@ -1,5 +1,5 @@
 import { sendNotification } from "./notification.js";
-import { deleteUserAvatar, deleteUserBackground, getAllUsers, updateUser } from "./API.js";
+import { deleteUserAvatar, deleteUserBackground, getAllUsers, isAvatarUserExists, isBackgroundUserExists, updateUser } from "./API.js";
 
 import { getUserAvatar, uploadFile } from "./API.js";
 import { updateUserImages } from "./login-screen.js";
@@ -1001,11 +1001,11 @@ document.addEventListener('DOMContentLoaded', () => {
 				restoreSystemButton.disabled = true;
 				if (confirm('Are you sure you want to restore the system ?')) {
 					restoreSystemButton.textContent = 'Restoring...';
-					setTimeout(() => {
-						// API call needs to be made here
-						// For now, we will just simulate the restore process
-						deleteUserAvatar(Number(sessionStorage.getItem('wxp_user_id')));
-						deleteUserBackground(Number(sessionStorage.getItem('wxp_user_id')));
+					setTimeout(async () => {
+						if (await isAvatarUserExists(Number(sessionStorage.getItem('wxp_user_id'))))
+							deleteUserAvatar(Number(sessionStorage.getItem('wxp_user_id')));
+						if (await isBackgroundUserExists(Number(sessionStorage.getItem('wxp_user_id'))))
+							deleteUserBackground(Number(sessionStorage.getItem('wxp_user_id')));
 						setFont(0, 0);
 						sendNotification('System Restore', 'System restored to default settings', "./img/Utils/restore-icon.png");
 					});
@@ -1030,10 +1030,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			regionContainer.style.flexDirection = 'column';
 			regionContainer.style.alignItems = 'center';
 
-			// Create information element for region settings
 			let regionInfo = createInformationElement('Region Settings', regionContainer);
 
-			// Current region selection
 			let regionSelectContainer = document.createElement('div');
 			regionInfo.appendChild(regionSelectContainer);
 			regionSelectContainer.style.display = 'flex';
@@ -1051,7 +1049,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			regionSelect.disabled = true;
 			regionSelect.style.width = '150px';
 
-			// Add some common regions
 			const regions = [
 				"United States", "European Union", "United Kingdom", 
 				"Canada", "Australia", "Japan", "China", "Brazil", 
@@ -1068,7 +1065,6 @@ document.addEventListener('DOMContentLoaded', () => {
 				regionSelect.appendChild(option);
 			});
 
-			// Add unavailable message
 			let unavailableMessage = document.createElement('div');
 			regionInfo.appendChild(unavailableMessage);
 			unavailableMessage.style.backgroundColor = '#FFFFC1';
@@ -1080,7 +1076,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			let warningIcon = document.createElement('div');
 			unavailableMessage.appendChild(warningIcon);
-			warningIcon.innerHTML = '&#9888;'; // Warning triangle symbol
+			warningIcon.innerHTML = '&#9888;';
 			warningIcon.style.position = 'absolute';
 			warningIcon.style.left = '10px';
 			warningIcon.style.top = '50%';
@@ -1095,7 +1091,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			messageText.style.fontSize = '11px';
 			messageText.style.color = '#555';
 
-			// Add "Coming Soon" label
 			let comingSoonLabel = document.createElement('div');
 			regionInfo.appendChild(comingSoonLabel);
 			comingSoonLabel.textContent = 'Coming Soon in Windows XPong Update';
@@ -1115,10 +1110,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			languageContainer.style.flexDirection = 'column';
 			languageContainer.style.alignItems = 'center';
 
-			// Create information element for language settings
 			let languageInfo = createInformationElement('Language Settings', languageContainer);
 
-			// Current language selection
 			let languageSelectContainer = document.createElement('div');
 			languageInfo.appendChild(languageSelectContainer);
 			languageSelectContainer.style.display = 'flex';
@@ -1136,7 +1129,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			languageSelect.disabled = true;
 			languageSelect.style.width = '150px';
 
-			// Add common languages
 			const languages = [
 				"English (US)", "English (UK)", "French", "German", 
 				"Spanish", "Italian", "Portuguese", "Dutch", 
@@ -1153,7 +1145,6 @@ document.addEventListener('DOMContentLoaded', () => {
 				languageSelect.appendChild(option);
 			});
 
-			// Add unavailable message
 			let unavailableMessage = document.createElement('div');
 			languageInfo.appendChild(unavailableMessage);
 			unavailableMessage.style.backgroundColor = '#FFFFC1';
@@ -1165,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			let warningIcon = document.createElement('div');
 			unavailableMessage.appendChild(warningIcon);
-			warningIcon.innerHTML = '&#9888;'; // Warning triangle symbol
+			warningIcon.innerHTML = '&#9888;';
 			warningIcon.style.position = 'absolute';
 			warningIcon.style.left = '10px';
 			warningIcon.style.top = '50%';
@@ -1180,7 +1171,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			messageText.style.fontSize = '11px';
 			messageText.style.color = '#555';
 
-			// Add "Coming Soon" label
 			let comingSoonLabel = document.createElement('div');
 			languageInfo.appendChild(comingSoonLabel);
 			comingSoonLabel.textContent = 'Coming Soon in Windows XPong Update';
@@ -1200,10 +1190,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			timezoneContainer.style.flexDirection = 'column';
 			timezoneContainer.style.alignItems = 'center';
 
-			// Create information element for timezone settings
 			let timezoneInfo = createInformationElement('Timezone Settings', timezoneContainer);
 
-			// Current timezone selection
 			let timezoneSelectContainer = document.createElement('div');
 			timezoneInfo.appendChild(timezoneSelectContainer);
 			timezoneSelectContainer.style.display = 'flex';
@@ -1221,7 +1209,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			timezoneSelect.disabled = true;
 			timezoneSelect.style.width = '150px';
 
-			// Add common timezones
 			const timezones = [
 				"(GMT-12:00) International Date Line West",
 				"(GMT-11:00) Midway Island, Samoa",
@@ -1256,12 +1243,11 @@ document.addEventListener('DOMContentLoaded', () => {
 				option.value = timezone.toLowerCase().replace(/[\s()&:,\.]+/g, '-');
 				option.textContent = timezone;
 				if (timezone === "(GMT+01:00) Amsterdam, Berlin, Paris, Rome") {
-					option.selected = true; // Default to European timezone
+					option.selected = true;
 				}
 				timezoneSelect.appendChild(option);
 			});
 
-			// Add current time display
 			let currentTimeContainer = document.createElement('div');
 			timezoneInfo.appendChild(currentTimeContainer);
 			currentTimeContainer.style.display = 'flex';
@@ -1280,12 +1266,10 @@ document.addEventListener('DOMContentLoaded', () => {
 			currentTimeDisplay.style.fontSize = '12px';
 			currentTimeDisplay.style.fontWeight = 'bold';
 
-			// Update time every second
 			setInterval(() => {
 				currentTimeDisplay.textContent = new Date().toLocaleTimeString();
 			}, 1000);
 
-			// Add unavailable message
 			let unavailableMessage = document.createElement('div');
 			timezoneInfo.appendChild(unavailableMessage);
 			unavailableMessage.style.backgroundColor = '#FFFFC1';
@@ -1297,7 +1281,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			let warningIcon = document.createElement('div');
 			unavailableMessage.appendChild(warningIcon);
-			warningIcon.innerHTML = '&#9888;'; // Warning triangle symbol
+			warningIcon.innerHTML = '&#9888;';
 			warningIcon.style.position = 'absolute';
 			warningIcon.style.left = '10px';
 			warningIcon.style.top = '50%';
@@ -1312,7 +1296,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			messageText.style.fontSize = '11px';
 			messageText.style.color = '#555';
 
-			// Add "Coming Soon" label
 			let comingSoonLabel = document.createElement('div');
 			timezoneInfo.appendChild(comingSoonLabel);
 			comingSoonLabel.textContent = 'Coming Soon in Windows XPong Update';
@@ -1336,17 +1319,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			accessibilityContainer.style.alignItems = 'center';
 			accessibilityContainer.style.padding = '10px';
 
-			// Create information element for accessibility message
 			let accessibilityInfo = createInformationElement('Accessibility Settings', accessibilityContainer);
 
-			// Add feature description
 			let featureDescription = document.createElement('p');
 			accessibilityInfo.appendChild(featureDescription);
 			featureDescription.textContent = 'This section will contain settings for screen readers, high contrast themes, keyboard navigation, and other accessibility features.';
 			featureDescription.style.fontSize = '11px';
 			featureDescription.style.margin = '5px 0 15px 0';
 
-			// Add unavailable message box
 			let unavailableMessage = document.createElement('div');
 			accessibilityInfo.appendChild(unavailableMessage);
 			unavailableMessage.style.backgroundColor = '#FFFFC1';
@@ -1358,7 +1338,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			let warningIcon = document.createElement('div');
 			unavailableMessage.appendChild(warningIcon);
-			warningIcon.innerHTML = '&#9888;'; // Warning triangle symbol
+			warningIcon.innerHTML = '&#9888;';
 			warningIcon.style.position = 'absolute';
 			warningIcon.style.left = '10px';
 			warningIcon.style.top = '50%';
@@ -1373,7 +1353,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			messageText.style.fontSize = '11px';
 			messageText.style.color = '#555';
 
-			// Windows XP-style "Coming Soon" label
 			let comingSoonLabel = document.createElement('div');
 			accessibilityInfo.appendChild(comingSoonLabel);
 			comingSoonLabel.textContent = 'Coming Soon in Windows XPong Update';
@@ -1401,10 +1380,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			privacyContainer.style.flexDirection = 'column';
 			privacyContainer.style.alignItems = 'center';
 			
-			// Main privacy policy information
 			let policyInfo = createInformationElement('Privacy Policy', privacyContainer);
 			
-			// Create a styled div for the policy text that resembles a Windows XP text area
 			let policyTextArea = document.createElement('div');
 			policyInfo.appendChild(policyTextArea);
 			policyTextArea.style.backgroundColor = '#FFFFFF';
@@ -1418,7 +1395,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			policyTextArea.style.color = '#333333';
 			policyTextArea.style.lineHeight = '1.4';
 			
-			// Privacy policy content with Windows XP style formatting
 			policyTextArea.innerHTML = `
 				<div style="font-weight:bold; color:#003399; margin-bottom:10px; font-size:12px;">Windows XPong Privacy Commitment</div>
 				
@@ -1457,10 +1433,8 @@ document.addEventListener('DOMContentLoaded', () => {
 				</div>
 			`;
 			
-			// GDPR information element
 			let gdprInfo = createInformationElement('GDPR Compliance', privacyContainer);
 			
-			// Create GDPR information with Windows XP style
 			let gdprContent = document.createElement('div');
 			gdprInfo.appendChild(gdprContent);
 			gdprContent.style.padding = '5px';
@@ -1471,7 +1445,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			gdprText.style.fontSize = '11px';
 			gdprText.style.margin = '5px 0';
 			
-			// Add Windows XP themed GDPR shield icon
 			let gdprShield = document.createElement('div');
 			gdprContent.appendChild(gdprShield);
 			gdprShield.style.display = 'flex';
@@ -1494,7 +1467,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			shieldText.style.fontWeight = 'bold';
 			shieldText.style.color = '#003399';
 			
-			// Add GDPR related links
 			let gdprLinks = document.createElement('div');
 			gdprContent.appendChild(gdprLinks);
 			gdprLinks.style.marginTop = '10px';
@@ -1506,7 +1478,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			linksTitle.style.fontSize = '11px';
 			linksTitle.style.marginBottom = '5px';
 			
-			// Create Windows XP style links
 			const createXpLink = (text: string, url: string) => {
 				let link = document.createElement('a');
 				gdprLinks.appendChild(link);
@@ -1535,14 +1506,12 @@ document.addEventListener('DOMContentLoaded', () => {
 			createXpLink('European Commission - Data Protection', 'https://ec.europa.eu/info/law/law-topic/data-protection_en');
 			createXpLink('Your GDPR Rights Explained', 'https://gdpr.eu/rights-data-subjects/');
 			
-			// Data collection information
 			let dataInfo = createInformationElement('Data Collection', privacyContainer);
 			
 			let dataContent = document.createElement('div');
 			dataInfo.appendChild(dataContent);
 			dataContent.style.padding = '5px';
 			
-			// Create Windows XP themed toggle switches for data collection options
 			const createToggleOption = (optionText: string, defaultChecked: boolean) => {
 				let optionContainer = document.createElement('div');
 				dataContent.appendChild(optionContainer);
@@ -1570,7 +1539,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			dataIntro.style.fontSize = '11px';
 			dataIntro.style.margin = '5px 0 10px 0';
 			
-			// Add Windows XP themed toggle options
 			createToggleOption('Allow essential cookies for basic functionality', true);
 			createToggleOption('Participate in anonymous usage statistics', false);
 			createToggleOption('Save game preferences locally', true);
@@ -1584,39 +1552,23 @@ document.addEventListener('DOMContentLoaded', () => {
 			dataNote.style.margin = '10px 0 5px 0';
 			dataNote.style.color = '#666666';
 			
-			// Add Windows XP themed "Apply Changes" button
 			let applyButton = document.createElement('button');
 			dataContent.appendChild(applyButton);
 			applyButton.textContent = 'Apply Changes';
 			applyButton.style.marginTop = '10px';
 			applyButton.style.padding = '3px 10px';
 			applyButton.onclick = () => {
-				// Collect privacy settings from checkboxes
 				const privacySettings = {
 					essentialCookies: (document.querySelector('input[type="checkbox"]:nth-of-type(1)') as HTMLInputElement)?.checked ?? true,
 					usageStatistics: (document.querySelector('input[type="checkbox"]:nth-of-type(2)') as HTMLInputElement)?.checked ?? false,
 					saveGamePreferences: (document.querySelector('input[type="checkbox"]:nth-of-type(3)') as HTMLInputElement)?.checked ?? true,
 					rememberLogin: (document.querySelector('input[type="checkbox"]:nth-of-type(4)') as HTMLInputElement)?.checked ?? true
 				};
-				// Temporary notification until API is integrated
 				sendNotification('Privacy Settings', 'Your privacy settings have been updated', "./img/Settings_app/privacy-icon.png");
 				
-				// For development testing only - log the settings that would be sent
 				console.log('Privacy settings to be sent to API:', privacySettings);
 			};
 		}
 	}
 
 });
-
-	// // SANDBOX ZONE 
-	// {
-	// 	setTimeout(() => {
-	// 		let wallpaperSettings = document.getElementById('settings-app-Wallpaper-setting') as HTMLElement;
-	// 		if (!wallpaperSettings)
-	// 			console.log('Wallpaper settings element not found, again.......');
-	// 		else
-	// 			console.log('Wallpaper settings element found WTFFF ???');
-	// 	}, 0);
-
-	// }

@@ -106,9 +106,6 @@ export function clearBrowserCache() {
 	} catch (error) {
 		console.error('Error clearing browser cache:', error);
 	}
-
-	// // Reload the page
-	// location.reload();
 }
 
 window.addEventListener('beforeunload', async (event) => {
@@ -183,18 +180,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 	let timeoutId: NodeJS.Timeout;
-	const INACTIVE_TIMEOUT = 30000; // 10 seconds of inactivity
+	const INACTIVE_TIMEOUT = 30000; // 30 seconds of inactivity
 
 	function resetTimer() {
-		// Clear any existing timeout
 		clearTimeout(timeoutId);
 
-		// Reset screen state immediately
 		sleepScreen.style.opacity = '0';
 		sleepScreen.style.display = 'none';
 		sleepLogo.style.display = 'none';
 
-		// Set new timeout
 		timeoutId = setTimeout(async () => {
 			try {
 				console.log('User is inactive');
@@ -224,11 +218,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 	// Reset timer on scroll
 	document.addEventListener('scroll', resetTimer);
 
-	// Start the initial timer
 	let pongAppwindows = document.getElementById('pong-app-window') as HTMLElement;
 	let pongTimerInterval: NodeJS.Timeout | null = null;
 
-	// Function to handle timer state based on pong window
 	function handleTimerState() {
 		if (pongTimerInterval) {
 			clearInterval(pongTimerInterval);
@@ -236,7 +228,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 		}
 
 		if (pongAppwindows.classList.contains('opened-window')) {
-			// Reset timer immediately and set interval to reset every 5 seconds
 			resetTimer();
 			pongTimerInterval = setInterval(() => {
 				resetTimer();
@@ -244,16 +235,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 			}, 5000);
 			console.log('Periodic timer reset activated - Pong window is open');
 		} else {
-			// Normal timer behavior when pong window is closed
 			resetTimer();
 			console.log('Timer activated - Pong window is closed');
 		}
 	}
 
-	// Check initial state
 	handleTimerState();
 
-	// Observe changes to the pong window class
 	const pongWindowObserver = new MutationObserver((mutations) => {
 		mutations.forEach((mutation) => {
 			if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
@@ -264,7 +252,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 	});
 	pongWindowObserver.observe(pongAppwindows, { attributes: true });
 
-	// SANDBOX AREA
 	{
 		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
@@ -274,12 +261,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 export function initHistoryAPI() {
-	// Initial state
+
 	const loginState = { page: 1 };
 	history.pushState(loginState, '', '/login');
 	history.replaceState(loginState, '', '/login');
 
-	// Handle back/forward navigation
 	window.addEventListener('popstate', (event) => {
 		if (event.state) {
 			switch (event.state.page) {
@@ -414,7 +400,8 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 		}
 	}
 	let userAvatars = document.getElementsByClassName("avatar-preview") as HTMLCollectionOf<HTMLImageElement>;
-
+	if (avatarURL == null)
+		avatarURL = "./img/Start_Menu/demo-user-profile-icon.jpg";
 	console.log("userAvatars: " + userAvatars.length + " | " + "avatarURL" + avatarURL);
 
 	for (let i = 0; i < userAvatars.length; i++) {
@@ -440,7 +427,7 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
 	console.log("userWallpapers: " + userWallpapers.length + " | " + "wallpaperURL" + wallpaperURL);
 	userWallpapers[0].src = wallpaperURL;
-	// Add cache busting to force image reload
+
 	const addCacheBuster = (url: string): string => {
 		const cacheBuster = `?t=${Date.now()}`;
 		if (url.startsWith('blob:')) return url;
@@ -451,21 +438,17 @@ export async function updateUserImages(fileAvatar?: File, fileWallpaper?: File) 
 		return `${url}${cacheBuster}`;
 	};
 
-	// Apply cache busting to avatar URLs
 	for (let i = 0; i < userAvatars.length; i++) {
 		userAvatars[i].src = addCacheBuster(avatarURL);
 
-		// Force reload by removing and re-adding the image
 		const currentSrc = userAvatars[i].src;
 		userAvatars[i].src = "";
 		setTimeout(() => { userAvatars[i].src = currentSrc; }, 10);
 	}
 
-	// Apply cache busting to wallpaper URLs
 	for (let i = 0; i < userWallpapers.length; i++) {
 		userWallpapers[i].src = addCacheBuster(wallpaperURL);
 
-		// Force reload by removing and re-adding the image
 		const currentSrc = userWallpapers[i].src;
 		userWallpapers[i].src = "";
 		setTimeout(() => { userWallpapers[i].src = currentSrc; }, 10);
@@ -485,7 +468,7 @@ export async function resetUserImages()
 	}
 	let userWallpapers = document.getElementsByClassName("user-background") as HTMLCollectionOf<HTMLImageElement>;
 	userWallpapers[0].src = wallpaperURL;
-	// Add cache busting to force image reload
+
 	const addCacheBuster = (url: string): string => {
 		const cacheBuster = `?t=${Date.now()}`;
 		if (url.startsWith('blob:')) return url;
@@ -495,20 +478,17 @@ export async function resetUserImages()
 		}
 		return `${url}${cacheBuster}`;
 	}
-	// Apply cache busting to avatar URLs
+
 	for (let i = 0; i < userAvatars.length; i++) {
 		userAvatars[i].src = addCacheBuster(avatarURL);
 
-		// Force reload by removing and re-adding the image
 		const currentSrc = userAvatars[i].src;
 		userAvatars[i].src = "";
 		setTimeout(() => { userAvatars[i].src = currentSrc; }, 10);
 	}
-	// Apply cache busting to wallpaper URLs
 	for (let i = 0; i < userWallpapers.length; i++) {
 		userWallpapers[i].src = addCacheBuster(wallpaperURL);
 
-		// Force reload by removing and re-adding the image
 		const currentSrc = userWallpapers[i].src;
 		userWallpapers[i].src = "";
 		setTimeout(() => { userWallpapers[i].src = currentSrc; }, 10);
