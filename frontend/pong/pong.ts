@@ -244,7 +244,7 @@ function createCircle(radius: number = 0.3): BABYLON.Mesh {
 	const circleMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("circleMaterial", scene);
 
 	circleMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
-	circleMaterial.freeze();
+	// circleMaterial.freeze();
 	circleTemplate.material = circleMaterial;
 	circleTemplate.rotation.x = PI / 2;
 	circleTemplate.isVisible = false;
@@ -900,9 +900,7 @@ function endGame(): void {
 				document.body.appendChild(restartButton);
 			}, totalDelay);
 		}
-		console.log("Hello2");
 		if (!(isTournament === 1 && isFinal)) {
-			console.log("Hello1");
 			const restartButton = document.createElement("button-endgame");
 			if (isTournament === 1 && !isFinal) {
 				restartButton.textContent = "Next Match";
