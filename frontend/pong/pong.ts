@@ -253,8 +253,8 @@ function createCircle(radius: number = 0.3): BABYLON.Mesh {
 
 function createCircleGrid(): BABYLON.InstancedMesh[] {
 	const circles: BABYLON.InstancedMesh[] = [];
-	const gridSize: number = 10;
-	const gridDivision: number = 10;
+	const gridSize: number = 12;
+	const gridDivision: number = 12;
 	const cellSize: number = gridSize / gridDivision;
 	const circleTemplate = createCircle();
 
@@ -717,6 +717,12 @@ function createButtonOnce(text: string, className: string): void {
 	buttonHasBeenCreated = true;
 }
 
+if (!buttonHasBeenCreated) {
+	createButtonOnce('Enter', 'key-enter');
+	createButtonOnce('Space', 'key-space');
+	hideButtons();
+}
+
 function showButtons() {
 	enterButton!.style.display = 'flex';
 	spaceButton!.style.display = 'flex';
@@ -747,15 +753,9 @@ function reset(): void {
 	if (score1 === 0 && score2 === 0)
 		return;
 
-	if (score1 !== 10 && score2 !== 10) {
-		if (!buttonHasBeenCreated) {
-			createButtonOnce('Enter', 'key-enter');
-			createButtonOnce('Space', 'key-space');
-		} else {
-			showButtons();
-		}
-		spaceAndEnterIsPrint = true;
-	}
+	if (score1 !== 10 && score2 !== 10)
+		showButtons();
+	spaceAndEnterIsPrint = true;
 }
 
 function restartGame(callback?: () => void) {
