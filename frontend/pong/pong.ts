@@ -253,8 +253,8 @@ function createCircle(radius: number = 0.3): BABYLON.Mesh {
 
 function createCircleGrid(): BABYLON.InstancedMesh[] {
 	const circles: BABYLON.InstancedMesh[] = [];
-	const gridSize: number = 10;
-	const gridDivision: number = 10;
+	const gridSize: number = 12;
+	const gridDivision: number = 12;
 	const cellSize: number = gridSize / gridDivision;
 	const circleTemplate = createCircle();
 

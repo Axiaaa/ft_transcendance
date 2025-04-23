@@ -6,6 +6,7 @@ import { initSocialApp, removeSocialApp } from "./social-app.js";
 
 import { throttle } from "./utils.js";
 import { initProfileApp } from "./profile-app.js";
+import { send } from "process";
 
 let userBackground = document.createElement('img');
 userBackground.id = 'user-background';
@@ -267,32 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	{
 		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
-			try {
-				const currentUserToken = sessionStorage.getItem('wxp_token');
-				
-				let currentUser = await getCurrentUser(currentUserToken);
-				if (currentUser) {
-					sendNotification('User Data', `User ID: ${currentUser.id}, Username: ${currentUser.username}, Email: ${currentUser.email}`, './img/Utils/API-icon.png');
-					console.log("User ID: " + currentUser.id + " Username: " + currentUser.username);
-					console.log("User Data:", currentUser);
-				}
-				if (currentUserToken) {
-					const userMatchHistory = await getUserMatchHistory(currentUserToken);
-					const matchDatas = await getMatchDetails(userMatchHistory[0])
-					if (userMatchHistory) {
-						console.log("User Match History:", matchDatas);
-						sendNotification('User Match History', `Match History: ${JSON.stringify(matchDatas)}`, './img/Utils/API-icon.png');
-					}
-				}
-			}
-			catch (error) {
-				console.error('Error fetching user:', error);
-				const errorMessage = error instanceof Error ? error.message : String(error);
-				if (typeof sendNotification === 'function') {
-					sendNotification('Session Error', `Failed to get user: ${errorMessage}`, './img/Utils/API-icon.png');
-				}
-			}
-			
+			sendNotification('Trash Bin', 'La base virale vps a ete mis a jour', './img/Utils/infos-icon.png');
 		});
 	}
 });
