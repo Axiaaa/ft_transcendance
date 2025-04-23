@@ -506,7 +506,7 @@ export async function initProfileApp()
 						};
 						let formattedDate = lastLoginDate.toLocaleString('en-US', options);
 						lastLoginInfo.innerText = 'Last login: ' + formattedDate;
-					} // Replace with actual last login info from API
+					}
 					lastLoginInfo.style.color = '#555';
 					lastLoginInfo.style.fontSize = '12px';
 					lastLoginInfo.style.margin = '10px 0 5px 0';
@@ -706,201 +706,308 @@ export async function initProfileApp()
 			let StatsContent = createCategorieContainer('Stats', rightContainer);
 			if (StatsContent)
 			{
-				// Win/Loss section
+				// Stats container
+				let statsContainer = document.createElement('div');
+				StatsContent.appendChild(statsContainer);
+				statsContainer.style.display = 'flex';
+				statsContainer.style.flexDirection = 'column';
+				statsContainer.style.gap = '15px';
+				statsContainer.style.width = '100%';
+				statsContainer.style.padding = '5px';
+
+				// Add description section for stats
+				let statsDescContainer = document.createElement('div');
+				statsContainer.appendChild(statsDescContainer);
+				statsDescContainer.style.padding = '15px';
+				statsDescContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+				statsDescContainer.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+				statsDescContainer.style.borderRadius = '5px';
+				statsDescContainer.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+				statsDescContainer.style.backdropFilter = 'blur(5px)';
+				statsDescContainer.style.marginBottom = '10px';
+
+				let statsDescTitle = document.createElement('h3');
+				statsDescContainer.appendChild(statsDescTitle);
+				statsDescTitle.innerText = 'Match Statistics Overview';
+				statsDescTitle.style.color = 'white';
+				statsDescTitle.style.fontSize = '18px';
+				statsDescTitle.style.marginBottom = '8px';
+				statsDescTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
+
+				let statsDescText = document.createElement('p');
+				statsDescContainer.appendChild(statsDescText);
+				statsDescText.innerHTML = 
+					'This page shows your game performance statistics including:<br>' +
+					'• <b>Win/Loss Ratio</b>: Your percentage of won games<br>' +
+					'• <b>Total Matches</b>: Number of games you\'ve played<br>' +
+					'• <b>Points Scored</b>: Total points earned across all matches<br>' +
+					'• <b>Average Points</b>: Your mean score per match';
+				statsDescText.style.color = 'white';
+				statsDescText.style.fontSize = '14px';
+				statsDescText.style.lineHeight = '1.5';
+				statsDescText.style.marginTop = '5px';
+
+				// Add refresh button at the top
+				let refreshContainer = document.createElement('div');
+				refreshContainer.style.width = 'calc(50% + 50px)';
+				refreshContainer.style.display = 'flex';
+				refreshContainer.style.justifyContent = 'flex-end';
+				refreshContainer.style.marginBottom = '5px';
+				statsContainer.appendChild(refreshContainer);
+
+				let refreshButton = document.createElement('button');
+				refreshButton.innerText = 'Refresh Stats';
+				refreshButton.style.padding = '4px 12px';
+				refreshButton.style.backgroundColor = '#ECE9D8';
+				refreshButton.style.border = '1px solid #ACA899';
+				refreshButton.style.borderRadius = '3px';
+				refreshButton.style.color = '#000';
+				refreshButton.style.fontSize = '12px';
+				refreshButton.style.cursor = 'pointer';
+				refreshButton.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
+				refreshContainer.appendChild(refreshButton);
+
+				// Style refresh button hover/active states
+				refreshButton.addEventListener('mouseenter', () => {
+					refreshButton.style.backgroundColor = '#F0F0F0';
+				});
+				refreshButton.addEventListener('mouseleave', () => {
+					refreshButton.style.backgroundColor = '#ECE9D8';
+				});
+				refreshButton.addEventListener('mousedown', () => {
+					refreshButton.style.backgroundColor = '#DCDAC0';
+					refreshButton.style.boxShadow = 'inset 1px 1px 3px rgba(0, 0, 0, 0.2)';
+				});
+				refreshButton.addEventListener('mouseup', () => {
+					refreshButton.style.backgroundColor = '#F0F0F0';
+					refreshButton.style.boxShadow = '1px 1px 3px rgba(0, 0, 0, 0.2)';
+				});
+
+				// Win/Loss section with improved styling
 				let winLossSection = document.createElement('div');
-				StatsContent.appendChild(winLossSection);
-				winLossSection.style.margin = '10px 0';
-				winLossSection.style.padding = '10px';
-				winLossSection.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+				statsContainer.appendChild(winLossSection);
+				winLossSection.style.padding = '15px';
+				winLossSection.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
 				winLossSection.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-				winLossSection.style.borderRadius = '3px';
+				winLossSection.style.borderRadius = '5px';
+				winLossSection.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+				winLossSection.style.backdropFilter = 'blur(5px)';
 
 				let winLossTitle = document.createElement('h3');
 				winLossSection.appendChild(winLossTitle);
 				winLossTitle.innerText = 'Win/Loss Ratio';
 				winLossTitle.style.color = 'white';
 				winLossTitle.style.fontSize = '18px';
-				winLossTitle.style.marginBottom = '10px';
+				winLossTitle.style.marginBottom = '12px';
 				winLossTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
+				winLossTitle.style.borderBottom = '1px solid rgba(255, 255, 255, 0.2)';
+				winLossTitle.style.paddingBottom = '8px';
 
-				// Win/Loss visualization
+				// Win/Loss visualization with improved styling
 				let winLossBar = document.createElement('div');
 				winLossSection.appendChild(winLossBar);
 				winLossBar.style.width = '100%';
-				winLossBar.style.height = '25px';
-				winLossBar.style.backgroundColor = '#d3d3d3';
-				winLossBar.style.border = '1px solid #666';
+				winLossBar.style.height = '28px';
+				winLossBar.style.backgroundColor = 'rgba(200, 200, 200, 0.3)';
+				winLossBar.style.border = '1px solid rgba(0, 0, 0, 0.4)';
 				winLossBar.style.position = 'relative';
-				winLossBar.style.borderRadius = '2px';
+				winLossBar.style.borderRadius = '4px';
+				winLossBar.style.marginTop = '10px';
+				winLossBar.style.marginBottom = '8px';
 				winLossBar.style.boxShadow = 'inset 0 0 5px rgba(0, 0, 0, 0.2)';
-
-				// API Call to get the win/loss ratio
-				let wins = 0;
-				let losses = 0;
-				let pointsScored = 0;
-				
-				const updateStats = async () => {
-					try {
-						wins = 0;
-						losses = 0;
-						pointsScored = 0;
-				
-						const token = sessionStorage.getItem('wxp_token') as string;
-						const matchHistory = await getUserMatchHistory(token);
-						const currentUser = await getCurrentUser(token);
-						const currentId = currentUser.id?.toString();
-				
-						const matchPromises = matchHistory.map(async (matchId) => {
-							try {
-								const matchHistoryData = await getMatchDetails(matchId);
-								if (matchHistoryData) {
-									interface MatchData {
-										player1: string;
-										player2: string;
-										score: string;
-										winner: string;
-										created_at: string;
-									}
-				
-									const match = matchHistoryData as unknown as MatchData;
-									const player1_id = match.player1;
-									const player2_id = match.player2;
-									const score = match.score.split(' - ');
-									const score1 = parseInt(score[0]);
-									const score2 = parseInt(score[1]);
-									const winner = match.winner;
-
-									if (winner === currentId)
-										wins += 1;
-									else
-										losses += 1;			
-									if (currentId === player1_id) {
-										pointsScored += score1;
-									} else if (currentId === player2_id) {
-										pointsScored += score2;
-									}
-								}
-							} catch (error) {
-								console.error('Error in the stats', error);
-							}
-						});
-				
-						await Promise.all(matchPromises);
-						
-						
-						updateStatsUI();
-					} catch (error) {
-						console.error('Error fetching Stats:', error);
-						sendNotification('Error', 'Failed to load Stats.', 'error');
-			}
-				};
-				
-				const updateStatsUI = () => {
-					const winRate = (wins + losses === 0) ? 0 : Math.round((wins / (wins + losses)) * 100);
-					const winBar = document.querySelector('[style*="backgroundColor: rgb(75, 192, 75)"]') as HTMLElement;
-					if (winBar)
-						winBar.style.width = `${winRate}%`;
-					
-					const ratioText = document.querySelector('[innerText*="Win Rate"]') as HTMLElement;
-					if (ratioText)
-						ratioText.innerText = `Win Rate: ${winRate}% (${wins} wins, ${losses} losses)`;
-
-					const totalMatches = wins + losses;
-					const statsTable = document.querySelector('table');
-					if (statsTable) {
-						const rows = statsTable.querySelectorAll('tr');
-						if (rows.length >= 2) {
-							const totalMatchesCell = rows[0].querySelector('td:last-child');
-							if (totalMatchesCell)
-								totalMatchesCell.innerHTML = totalMatches.toString();
-							
-							const pointsScoredCell = rows[1].querySelector('td:last-child');
-							if (pointsScoredCell)
-								pointsScoredCell.innerHTML = pointsScored.toString();
-						}
-					}
-				};
-				await updateStats();
-				
-				let winRate = Math.round((wins / (wins + losses)) * 100);
+				winLossBar.style.overflow = 'hidden';
 
 				let winBar = document.createElement('div');
 				winLossBar.appendChild(winBar);
-				winBar.style.width = `${winRate}%`;
 				winBar.style.height = '100%';
-				winBar.style.backgroundColor = 'rgb(75, 192, 75)';
-				winBar.style.display = 'inline-block';
-				winBar.style.borderRadius = '2px 0 0 2px';
+				winBar.style.backgroundColor = 'rgba(75, 192, 75, 0.8)';
+				winBar.style.borderRight = '1px solid rgba(0, 0, 0, 0.2)';
+				winBar.style.transition = 'width 0.8s ease-in-out';
+				winBar.style.boxShadow = 'inset 0 0 10px rgba(255, 255, 255, 0.3)';
 
 				let ratioText = document.createElement('div');
 				winLossSection.appendChild(ratioText);
-				ratioText.innerText = `Win Rate: ${winRate}% (${wins} wins, ${losses} losses)`;
 				ratioText.style.color = 'white';
 				ratioText.style.fontSize = '14px';
-				ratioText.style.marginTop = '5px';
+				ratioText.style.marginTop = '10px';
 				ratioText.style.textAlign = 'center';
+				ratioText.style.fontWeight = 'bold';
 
-				// Game Statistics section
+				// Game Statistics section with improved styling
 				let statsSection = document.createElement('div');
-				StatsContent.appendChild(statsSection);
-				// statsSection.style.width = '100%';
-				statsSection.style.margin = '15px 0';
-				statsSection.style.padding = '10px';
-				statsSection.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+				statsContainer.appendChild(statsSection);
+				statsSection.style.padding = '15px';
+				statsSection.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
 				statsSection.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-				statsSection.style.borderRadius = '3px';
+				statsSection.style.borderRadius = '5px';
+				statsSection.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+				statsSection.style.backdropFilter = 'blur(5px)';
 
 				let statsTitle = document.createElement('h3');
 				statsSection.appendChild(statsTitle);
 				statsTitle.innerText = 'Game Statistics';
 				statsTitle.style.color = 'white';
 				statsTitle.style.fontSize = '18px';
-				statsTitle.style.marginBottom = '10px';
+				statsTitle.style.marginBottom = '12px';
 				statsTitle.style.textShadow = '1px 1px rgba(0, 0, 0, 0.3)';
+				statsTitle.style.borderBottom = '1px solid rgba(255, 255, 255, 0.2)';
+				statsTitle.style.paddingBottom = '8px';
 
-				// Stats table
+				// Stats table with improved styling
 				let statsTable = document.createElement('table');
 				statsSection.appendChild(statsTable);
 				statsTable.style.width = '100%';
-				statsTable.style.borderCollapse = 'collapse';
+				statsTable.style.borderCollapse = 'separate';
+				statsTable.style.borderSpacing = '0 5px';
 				statsTable.style.color = 'white';
 				statsTable.style.fontSize = '14px';
 
-				// API Call to get the game statistics
-					// Dummy data - replace with API call
-				const totalMatches = wins + losses;
-				const statsData = [
-					{ label: 'Total Matches', value: totalMatches },
-					{ label: 'Points Scored', value: pointsScored },
-				];
-
-				statsData.forEach(stat => {
+				// Create table rows for stats data
+				const createStatsRow = (label: string, value: string | number) => {
 					let row = document.createElement('tr');
 					statsTable.appendChild(row);
-					row.style.borderBottom = '1px solid rgba(255, 255, 255, 0.2)';
 					
 					let labelCell = document.createElement('td');
 					row.appendChild(labelCell);
-					labelCell.innerText = stat.label;
-					labelCell.style.padding = '8px';
-					labelCell.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+					labelCell.innerText = label;
+					labelCell.style.padding = '10px';
+					labelCell.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
 					labelCell.style.fontWeight = 'bold';
+					labelCell.style.borderRadius = '4px 0 0 4px';
+					labelCell.style.width = '60%';
 					
 					let valueCell = document.createElement('td');
 					row.appendChild(valueCell);
-					valueCell.innerText = stat.value.toString();
-					valueCell.style.padding = '8px';
+					valueCell.innerText = value.toString();
+					valueCell.style.padding = '10px';
 					valueCell.style.textAlign = 'right';
-				});
-
+					valueCell.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+					valueCell.style.borderRadius = '0 4px 4px 0';
+					valueCell.style.width = '40%';
+					
+					return { row, valueCell }; // Return for future updates
+				};
+				
+				// Initialize with placeholder values
+				const totalMatchesRow = createStatsRow('Total Matches', '0');
+				const pointsScoredRow = createStatsRow('Points Scored', '0');
+				const avgPointsRow = createStatsRow('Avg. Points per Match', '0');
+				
 				// Note about updating stats
 				let statsNote = document.createElement('p');
 				statsSection.appendChild(statsNote);
 				statsNote.innerText = 'Statistics are updated after each game';
 				statsNote.style.color = 'rgba(255, 255, 255, 0.7)';
 				statsNote.style.fontSize = '12px';
-				statsNote.style.marginTop = '10px';
+				statsNote.style.marginTop = '15px';
 				statsNote.style.fontStyle = 'italic';
+				statsNote.style.textAlign = 'center';
+
+				// Function to update stats from API data
+				const updateStats = async () => {
+					try {
+						// Show loading state
+						refreshButton.disabled = true;
+						refreshButton.style.opacity = '0.6';
+						refreshButton.innerText = 'Loading...';
+						
+						// Initialize counters
+						let wins = 0;
+						let losses = 0;
+						let pointsScored = 0;
+				
+						// Get data from API
+						const token = sessionStorage.getItem('wxp_token') as string;
+						const matchHistory = await getUserMatchHistory(token);
+						const currentUser = await getCurrentUser(token);
+						const currentUsername = currentUser.username;
+				
+						// Process each match
+						for (const matchId of matchHistory) {
+							try {
+								const matchData = await getMatchDetails(matchId);
+								if (matchData) {
+									interface MatchData {
+										player1: string;
+										player2: string;
+										score: string;
+										winner: string;
+									}
+									
+									const match = matchData as unknown as MatchData;
+									const player1_id = match.player1;
+									const player2_id = match.player2;
+									const score = match.score.split(' - ');
+									const score1 = parseInt(score[0]);
+									const score2 = parseInt(score[1]);
+									
+									const player1 = await getUserById(Number(player1_id));
+									const player2 = await getUserById(Number(player2_id));
+									
+									if (match.winner === currentUser.id?.toString()) {
+										wins++;
+									} else {
+										losses++;
+									}
+									
+									// Add points scored by the current user
+									if (player1.username === currentUsername) {
+										pointsScored += score1;
+									} else if (player2.username === currentUsername) {
+										pointsScored += score2;
+									}
+								}
+							} catch (error) {
+								console.error('Error processing match data:', error);
+							}
+						}
+						
+						// Update the UI with the stats
+						const totalMatches = wins + losses;
+						const winRate = totalMatches === 0 ? 0 : Math.round((wins / totalMatches) * 100);
+						
+						// Update win/loss bar
+						winBar.style.width = `${winRate}%`;
+						ratioText.innerText = `Win Rate: ${winRate}% (${wins} wins, ${losses} losses)`;
+						
+						// Update stats table
+						totalMatchesRow.valueCell.innerText = totalMatches.toString();
+						pointsScoredRow.valueCell.innerText = pointsScored.toString();
+						
+						const avgPoints = totalMatches === 0 ? 0 : Math.round((pointsScored / totalMatches) * 10) / 10;
+						avgPointsRow.valueCell.innerText = avgPoints.toString();
+						
+						// Reset refresh button
+						refreshButton.disabled = false;
+						refreshButton.style.opacity = '1';
+						refreshButton.innerText = 'Refresh Stats';
+						
+					} catch (error) {
+						console.error('Error fetching stats:', error);
+						sendNotification('Error', 'Failed to load statistics.', 'error');
+						
+						// Reset refresh button on error
+						refreshButton.disabled = false;
+						refreshButton.style.opacity = '1';
+						refreshButton.innerText = 'Refresh Stats';
+					}
+				};
+				
+				// Initial stats load
+				updateStats();
+				
+				// Refresh button click handler
+				refreshButton.addEventListener('click', () => {
+					refreshButton.disabled = true;
+					refreshButton.style.opacity = '0.6';
+					refreshButton.innerText = 'Loading...';
+					updateStats();
+					setTimeout(() => {
+						refreshButton.disabled = false;
+						refreshButton.style.opacity = '1';
+						refreshButton.innerText = 'Refresh Stats';
+					}, 1000);
+				});
 			}
 			if (GeneralContent && HistoryMatchContent && StatsContent)
 			{

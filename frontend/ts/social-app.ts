@@ -711,17 +711,19 @@ if (!userToken || isNaN(userId))
 				});
 
 				refreshFriendsButton.addEventListener('click', () => {
-					// Visual feedback during refresh
 					refreshFriendsButton.textContent = '⌛ Loading...';
 					refreshFriendsButton.style.backgroundImage = 'linear-gradient(#e0e0e0, #d0d0d0)';
 					refreshFriendsButton.style.cursor = 'wait';
+					refreshFriendsButton.style.pointerEvents = 'none';
 					
 					// Fetch friends data
 					fetchRecentFriends().finally(() => {
-						// Reset button state after fetch completes
-						refreshFriendsButton.textContent = '🔄 Refresh';
-						refreshFriendsButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
-						refreshFriendsButton.style.cursor = 'pointer';
+						setTimeout(() => {
+							refreshFriendsButton.textContent = '🔄 Refresh';
+							refreshFriendsButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+							refreshFriendsButton.style.cursor = 'pointer';
+							refreshFriendsButton.style.pointerEvents = 'auto';
+						}, 1000);
 					});
 				});
 			}
@@ -1060,12 +1062,16 @@ if (!userToken || isNaN(userId))
 				refreshStatsButton.addEventListener('click', () => {
 					refreshStatsButton.textContent = '⌛ Refreshing...';
 					refreshStatsButton.style.cursor = 'wait';
+					refreshStatsButton.style.pointerEvents = 'none';
 					
 					// Refresh data
 					Promise.all([fetchUserProfile(), fetchFriendStatistics()])
 						.finally(() => {
-							refreshStatsButton.textContent = '🔄 Refresh Stats';
-							refreshStatsButton.style.cursor = 'pointer';
+							setTimeout(() => {
+								refreshStatsButton.textContent = '🔄 Refresh Stats';
+								refreshStatsButton.style.cursor = 'pointer';
+								refreshStatsButton.style.pointerEvents = 'auto';
+							}, 1000);
 						});
 				});
 			}
@@ -1490,20 +1496,19 @@ if (!userToken || isNaN(userId))
 				});
 
 				refreshFriendsListButton.addEventListener('click', () => {
-					// Visual feedback during refresh
 					refreshFriendsListButton.textContent = '⌛ Refreshing...';
 					refreshFriendsListButton.style.backgroundImage = 'linear-gradient(#e0e0e0, #d0d0d0)';
 					refreshFriendsListButton.style.cursor = 'wait';
-					
-					// Reset search input and refresh list
+					refreshFriendsListButton.style.pointerEvents = 'none';
 					searchInput.value = '';
 					
-					// Fetch friends data with current filter
 					filterFriendsList('', currentFilter).finally(() => {
-						// Reset button state after fetch completes
-						refreshFriendsListButton.textContent = '🔄 Refresh List';
-						refreshFriendsListButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
-						refreshFriendsListButton.style.cursor = 'pointer';
+						setTimeout(() => {
+							refreshFriendsListButton.textContent = '🔄 Refresh List';
+							refreshFriendsListButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+							refreshFriendsListButton.style.cursor = 'pointer';
+							refreshFriendsListButton.style.pointerEvents = 'auto';
+						}, 1000);
 					});
 				});
 			}
@@ -1671,7 +1676,7 @@ if (!userToken || isNaN(userId))
 								currentSearchResult = {
 									id: matchedUser.id?.toString() || '',
 									username: matchedUser.username || '',
-									avatar: matchedUser.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg"
+									avatar: matchedUser.avatar === "default" ? "./img/Start_Menu/demo-user-profile-icon.jpg" : (matchedUser.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg")
 								};
 								showUserFound(currentSearchResult);
 							} else {
@@ -1779,7 +1784,6 @@ if (!userToken || isNaN(userId))
 						}
 						else
 							alert('User token not found. Please log in again.');
-						// Simulate successful request
 						searchResultsContainer.innerHTML = '';
 						searchResultsContainer.style.display = 'block';
 						searchResultsContainer.style.padding = '5px';
@@ -1790,7 +1794,6 @@ if (!userToken || isNaN(userId))
 						searchResultsContainer.style.fontSize = '11px';
 						searchResultsContainer.textContent = `Friend request sent to ${currentSearchResult.username}!`;
 						
-						// Reset
 						searchUserInput.value = '';
 						sendRequestButton.setAttribute('data-disabled', 'true');
 						sendRequestButton.style.backgroundImage = 'linear-gradient(#e0e0e0, #d0d0d0)';
@@ -1859,8 +1862,6 @@ if (!userToken || isNaN(userId))
 				});
 
 				
-
-				// Add request count indicator
 				let requestCountLabel = document.createElement('div');
 				refreshRequestsContainer.insertBefore(requestCountLabel, refreshButton);
 				requestCountLabel.id = 'socialapp-requests-count';
@@ -1870,12 +1871,10 @@ if (!userToken || isNaN(userId))
 				requestCountLabel.style.color = '#555555';
 				requestCountLabel.style.alignSelf = 'center';
 
-				// Function to update request count
 				const updateRequestCount = (count: number) => {
 					const countLabel = document.getElementById('socialapp-requests-count');
 					if (countLabel) {
 						countLabel.textContent = `Requests: ${count}`;
-						// Make it bold and colored if there are requests
 						if (count > 0) {
 							countLabel.style.fontWeight = 'bold';
 							countLabel.style.color = '#003399';
@@ -1886,28 +1885,24 @@ if (!userToken || isNaN(userId))
 					}
 				};
 
-				// Finally, update the refresh button code:
 				refreshButton.addEventListener('click', async () => {
-					// Visual feedback - change button text while loading
 					refreshButton.textContent = '⌛ Loading...';
 					refreshButton.style.backgroundImage = 'linear-gradient(#e0e0e0, #d0d0d0)';
 					refreshButton.style.cursor = 'wait';
-					
-					// Clear existing requests
+					refreshButton.style.pointerEvents = 'none';
+
 					let requestsList = document.getElementById('socialapp-pending-requests-list');
 					if (requestsList) {
 						requestsList.innerHTML = '';
 					}
 					
 					try {
-						// Use the new function to fetch formatted pending requests
 						let pendingRequests: { id: string, username: string, avatar: string, is_online: boolean }[] = [];
 						
 						if (userToken) {
 							pendingRequests = await fetchFormattedPendingRequests(userToken);
 						}
 						
-						// Display pending requests or empty state message
 						if (pendingRequests.length === 0) {
 							let emptyMessage = document.createElement('div');
 							requestsList?.appendChild(emptyMessage);
@@ -1925,7 +1920,6 @@ if (!userToken || isNaN(userId))
 						}
 					} catch (error) {
 						console.error('Failed to refresh friend requests:', error);
-						// Show error in the requestsList
 						let errorMessage = document.createElement('div');
 						requestsList?.appendChild(errorMessage);
 						errorMessage.textContent = 'Failed to load friend requests. Please try again.';
@@ -1934,14 +1928,15 @@ if (!userToken || isNaN(userId))
 						errorMessage.style.color = '#cc0000';
 						errorMessage.style.fontSize = '11px';
 					} finally {
-						// Reset button state
-						refreshButton.textContent = '🔄 Refresh';
-						refreshButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
-						refreshButton.style.cursor = 'pointer';
+						setTimeout(() => {
+							refreshButton.textContent = '🔄 Refresh';
+							refreshButton.style.backgroundImage = 'linear-gradient(#f0f0f0, #e0e0e0)';
+							refreshButton.style.cursor = 'pointer';
+							refreshButton.style.pointerEvents = 'auto';
+						}, 1000);
 					}
 				});
 
-				// Create the requests list container
 				let requestsList = document.createElement('div');
 				pendingRequestsContainer.appendChild(requestsList);
 				requestsList.id = 'socialapp-pending-requests-list';
@@ -1949,7 +1944,6 @@ if (!userToken || isNaN(userId))
 				requestsList.style.flex = '1';
 				requestsList.style.maxHeight = '200px';
 
-				// Function to create request item
 				const createRequestItem = (request: { id: string, username: string, avatar: string, is_online: boolean }): HTMLElement => {
 					let requestItem = document.createElement('div');
 					requestsList.appendChild(requestItem);
@@ -1959,7 +1953,6 @@ if (!userToken || isNaN(userId))
 					requestItem.style.padding = '8px 5px';
 					requestItem.style.borderBottom = '1px solid #e0e0e0';
 					
-					// User avatar container
 					let userAvatar = document.createElement('div');
 					requestItem.appendChild(userAvatar);
 					userAvatar.style.width = '24px';
@@ -1972,21 +1965,18 @@ if (!userToken || isNaN(userId))
 					userAvatar.style.justifyContent = 'center';
 					userAvatar.style.alignItems = 'center';
 
-					// Avatar image inside container
 					let avatarImage = document.createElement('img');
 					userAvatar.appendChild(avatarImage);
 					avatarImage.style.width = '100%';
 					avatarImage.style.height = '100%';
 					avatarImage.style.objectFit = 'cover';
-					avatarImage.src = request.avatar; // Use avatar URL from request
+					avatarImage.src === "default" ? "./img/Start_Menu/demo-user-profile-icon.jpg" : (request.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg");
 					
-					// User info container
 					let userInfo = document.createElement('div');
 					requestItem.appendChild(userInfo);
 					userInfo.style.flex = '1';
 					userInfo.style.maxWidth = 'calc(100% - 105px)';
 					
-					// Username
 					let username = document.createElement('div');
 					userInfo.appendChild(username);
 					username.textContent = request.username;
@@ -1995,9 +1985,8 @@ if (!userToken || isNaN(userId))
 					username.style.overflow = 'hidden';
 					username.style.textOverflow = 'ellipsis';
 					username.style.whiteSpace = 'nowrap';
-					username.style.maxWidth = 'calc(100% - 5px)'; // Adjust for avatar and buttons
+					username.style.maxWidth = 'calc(100% - 5px)';
 					
-					// Online status
 					let statusInfo = document.createElement('div');
 					userInfo.appendChild(statusInfo);
 					statusInfo.style.display = 'flex';
@@ -2017,12 +2006,10 @@ if (!userToken || isNaN(userId))
 					statusText.style.fontSize = '9px';
 					statusText.style.color = request.is_online ? '#008800' : '#888888';
 					
-					// Action buttons container
 					let actionButtons = document.createElement('div');
 					requestItem.appendChild(actionButtons);
 					actionButtons.style.display = 'flex';
 					
-					// Accept button
 					let acceptButton = document.createElement('div');
 					acceptButton.id = 'socialapp-accept-request-button-' + request.id;
 					actionButtons.appendChild(acceptButton);
@@ -2048,17 +2035,13 @@ if (!userToken || isNaN(userId))
 					});
 
 					acceptButton.addEventListener('click', () => {
-						// API CALL NEEDED: Accept friend request
 						if (userToken)
 							acceptFriendRequest(userToken, request.username);
-						// Remove the request from the list
 						requestItem.remove();
 						
-						// Show success message
 						showNotification(`You are now friends with ${request.username}!`, 'success');
 					});
 
-					// Decline button
 					let declineButton = document.createElement('div');
 					actionButtons.appendChild(declineButton);
 					declineButton.id = 'socialapp-decline-request-button-' + request.id;
@@ -2083,17 +2066,14 @@ if (!userToken || isNaN(userId))
 					});
 
 					declineButton.addEventListener('click', () => {
-						// API CALL NEEDED: Decline friend request
 						if (userToken)
 							declineFriendRequest(userToken, request.username);
-						// Remove the request from the list
 						requestItem.remove();
 					});
 					
 					return requestItem;
 				}
 
-				// Function to show notification
 				const showNotification = (message: string, type: 'success' | 'error') => {
 					let notification = document.createElement('div');
 					requestsContent.appendChild(notification);
@@ -2124,7 +2104,6 @@ if (!userToken || isNaN(userId))
 						notification.style.color = '#770000';
 					}
 					
-					// Remove after 3 seconds
 					setTimeout(() => {
 						notification.style.opacity = '0';
 						notification.style.transition = 'opacity 0.5s';
@@ -2132,14 +2111,11 @@ if (!userToken || isNaN(userId))
 					}, 3000);
 				}
 
-				// Load pending requests from API
 				let pendingRequests: { id: string, username: string, avatar: string, is_online: boolean }[] = [];
 				
-				if (userToken) {
+				if (userToken)
 					pendingRequests = await fetchFormattedPendingRequests(userToken);
-				}
 
-				// Display pending requests or empty state message
 				if (pendingRequests.length === 0) {
 					let emptyMessage = document.createElement('div');
 					requestsList.appendChild(emptyMessage);

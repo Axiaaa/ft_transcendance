@@ -611,7 +611,7 @@ export async function sendFriendRequest(token: string, targetUsername: string): 
 		const isAlreadyFriend = await isUserFriend(token, targetUsername);
 		if (isAlreadyFriend) {
 			if (typeof sendNotification === 'function') {
-				sendNotification('Friend Request', `${targetUsername} is already in your friend list`, './img/Utils/friend-icon.png');
+				sendNotification('Friend Request', `${targetUsername} is already in your friend list`, './img/Desktop/friend-social-icon.png');
 			}
 			return;
 		}
@@ -620,7 +620,7 @@ export async function sendFriendRequest(token: string, targetUsername: string): 
 		const hasPendingRequest = await hasPendingFriendRequest(token, targetUsername);
 		if (hasPendingRequest) {
 			if (typeof sendNotification === 'function') {
-				sendNotification('Friend Request', `Friend request to ${targetUsername} is already pending`, './img/Utils/friend-icon.png');
+				sendNotification('Friend Request', `Friend request to ${targetUsername} is already pending`, './img/Desktop/friend-social-icon.png');
 			}
 			return;
 		}
@@ -636,7 +636,7 @@ export async function sendFriendRequest(token: string, targetUsername: string): 
 		}
 		
 		if (typeof sendNotification === 'function') {
-			sendNotification('Friend Request', `Friend request sent to ${targetUsername}`, './img/Utils/friend-icon.png');
+			sendNotification('Friend Request', `Friend request sent to ${targetUsername}`, './img/Desktop/friend-social-icon.png');
 		}
 	} catch (error) {
 		console.error('Error sending friend request:', error);
@@ -679,7 +679,7 @@ export async function acceptFriendRequest(token: string, friend_username: string
 		}
 		
 		if (typeof sendNotification === 'function') {
-			sendNotification('Friend Request', `You are now friends with ${friend_username}`, './img/Utils/friend-icon.png');
+			sendNotification('Friend Request', `You are now friends with ${friend_username}`, './img/Desktop/friend-social-icon.png');
 		}
 	} catch (error) {
 		console.error('Error accepting friend request:', error);
@@ -711,7 +711,7 @@ export async function declineFriendRequest(token: string, friend_username: strin
 		}
 		
 		if (typeof sendNotification === 'function') {
-		sendNotification('Friend Request', `Friend request from ${friend_username} declined`, './img/Utils/friend-icon.png');
+		sendNotification('Friend Request', `Friend request from ${friend_username} declined`, './img/Desktop/friend-social-icon.png');
 		}
 	} catch (error) {
 		console.error('Error declining friend request:', error);
@@ -742,7 +742,7 @@ export async function removeFriend(token: string, friendUsername: string): Promi
 		}
 		
 		if (typeof sendNotification === 'function') {
-		sendNotification('Friend Removed', `${friendUsername} has been removed from your friends`, './img/Utils/friend-icon.png');
+		sendNotification('Friend Removed', `${friendUsername} has been removed from your friends`, './img/Desktop/friend-social-icon.png');
 		}
 	} catch (error) {
 		console.error('Error removing friend:', error);
