@@ -223,7 +223,7 @@ async function addTournamentHistory(Container: HTMLElement, Player1: string, Pla
 		player1Avatar.src = './img/Start_Menu/demo-user-profile-icon.jpg';
 		if (player1User)
 		{
-				player1Avatar.src = player1User.avatar;
+			player1Avatar.src = player1User.avatar;
 			if (player1User.avatar === '' || player1User.avatar === 'default')
 				player1Avatar.src = './img/Start_Menu/demo-user-profile-icon.jpg';
 		}
