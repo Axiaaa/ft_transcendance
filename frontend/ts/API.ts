@@ -124,10 +124,6 @@ export async function getAllUsers(): Promise<User[]> {
 		}
 	} catch (error) {
 		console.error('Error fetching users:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to fetch users: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -151,37 +147,7 @@ export async function getUserById(userId: number): Promise<User> {
 		return user;
 	} catch (error) {
 		console.error('Error fetching user by ID:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to fetch user by ID: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
-	}
-}
-
-
-/**
- * Get user by username and password
- * @param username - User's username
- * @param password - User's password
- * @returns Promise with User object
- */
-export async function getUser(username: string, password: string): Promise<User> {
-	try {
-		const response = await apiFetch(`/users/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
-		if (!response.ok) {
-			const error = new Error(`HTTP error! status: ${response.status}`);
-			(error as any).status = response.status;
-			throw error;
-		}
-		return await response.json();
-	} catch (error) {
-		console.error('Error fetching user:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to fetch user data: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
-		throw error;	
 	}
 }
 
@@ -221,11 +187,33 @@ export async function getCurrentUser(token : string | null): Promise<User> {
  * @example
  */
 // Create a new user
+
+export async function getUser(userData: Partial<User>): Promise<User> {
+	try {
+		const response = await apiFetch('/users/login', {
+			method: 'POST',
+			body: JSON.stringify({ ...userData, signup: false })
+		});
+		
+		if (!response.ok) {
+			const error = new Error(`HTTP error! status: ${response.status}`);
+			(error as any).status = response.status;
+			throw error;
+		}
+
+		return await response.json();
+
+	} catch (error) {
+		console.error('Error fetching user:', error);
+		throw error;	
+	}
+};
+
 export async function createUser(userData: Partial<User>): Promise<User> {
 	try {
 		const response = await apiFetch('/users/login', {
 			method: 'POST',
-			body: JSON.stringify(userData)
+			body: JSON.stringify({...userData,  signup: true })
 		});
 		
 		if (!response.ok) {
@@ -248,9 +236,6 @@ export async function createUser(userData: Partial<User>): Promise<User> {
 		}
 		
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to create user: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 };
@@ -280,10 +265,6 @@ export async function updateUser(token: string | null, userData: Partial<User>) 
 		
 	} catch (error) {
 		console.error('Error updating user:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function')   {
-			sendNotification('API Error', `Failed to update user: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -302,10 +283,6 @@ export async function deleteUser(userId: number): Promise<User> {
 		return await response.json();
 	} catch (error) {
 		console.error('Error deleting user:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to delete user: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -323,10 +300,6 @@ export async function getUserByUsername(username: string): Promise<User | null> 
 	}
 	catch (error) {
 		console.error('Error fetching user by username:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to fetch user by username: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -370,7 +343,6 @@ export async function uploadFile(userId: number, file: File, fileType: string): 
 		
 		if (response.ok) {
 			const result = await response.json();
-			sendNotification('File Uploaded', `File uploaded successfully: ${result.message}`, "./img/Utils/API-icon.png");
 			return response;
 		} else {
 			const error = await response.json();
@@ -475,10 +447,6 @@ export async function getUserAvatar(userId: number): Promise<string> {
 		return filePath;
 	} catch (error) {
 		console.error('Error fetching user avatar:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to fetch avatar: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -493,10 +461,6 @@ export async function getUserBackground(userId: number): Promise<string> {
 		return filePath;
 	} catch (error) {
 		console.error('Error fetching user background:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to fetch background: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -548,10 +512,6 @@ export async function getUserFriends(token: string): Promise<number[]> {
 
 		}
 		console.error('Error fetching user friends:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-		sendNotification('API Error', `Failed to fetch friends: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -582,10 +542,6 @@ export async function getPendingFriendRequests(token: string): Promise<number[]>
 		return pendingIds;
 	} catch (error) {
 		console.error('Error fetching pending friend requests:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-		sendNotification('API Error', `Failed to fetch pending requests: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -618,10 +574,6 @@ export async function getPendingFriendRequestsDetails(token: string): Promise<Us
 		return pendingDetails.filter((friend): friend is User => friend !== null);
 	} catch (error) {
 		console.error('Error fetching pending friend details:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-		sendNotification('API Error', `Failed to fetch pending friend details: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -667,10 +619,6 @@ export async function sendFriendRequest(token: string, targetUsername: string): 
 		}
 	} catch (error) {
 		console.error('Error sending friend request:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to send friend request: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -710,10 +658,6 @@ export async function acceptFriendRequest(token: string, friend_username: string
 		}
 	} catch (error) {
 		console.error('Error accepting friend request:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to accept friend request: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -742,10 +686,6 @@ export async function declineFriendRequest(token: string, friend_username: strin
 		}
 	} catch (error) {
 		console.error('Error declining friend request:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-		sendNotification('API Error', `Failed to decline friend request: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -773,10 +713,6 @@ export async function removeFriend(token: string, friendUsername: string): Promi
 		}
 	} catch (error) {
 		console.error('Error removing friend:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-		sendNotification('API Error', `Failed to remove friend: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -809,10 +745,6 @@ export async function getUserFriendsDetails(token: string): Promise<User[]> {
 		return friendDetails.filter((friend): friend is User => friend !== null);
 	} catch (error) {
 		console.error('Error fetching friend details:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-		sendNotification('API Error', `Failed to fetch friend details: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -878,10 +810,6 @@ export async function ifUserExist(username: string): Promise<boolean> {
 		return user !== null;
 	} catch (error) {
 		console.error('Error checking if user exists:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to check user existence: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -895,10 +823,6 @@ export async function isUserOnline(username: string): Promise<boolean> {
 		return false;
 	} catch (error) {
 		console.error('Error checking if user is online:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to check user online status: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -912,10 +836,6 @@ export async function getUserMatchHistory(token: string): Promise<Array<number>>
 		throw new Error('No match history found for this user');
 	} catch (error) {
 		console.error('Error fetching user match history:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to fetch match history: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 }
@@ -931,10 +851,6 @@ export async function getMatchDetails(matchId: number): Promise<Match | null> {
 	}
 	catch (error) {
 		console.error('Error fetching match details:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to fetch match details: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
 		throw error;
 	}
 };

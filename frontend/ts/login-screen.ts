@@ -245,6 +245,8 @@ export async function showError(message: string) {
 					signUpUsername.value = "";
 					signUpPassword.value = "";
 					signUpConfirmPassword.value = "";
+					signInUsername.value = "";
+					signInPassword.value = "";
 					return ;
 				}
 				if (username && /[^A-Za-z0-9]/.test(username))
@@ -253,6 +255,8 @@ export async function showError(message: string) {
 					signUpUsername.value = "";
 					signUpPassword.value = "";
 					signUpConfirmPassword.value = "";
+					signInUsername.value = "";
+					signInPassword.value = "";
 					return ;
 				}
 				if (username && password && confirmPassword) {
@@ -272,13 +276,15 @@ export async function showError(message: string) {
 											if (existingErrorBox) {
 												existingErrorBox.remove();
 											}
-											const newUser = await createUser({ username, password });
+											const newUser = await createUser({ username, password});
 											sessionStorage.setItem("wxp_token", newUser.token);
 											sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
 											sessionStorage.setItem("wxp_user_name", newUser.username);
 											signUpUsername.value = "";
 											signUpPassword.value = "";
 											signUpConfirmPassword.value = "";
+											signInUsername.value = "";
+											signInPassword.value = "";
 											initApps();
 											await resetUserImages();
 											await updateAllUserNames();
@@ -296,6 +302,8 @@ export async function showError(message: string) {
 											signUpUsername.value = "";
 											signUpPassword.value = "";
 											signUpConfirmPassword.value = "";
+											signInUsername.value = "";
+											signInPassword.value = "";
 										}
 									}
 									else {
@@ -307,6 +315,8 @@ export async function showError(message: string) {
 										signUpUsername.value = "";
 										signUpPassword.value = "";
 										signUpConfirmPassword.value = "";
+										signInUsername.value = "";
+										signInPassword.value = "";
 									}
 								}
 								else {
@@ -318,6 +328,8 @@ export async function showError(message: string) {
 									signUpUsername.value = "";
 									signUpPassword.value = "";
 									signUpConfirmPassword.value = "";
+									signInUsername.value = "";
+									signInPassword.value = "";
 								}
 							}
 							else {
@@ -329,6 +341,8 @@ export async function showError(message: string) {
 								signUpUsername.value = "";
 								signUpPassword.value = "";
 								signUpConfirmPassword.value = "";
+								signInUsername.value = "";
+								signInPassword.value = "";
 							}
 						}
 						else	{
@@ -340,6 +354,8 @@ export async function showError(message: string) {
 							signUpUsername.value = "";
 							signUpPassword.value = "";
 							signUpConfirmPassword.value = "";
+							signInUsername.value = "";
+							signInPassword.value = "";
 							}
 					}
 					else	{
@@ -351,6 +367,8 @@ export async function showError(message: string) {
 						signUpUsername.value = "";
 						signUpPassword.value = "";
 						signUpConfirmPassword.value = "";
+						signInUsername.value = "";
+						signInPassword.value = "";
 					}	
 		}}});
 	}
@@ -372,11 +390,14 @@ export async function showError(message: string) {
 							if (existingErrorBox) {
 								existingErrorBox.remove();
 							}
-						const user = await getUser(username, password );
+						const user = await getUser({username, password});
 						sessionStorage.setItem("wxp_token", user.token);
 						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
 						signInUsername.value = "";
 						signInPassword.value = "";
+						signUpUsername.value = "";
+						signUpPassword.value = "";
+						signUpConfirmPassword.value = "";
 						sessionStorage.setItem("wxp_user_name", user.username);
 						initApps();
 						await resetUserImages();
@@ -395,6 +416,9 @@ export async function showError(message: string) {
 						console.error("Login Error:", error);
 						signInUsername.value = "";
 						signInPassword.value = "";
+						signUpUsername.value = "";
+						signUpPassword.value = "";
+						signUpConfirmPassword.value = "";
 					}
 				}
 			}

@@ -44,7 +44,7 @@ export async function matchsRoutes(server : FastifyInstance) {
             return match !== null ? match : null;
         })).then(matches => matches.filter(match => match !== null));
         if (result.length === 0) {
-            reply.code(404).send({ error: "No matches found" });
+            reply.code(204).send({ error: "No matches found" });
             return;
         }
         reply.code(200).send(result);
