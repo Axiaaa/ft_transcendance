@@ -108,11 +108,16 @@ export async function clearBrowserCache() {
 	}
 }
 
-window.addEventListener('beforeunload', async (event) => {
+window.addEventListener('beforeunload', (event) => {
+	const message = 'You will be disconnected if you reload or leave this page. Are you sure?';
 	event.preventDefault();
+	event.returnValue = message;
+	return message;
+});
+
+window.addEventListener('unload', async () => {
 	await disconnectUser();
 	await clearBrowserCache();
-	return 'You will be disconnected if you reload or leave this page. Are you sure ?';
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -255,7 +260,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	{
 		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
-			sendNotification('Trash Bin', 'La base virale vps a ete mis a jour', './img/Utils/infos-icon.png');
+			sendNotification('Avast', 'La base virale VPS a ete mise a jour', './img/Utils/avast-icon.png');
 		});
 	}
 });

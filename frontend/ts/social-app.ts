@@ -332,7 +332,7 @@ export async function removeSocialApp()
 export async function initSocialApp()
 {
 
-let userId = sessionStorage.getItem("wxp_user_id");
+// let userId = sessionStorage.getItem("wxp_user_id");
 let userId = Number(sessionStorage.getItem("wxp_user_id"));
 if (!userId || isNaN(userId))
 {
@@ -849,7 +849,7 @@ if (!userId || isNaN(userId))
 				// Fetch user profile data
 				const fetchUserProfile = async () => {
 					try {
-						const userId = sessionStorage.getItem("wxp_user_id");
+						// const userId = sessionStorage.getItem("wxp_user_id");
 						const userId = sessionStorage.getItem("wxp_user_id");
 						
 						if (!userId || !userId) {
@@ -1762,7 +1762,7 @@ if (!userId || isNaN(userId))
 				sendRequestButton.addEventListener('click', () => {
 					if (currentSearchResult && sendRequestButton.getAttribute('data-disabled') === 'false') {
 						if (userId) {
-							sendFriendRequest(userId, currentSearchResult.username);
+							sendFriendRequest(String(userId), currentSearchResult.username);
 							console.log(`Friend request sent to ${currentSearchResult.username}`);
 						}
 						else
@@ -1883,7 +1883,7 @@ if (!userId || isNaN(userId))
 						let pendingRequests: { id: string, username: string, avatar: string, is_online: boolean }[] = [];
 						
 						if (userId) {
-							pendingRequests = await fetchFormattedPendingRequests(userId);
+							pendingRequests = await fetchFormattedPendingRequests(String(userId));
 						}
 						updateRequestCount(pendingRequests.length);
 						
@@ -2020,7 +2020,7 @@ if (!userId || isNaN(userId))
 
 					acceptButton.addEventListener('click', () => {
 						if (userId)
-							acceptFriendRequest(userId, request.username);
+							acceptFriendRequest(String(userId), request.username);
 						requestItem.remove();
 						
 						showNotification(`You are now friends with ${request.username}!`, 'success');
@@ -2051,7 +2051,7 @@ if (!userId || isNaN(userId))
 
 					declineButton.addEventListener('click', () => {
 						if (userId)
-							declineFriendRequest(userId, request.username);
+							declineFriendRequest(String(userId), request.username);
 						requestItem.remove();
 					});
 					
@@ -2098,7 +2098,7 @@ if (!userId || isNaN(userId))
 				let pendingRequests: { id: string, username: string, avatar: string, is_online: boolean }[] = [];
 				
 				if (userId)
-					pendingRequests = await fetchFormattedPendingRequests(userId);
+					pendingRequests = await fetchFormattedPendingRequests(String(userId));
 
 				if (pendingRequests.length === 0) {
 					let emptyMessage = document.createElement('div');

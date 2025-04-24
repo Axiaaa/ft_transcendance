@@ -837,6 +837,8 @@ function endGame(): void {
 				token2: sessionStorage.getItem("second_wxp_token")
 			}),
 		});
+		sessionStorage.removeItem("second_wxp_user_id");
+		sessionStorage.removeItem("second_wxp_token"); 
 	}
 
 
