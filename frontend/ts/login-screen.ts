@@ -272,7 +272,7 @@ export async function showError(message: string) {
 											if (existingErrorBox) {
 												existingErrorBox.remove();
 											}
-											const newUser = await createUser({ username, password });
+											const newUser = await createUser({ username, password});
 											sessionStorage.setItem("wxp_token", newUser.token);
 											sessionStorage.setItem("wxp_user_id", newUser.id != null ? newUser.id.toString() : "");
 											sessionStorage.setItem("wxp_user_name", newUser.username);
@@ -372,7 +372,7 @@ export async function showError(message: string) {
 							if (existingErrorBox) {
 								existingErrorBox.remove();
 							}
-						const user = await getUser(username, password );
+						const user = await getUser({username, password});
 						sessionStorage.setItem("wxp_token", user.token);
 						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
 						signInUsername.value = "";

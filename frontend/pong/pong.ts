@@ -1373,21 +1373,28 @@ const API_CONFIG = {
 	// }
 };
 
-export async function getUserRanked(username: string, password: string): Promise<User> {
-	try {
-		const response = await apiFetch(`/users/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
-		if (!response.ok) {
-			const error = new Error(`HTTP error! status: ${response.status}`);
-			(error as any).status = response.status;
-			throw error;
+export async function getUserRanked(userData: Partial<User>): Promise<User> {
+		try {
+			const response = await apiFetch('/users/login', {
+				method: 'POST',
+				body: JSON.stringify({ ...userData, signup: false })
+			});
+			
+			if (!response.ok) {
+				const error = new Error(`HTTP error! status: ${response.status}`);
+				(error as any).status = response.status;
+				throw error;
+			}
+	
+			return await response.json();
+	
+		} catch (error) {
+			console.error('Error fetching user:', error);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			throw error;	
 		}
-		return await response.json();
-	} catch (error) {
-		console.error('Error fetching user:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		throw error;	
-	}
-}
+};
+	
 
 
 export async function getCurrentUser(token : string | null): Promise<User> {
@@ -1434,7 +1441,7 @@ rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 				}
 				else
 				{
-				const Second_user = await getUserRanked(username, password);
+				const Second_user = await getUserRanked({username, password});
 				sessionStorage.setItem("second_wxp_token", Second_user.token);
 				sessionStorage.setItem("second_wxp_user_id", Second_user.id != null ? Second_user.id.toString() : "");
 				loginInput.value = "";
