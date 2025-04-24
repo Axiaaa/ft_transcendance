@@ -136,7 +136,7 @@ export async function userRoutes(server : FastifyInstance) {
         {
             const user = await getUserFromHash(username, password);
             if (user == null) {
-                reply.code(404).send({error: "User not found"});
+                reply.code(400).send({error: "User not found"});
                 return;
             }
             user.token = crypto.randomBytes(32).toString('hex');
