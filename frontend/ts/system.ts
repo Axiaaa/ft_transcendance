@@ -108,11 +108,16 @@ export async function clearBrowserCache() {
 	}
 }
 
-window.addEventListener('beforeunload', async (event) => {
+window.addEventListener('beforeunload', (event) => {
+	const message = 'You will be disconnected if you reload or leave this page. Are you sure?';
 	event.preventDefault();
+	event.returnValue = message;
+	return message;
+});
+
+window.addEventListener('unload', async () => {
 	await disconnectUser();
 	await clearBrowserCache();
-	return 'You will be disconnected if you reload or leave this page. Are you sure ?';
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
