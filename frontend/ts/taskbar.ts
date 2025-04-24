@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 	soundIcon.addEventListener('click', () => {
 		const urls = [
-			'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 
+			'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
 			'https://youtu.be/yxxyjDFnbb0',
 			'https://youtu.be/5BZLz21ZS_Y',
 			'https://www.youtube.com/watch?v=hmjU-6tkEc8&pp'
