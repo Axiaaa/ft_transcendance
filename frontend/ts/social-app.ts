@@ -202,6 +202,8 @@ function createNotification(notification: { type: string, user: string, time: st
 		let avatarImg = document.createElement('img');
 		avatarContainer.appendChild(avatarImg);
 		avatarImg.src = notification.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg"; // Default color if no avatar
+		if (notification.avatar == "" || notification.avatar === 'default')
+			avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg';
 		avatarImg.style.width = '100%';
 		avatarImg.style.height = '100%';
 		avatarImg.style.objectFit = 'cover';
@@ -289,7 +291,9 @@ function createFriendElement(friend: { name: string, avatar: string, status: str
 	friendItem.appendChild(avatar);
 	avatar.style.width = '24px';
 	avatar.style.height = '24px';
-	avatar.style.backgroundColor = friend.avatar;
+	avatar.style.backgroundImage = friend.avatar;
+	if (friend.avatar == "" || friend.avatar === 'default')
+		avatar.style.backgroundImage = './img/Start_Menu/demo-user-profile-icon.jpg';
 	avatar.style.borderRadius = '3px';
 	avatar.style.marginRight = '8px';
 	avatar.style.border = '1px solid #c0c0c0';
@@ -560,6 +564,8 @@ if (!userToken || isNaN(userId))
 							let avatarImage = document.createElement('img');
 							avatarContainer.appendChild(avatarImage);
 							avatarImage.src = friend.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg";
+							if (friend.avatar == "" || friend.avatar === 'default')
+								avatarImage.src = './img/Start_Menu/demo-user-profile-icon.jpg';
 							avatarImage.style.width = '100%';
 							avatarImage.style.height = '100%';
 							avatarImage.style.objectFit = 'cover';
@@ -782,7 +788,7 @@ if (!userToken || isNaN(userId))
 				usernameh2.style.overflowWrap = 'break-word';
 				usernameh2.style.wordBreak = 'break-word';
 				usernameh2.style.maxWidth = 'calc(100% - 2px)';
-				usernameh2.style.marginBottom = '5px';
+				usernameh2.style.marginBottom = '0px';
 				usernameh2.style.textAlign = 'left';
 				usernameElement.appendChild(usernameh2);
 				usernameElement.style.maxWidth = 'calc(100% - 2px)';
@@ -794,7 +800,6 @@ if (!userToken || isNaN(userId))
 				usernameElement.style.fontSize = '12px';
 				usernameElement.style.fontWeight = 'bold';
 				usernameElement.style.marginBottom = '5px';
-				// API CALL NEEDED: Get username
 
 				let userStatusElement = document.createElement('div');
 				userInfoContainer.appendChild(userStatusElement);
@@ -808,7 +813,6 @@ if (!userToken || isNaN(userId))
 				userStatusElement.style.whiteSpace = 'normal';
 				userStatusElement.style.overflow = 'hidden';
 				userStatusElement.style.lineHeight = '1.2';
-				// API CALL NEEDED: Get user status/bio
 
 				// Edit profile button
 				let editProfileButton = document.createElement('button');
@@ -981,6 +985,8 @@ if (!userToken || isNaN(userId))
 							let friendAvatarImg = document.createElement('img');
 							friendAvatarContainer.appendChild(friendAvatarImg);
 							friendAvatarImg.src = friend.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg";
+							if (friend.avatar == "" || friend.avatar === 'default')
+								friendAvatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg';
 							friendAvatarImg.style.width = '100%';
 							friendAvatarImg.style.height = '100%';
 							friendAvatarImg.style.objectFit = 'cover';
@@ -1265,6 +1271,8 @@ if (!userToken || isNaN(userId))
 					let avatarImg = document.createElement('img');
 					avatar.appendChild(avatarImg);
 					avatarImg.src = friend.avatar;
+					if (friend.avatar == "" || friend.avatar === 'default')
+						avatarImg.src = './img/Start_Menu/demo-user-profile-icon.jpg';
 					avatarImg.style.width = '100%';
 					avatarImg.style.height = '100%';
 					avatarImg.style.objectFit = 'cover';
@@ -1877,6 +1885,7 @@ if (!userToken || isNaN(userId))
 						if (userToken) {
 							pendingRequests = await fetchFormattedPendingRequests(userToken);
 						}
+						updateRequestCount(pendingRequests.length);
 						
 						if (pendingRequests.length === 0) {
 							let emptyMessage = document.createElement('div');
@@ -1888,7 +1897,6 @@ if (!userToken || isNaN(userId))
 							emptyMessage.style.fontSize = '11px';
 							emptyMessage.style.fontStyle = 'italic';
 						} else {
-							updateRequestCount(pendingRequests.length);
 							pendingRequests.forEach(request => {
 								createRequestItem(request);
 							});
@@ -1945,8 +1953,9 @@ if (!userToken || isNaN(userId))
 					avatarImage.style.width = '100%';
 					avatarImage.style.height = '100%';
 					avatarImage.style.objectFit = 'cover';
-					avatarImage.src === "default" ? "./img/Start_Menu/demo-user-profile-icon.jpg" : (request.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg");
-					
+					avatarImage.src = request.avatar || "./img/Start_Menu/demo-user-profile-icon.jpg";
+					if (request.avatar === "default" || request.avatar === "")
+						avatarImage.src = "./img/Start_Menu/demo-user-profile-icon.jpg";
 					let userInfo = document.createElement('div');
 					requestItem.appendChild(userInfo);
 					userInfo.style.flex = '1';

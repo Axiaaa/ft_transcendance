@@ -220,9 +220,13 @@ async function addTournamentHistory(Container: HTMLElement, Player1: string, Pla
 	const player1Avatar = document.createElement('img');
 	{
 		let player1User = await getUserByUsername(Player1);
-		player1Avatar.src = './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar
+		player1Avatar.src = './img/Start_Menu/demo-user-profile-icon.jpg';
 		if (player1User)
-			player1Avatar.src = player1User.avatar || './img/Start_Menu/demo-user-profile-icon.jpg'; // Default avatar
+		{
+				player1Avatar.src = player1User.avatar;
+			if (player1User.avatar === '' || player1User.avatar === 'default')
+				player1Avatar.src = './img/Start_Menu/demo-user-profile-icon.jpg';
+		}
 	}
 	player1Avatar.style.width = '100%';
 	player1Avatar.style.height = '100%';
