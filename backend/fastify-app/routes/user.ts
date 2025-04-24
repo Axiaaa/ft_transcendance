@@ -85,8 +85,8 @@ export async function userRoutes(server : FastifyInstance) {
               reply.code(404).send({ error: "User not found" });
               return;
             }
-            
-          reply.code(200).send(user);
+              const { password, ...userWithoutPassword } = user;
+              reply.code(200).send(userWithoutPassword);
         }
       });
 
@@ -104,7 +104,7 @@ export async function userRoutes(server : FastifyInstance) {
         },
             handler: async (request, reply) => {
             const { username, password, signup } = request.body;
-            if (/[^A-Za-z0-9]/.test(username)){
+            if (/[^A-Za-z0-9]/.test(username) && username.length <= 20){
                     reply.code(400).send({error: "Username can only contain alphanumeric characters"});
                     return ;
                 }
@@ -136,7 +136,7 @@ export async function userRoutes(server : FastifyInstance) {
         {
             const user = await getUserFromHash(username, password);
             if (user == null) {
-                reply.code(404).send({error: "User not found"});
+                reply.code(400).send({error: "User not found"});
                 return;
             }
             user.token = crypto.randomBytes(32).toString('hex');
@@ -151,14 +151,8 @@ export async function userRoutes(server : FastifyInstance) {
         Params: { token: string },
         Body: {
             username?: string,
-            email?: string,
             password?: string,
             is_online?: boolean,
-            avatar?: string,
-            win_nbr?: number,
-            loss_nbr?: number,
-            background?: string,
-            last_login?: number,
             font_size?: number
         }
     }>({
@@ -170,8 +164,8 @@ export async function userRoutes(server : FastifyInstance) {
         handler: async (request, reply) => {
 
         const { token } = request.params;
-        const { username, email, password, is_online, avatar, win_nbr, loss_nbr, background, last_login, font_size } = request.body;
-        if (username && /[^A-Za-z0-9]/.test(username)){
+        const { username, password, is_online, font_size } = request.body;
+        if (username && /[^A-Za-z0-9]/.test(username) && username.length <= 20) {
             reply.code(400).send({error: "Username can only contain alphanumeric characters"});
             return ;
         }
@@ -186,14 +180,8 @@ export async function userRoutes(server : FastifyInstance) {
             return;
         }
         if (username)   { user.username = username }
-        if (email)      { user.email = email }
         if (password)   { user.password = sha256.hmac(salt, password); }
         if (is_online)  { user.is_online = is_online; }
-        if (avatar)     { user.avatar = avatar; }
-        if (win_nbr)    { user.win_nbr = win_nbr; }
-        if (loss_nbr)   { user.loss_nbr = loss_nbr; }
-        if (background) { user.background = background; }
-        if (last_login) { user.last_login = new Date(last_login); }
         if (font_size)  { 
             user.font_size = Math.max(10, Math.min(font_size, 20));
         }
