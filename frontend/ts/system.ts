@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	{
 		let trashBinApp = document.getElementById('trash-bin-app') as HTMLElement;
 		trashBinApp.addEventListener('dblclick', async (e: MouseEvent) => {
-			sendNotification('Trash Bin', 'La base virale vps a ete mis a jour', './img/Utils/infos-icon.png');
+			sendNotification('Avast', 'La base virale VPS a ete mise a jour', './img/Utils/avast-icon.png');
 		});
 	}
 });
