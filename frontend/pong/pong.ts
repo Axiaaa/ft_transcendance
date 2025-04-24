@@ -1375,9 +1375,10 @@ const API_CONFIG = {
 
 export async function getUserRanked(userData: Partial<User>): Promise<User> {
 		try {
-			const response = await apiFetch('/users/login', {
+			const token = sessionStorage.getItem('wxp_token');
+			const response = await apiFetch('/users/login_ranked', {
 				method: 'POST',
-				body: JSON.stringify({ ...userData, signup: false })
+				body: JSON.stringify({ ...userData, token }),
 			});
 			
 			if (!response.ok) {
@@ -1394,8 +1395,6 @@ export async function getUserRanked(userData: Partial<User>): Promise<User> {
 			throw error;	
 		}
 };
-	
-
 
 export async function getCurrentUser(token : string | null): Promise<User> {
 	if (token === null) {
