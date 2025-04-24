@@ -159,32 +159,6 @@ export async function getUserById(userId: number): Promise<User> {
 	}
 }
 
-
-/**
- * Get user by username and password
- * @param username - User's username
- * @param password - User's password
- * @returns Promise with User object
- */
-export async function getUser(username: string, password: string): Promise<User> {
-	try {
-		const response = await apiFetch(`/users/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
-		if (!response.ok) {
-			const error = new Error(`HTTP error! status: ${response.status}`);
-			(error as any).status = response.status;
-			throw error;
-		}
-		return await response.json();
-	} catch (error) {
-		console.error('Error fetching user:', error);
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (typeof sendNotification === 'function') {
-			sendNotification('API Error', `Failed to fetch user data: ${errorMessage}`, './img/Utils/API-icon.png');
-		}
-		throw error;	
-	}
-}
-
 /**
  * Get current user from the session
  * @returns Promise with the current User object
@@ -221,11 +195,37 @@ export async function getCurrentUser(token : string | null): Promise<User> {
  * @example
  */
 // Create a new user
+
+export async function getUser(userData: Partial<User>): Promise<User> {
+	try {
+		const response = await apiFetch('/users/login', {
+			method: 'POST',
+			body: JSON.stringify({ ...userData, signup: false })
+		});
+		
+		if (!response.ok) {
+			const error = new Error(`HTTP error! status: ${response.status}`);
+			(error as any).status = response.status;
+			throw error;
+		}
+
+		return await response.json();
+
+	} catch (error) {
+		console.error('Error fetching user:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (typeof sendNotification === 'function') {
+			sendNotification('API Error', `Failed to fetch user data: ${errorMessage}`, './img/Utils/API-icon.png');
+		}
+		throw error;	
+	}
+};
+
 export async function createUser(userData: Partial<User>): Promise<User> {
 	try {
 		const response = await apiFetch('/users/login', {
 			method: 'POST',
-			body: JSON.stringify(userData)
+			body: JSON.stringify({...userData,  signup: true })
 		});
 		
 		if (!response.ok) {

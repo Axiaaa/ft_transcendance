@@ -63,7 +63,7 @@ export async function userRoutes(server : FastifyInstance) {
             })).then(users => users.filter(user => user !== null));
             
             if (result.length === 0) {
-                reply.code(404).send({ error: "No users found" });
+                reply.code(204).send({ error: "No users found" });
                 return;
             }
             reply.code(200).send(result);
@@ -91,35 +91,10 @@ export async function userRoutes(server : FastifyInstance) {
       });
 
     server.route<{
-        Querystring: { username: string, password: string }
-        }>({
-        method: 'GET',
-        url: '/users/login',
-        config: {
-            rateLimit: RateLimits.login,
-        },
-        handler: async (request, reply) => {
-            const { username, password } = request.query;
-            if (!username || !password) {
-                reply.code(400).send({error: "Username and password are required"});
-                return;
-            }
-            const user = await getUserFromHash(username, password);
-            if (user == null) {
-                reply.code(404).send({error: "User not found"});
-                return;
-            }
-            user.token = crypto.randomBytes(32).toString('hex');
-            user.updateUserInDb();
-            reply.code(200).send(user);
-            }
-        }
-    );
-
-    server.route<{
         Body: {
             username: string,
-            password: string
+            password: string,
+            signup: boolean
         }
         }>({
         method: 'POST',
@@ -128,11 +103,13 @@ export async function userRoutes(server : FastifyInstance) {
             rateLimit: RateLimits.login,
         },
             handler: async (request, reply) => {
-            const { username, password } = request.body;
+            const { username, password, signup } = request.body;
             if (!username || !password) {
                 reply.code(400).send({error: "Username and password are required"});
                 return;
             }
+            if (signup)
+            {
             const existingUsername = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
             if (existingUsername) {
                 reply.code(409).send({error: "Username already exists"});
@@ -147,7 +124,19 @@ export async function userRoutes(server : FastifyInstance) {
             user.pushUserToDb();
             reply.code(201).send({ id: user.id, token : user.token });
             }
+        else
+        {
+            const user = await getUserFromHash(username, password);
+            if (user == null) {
+                reply.code(404).send({error: "User not found"});
+                return;
+            }
+            user.token = crypto.randomBytes(32).toString('hex');
+            user.updateUserInDb();
+            reply.code(200).send(user);
         }
+        }
+    }
     );
 
     server.route<{
