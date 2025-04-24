@@ -36,7 +36,7 @@ export class User implements User {
         this.username = username;
         this.email = username;
         this.password = sha256.hmac(salt, password);
-        this.is_online = false;
+        this.is_online = true;
         this.created_at = new Date();
         this.last_login = new Date();
         this.history = new Array<number>();
@@ -244,7 +244,7 @@ export async function getUserFromDb(query: Partial<User>): Promise<User | null> 
         let user: User = new User(userRow.username, userRow.password);
         user.id = userRow.id;
         user.password = userRow.password;
-        user.is_online = userRow.is_online === 1;
+        user.is_online = userRow.is_online ? userRow.is_online === 1 : false;
         user.created_at = new Date(userRow.created_at);
         user.win_nbr = userRow.win_nbr;
         user.loss_nbr = userRow.loss_nbr;
@@ -347,7 +347,7 @@ export async function getUserFromHash(username: string, password: string): Promi
         let user: User = new User(userRow.username, userRow.password);
         user.id = userRow.id;
         user.password = userRow.password;
-        user.is_online = userRow.is_online === 1;
+        user.is_online = userRow.is_online ? userRow.is_online === 1 : false;
         user.created_at = new Date(userRow.created_at);
         user.win_nbr = userRow.win_nbr;
         user.loss_nbr = userRow.loss_nbr;

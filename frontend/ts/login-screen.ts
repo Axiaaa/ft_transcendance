@@ -1,4 +1,4 @@
-import { getUser } from "./API.js";
+import { getUser, updateUser } from "./API.js";
 import { createUser } from "./API.js";
 import { initSocialApp } from "./social-app.js";
 import { initApps, initHistoryAPI, resetUserImages, updateAllUserNames, updateUserImages } from "./system.js";
@@ -393,12 +393,14 @@ export async function showError(message: string) {
 						const user = await getUser({username, password});
 						sessionStorage.setItem("wxp_token", user.token);
 						sessionStorage.setItem("wxp_user_id", user.id != null ? user.id.toString() : "");
+						sessionStorage.setItem("wxp_user_name", user.username);
+						await updateUser(sessionStorage.getItem("wxp_user_id") as string, {is_online : true});
 						signInUsername.value = "";
 						signInPassword.value = "";
 						signUpUsername.value = "";
 						signUpPassword.value = "";
 						signUpConfirmPassword.value = "";
-						sessionStorage.setItem("wxp_user_name", user.username);
+
 						initApps();
 						await resetUserImages();
 						await updateUserImages();

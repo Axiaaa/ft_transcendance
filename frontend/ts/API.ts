@@ -155,13 +155,13 @@ export async function getUserById(userId: number): Promise<User> {
  * Get current user from the session
  * @returns Promise with the current User object
  */
-export async function getCurrentUser(token : string | null): Promise<User> {
-	if (token === null) {
+export async function getCurrentUser(id : string | null): Promise<User> {
+	if (id === null) {
 		throw new Error('Token isn\'t valid, try to log in again');
 	}
 	try {
 		// This endpoint should be adjusted based on your actual API
-		const response = await apiFetch(`/users/${token}`);
+		const response = await apiFetch(`/users/${id}`);
 		
 		const user = await response.json();
 		
@@ -253,12 +253,12 @@ export async function createUser(userData: Partial<User>): Promise<User> {
  * // Update a user's name
  * const updatedUser = await updateUser(123, { name: "John Doe" });
  */
-export async function updateUser(token: string | null, userData: Partial<User>) {
-	if (token === null) {
+export async function updateUser(id: string | null, userData: Partial<User>) {
+	if (id === null) {
 		throw new Error('Token isn\'t valid, try to log in again');
 	}
 	try {
-		const response = await apiFetch(`/users/${token}`, {
+		const response = await apiFetch(`/users/${id}`, {
 			method: 'PATCH',
 			body: JSON.stringify(userData)
 		});
@@ -473,12 +473,12 @@ These functions handle friend list operations such as getting friends, sending r
 
 /**
  * Gets the friend list of a user
- * @param token - The token of the user
+ * @param id - The id of the user
  * @returns Promise with an array of user IDs representing friends
  */
-export async function getUserFriends(token: string): Promise<number[]> {
+export async function getUserFriends(id: string): Promise<number[]> {
 	try {
-		const response = await apiFetch(`/users/${token}/friends`, 
+		const response = await apiFetch(`/users/${id}/friends`, 
 			{
 				method: 'GET', 
 				headers: {
@@ -518,12 +518,12 @@ export async function getUserFriends(token: string): Promise<number[]> {
 
 /**
  * Gets the pending friend requests of a user
- * @param token - The token of the user
+ * @param id - The id of the user
  * @returns Promise with an array of user IDs representing pending friend requests
  */
-export async function getPendingFriendRequests(token: string): Promise<number[]> {
+export async function getPendingFriendRequests(id: string): Promise<number[]> {
 	try {
-		const response = await apiFetch(`/users/${token}/pending_friends`);
+		const response = await apiFetch(`/users/${id}/pending_friends`);
 		
 		if (!response.ok) {
 		if (response.status === 404) {
@@ -548,13 +548,13 @@ export async function getPendingFriendRequests(token: string): Promise<number[]>
 
 /**
  * Gets detailed information about all pending friend requests
- * @param token - The token of the user
+ * @param id - The id of the user
  * @returns Promise with an array of User objects representing pending friend requests
  */
-export async function getPendingFriendRequestsDetails(token: string): Promise<User[]> {
+export async function getPendingFriendRequestsDetails(id: string): Promise<User[]> {
 	try {
 		// First get the list of pending friend IDs
-		const pendingIds = await getPendingFriendRequests(token);
+		const pendingIds = await getPendingFriendRequests(id);
 		
 		if (pendingIds.length === 0) {
 		return [];
@@ -584,10 +584,10 @@ export async function getPendingFriendRequestsDetails(token: string): Promise<Us
  * @param targetUsername - The username of the user to send the request to
  * @returns Promise indicating success
  */
-export async function sendFriendRequest(token: string, targetUsername: string): Promise<void> {
+export async function sendFriendRequest(id: string, targetUsername: string): Promise<void> {
 	try {
 		// Check if the user is already a friend
-		const isAlreadyFriend = await isUserFriend(token, targetUsername);
+		const isAlreadyFriend = await isUserFriend(id, targetUsername);
 		if (isAlreadyFriend) {
 			if (typeof sendNotification === 'function') {
 				sendNotification('Friend Request', `${targetUsername} is already in your friend list`, './img/Desktop/friend-social-icon.png');
@@ -596,7 +596,7 @@ export async function sendFriendRequest(token: string, targetUsername: string): 
 		}
 
 		// Check if there's already a pending request
-		const hasPendingRequest = await hasPendingFriendRequest(token, targetUsername);
+		const hasPendingRequest = await hasPendingFriendRequest(id, targetUsername);
 		if (hasPendingRequest) {
 			if (typeof sendNotification === 'function') {
 				sendNotification('Friend Request', `Friend request to ${targetUsername} is already pending`, './img/Desktop/friend-social-icon.png');
@@ -604,7 +604,7 @@ export async function sendFriendRequest(token: string, targetUsername: string): 
 			return;
 		}
 
-		const response = await apiFetch(`/users/${token}/pending_friends`, {
+		const response = await apiFetch(`/users/${id}/pending_friends`, {
 			method: 'POST',
 			body: JSON.stringify({ friend_username: targetUsername })
 		});
@@ -629,10 +629,10 @@ export async function sendFriendRequest(token: string, targetUsername: string): 
  * @param friend_username - The username of the user who sent the request
  * @returns Promise indicating success
  */
-export async function acceptFriendRequest(token: string, friend_username: string): Promise<void> {
+export async function acceptFriendRequest(id: string, friend_username: string): Promise<void> {
 	try {
 		// First, remove from pending list
-		const deleteResponse = await apiFetch(`/users/${token}/pending_friends/${friend_username}`, {
+		const deleteResponse = await apiFetch(`/users/${id}/pending_friends/${friend_username}`, {
 		method: 'DELETE',
 		body: JSON.stringify({ friend_username: friend_username })
 		});
@@ -643,7 +643,7 @@ export async function acceptFriendRequest(token: string, friend_username: string
 		}
 		
 		// Then add to friend list
-		const addResponse = await apiFetch(`/users/${token}/friends`, {
+		const addResponse = await apiFetch(`/users/${id}/friends`, {
 		method: 'POST',
 		body: JSON.stringify({ friend_username: friend_username })
 		});
@@ -668,10 +668,10 @@ export async function acceptFriendRequest(token: string, friend_username: string
  * @param friend_username - The username of the user who sent the request
  * @returns Promise indicating success
  */
-export async function declineFriendRequest(token: string, friend_username: string): Promise<void> {
+export async function declineFriendRequest(id: string, friend_username: string): Promise<void> {
 	try {
 		// Simply remove from pending list
-		const response = await apiFetch(`/users/${token}/pending_friends/${friend_username}`, {
+		const response = await apiFetch(`/users/${id}/pending_friends/${friend_username}`, {
 		method: 'DELETE',
 		body: JSON.stringify({ friend_username: friend_username })
 		});
@@ -692,13 +692,13 @@ export async function declineFriendRequest(token: string, friend_username: strin
 
 /**
  * Removes a friend from the user's friend list
- * @param token - The token of the user
+ * @param id - The id of the user
  * @param friendUsername - The username of the friend to remove
  * @returns Promise indicating success
  */
-export async function removeFriend(token: string, friendUsername: string): Promise<void> {
+export async function removeFriend(id: string, friendUsername: string): Promise<void> {
 	try {
-		const response = await apiFetch(`/users/${token}/friends/${friendUsername}`, {
+		const response = await apiFetch(`/users/${id}/friends/${friendUsername}`, {
 		method: 'DELETE',
 		body: JSON.stringify({ friend_username: friendUsername })
 		});
@@ -719,13 +719,13 @@ export async function removeFriend(token: string, friendUsername: string): Promi
 
 /**
  * Gets detailed information about all friends
- * @param token - The token of the user
+ * @param id - The id of the user
  * @returns Promise with an array of User objects representing friends
  */
-export async function getUserFriendsDetails(token: string): Promise<User[]> {
+export async function getUserFriendsDetails(id: string): Promise<User[]> {
 	try {
 		// First get the list of friend IDs
-		const friendIds = await getUserFriends(token);
+		const friendIds = await getUserFriends(id);
 		
 		if (friendIds.length === 0) {
 		return [];
@@ -751,13 +751,13 @@ export async function getUserFriendsDetails(token: string): Promise<User[]> {
 
 /**
  * Checks if a user is in the friend list
- * @param token - The token of the user
+ * @param id - The id of the user
  * @param usernameToCheck - The username to check
  * @returns Promise with a boolean indicating if the user is a friend
  */
-export async function isUserFriend(token: string, usernameToCheck: string): Promise<boolean> {
+export async function isUserFriend(id: string, usernameToCheck: string): Promise<boolean> {
 	try {
-		const friends = await getUserFriendsDetails(token);
+		const friends = await getUserFriendsDetails(id);
 		return friends.some((friend: User) => friend.username === usernameToCheck);
 	} catch (error) {
 		console.error('Error checking if user is friend:', error);
@@ -767,13 +767,13 @@ export async function isUserFriend(token: string, usernameToCheck: string): Prom
 
 /**
  * Checks if a user has a pending friend request
- * @param token - The token of the user
+ * @param id - The id of the user
  * @param usernameToCheck - The username to check
  * @returns Promise with a boolean indicating if the user has a pending request
  */
-export async function hasPendingFriendRequest(token: string, usernameToCheck: string): Promise<boolean> {
+export async function hasPendingFriendRequest(id: string, usernameToCheck: string): Promise<boolean> {
 	try {
-		const pendingFriends = await getPendingFriendRequestsDetails(token);
+		const pendingFriends = await getPendingFriendRequestsDetails(id);
 		return pendingFriends.some(friend => friend.username === usernameToCheck);
 	} catch (error) {
 		console.error('Error checking if user has pending request:', error);
@@ -783,17 +783,17 @@ export async function hasPendingFriendRequest(token: string, usernameToCheck: st
 
 /**
  * Gets the friendship status with another user
- * @param token - The token of the user
+ * @param id - The id of the user
  * @param otherUsername - The username of the other user
  * @returns Promise with the friendship status
  */
-export async function getFriendshipStatus(token: string, otherUsername: string): Promise<'friend' | 'pending' | 'none'> {
+export async function getFriendshipStatus(id: string, otherUsername: string): Promise<'friend' | 'pending' | 'none'> {
 	try {
-		if (await isUserFriend(token, otherUsername)) {
+		if (await isUserFriend(id, otherUsername)) {
 		return 'friend';
 		}
 		
-		if (await hasPendingFriendRequest(token, otherUsername)) {
+		if (await hasPendingFriendRequest(id, otherUsername)) {
 		return 'pending';
 		}
 		
@@ -827,9 +827,9 @@ export async function isUserOnline(username: string): Promise<boolean> {
 	}
 }
 
-export async function getUserMatchHistory(token: string): Promise<Array<number>> {
+export async function getUserMatchHistory(id: string): Promise<Array<number>> {
 	try {
-		const response = await getCurrentUser(token);
+		const response = await getCurrentUser(id);
 		if (response.history) {
 			return response.history;
 		}

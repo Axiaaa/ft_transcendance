@@ -2,25 +2,24 @@ import { clearBrowserCache, removeApps, setFont } from "./system.js";
 import { updateUser } from "./API.js";
 import { openAppWindow } from "./app-icon.js";
 
-export function disconnectUser()
+export async function disconnectUser()
 {
-	let userToken = sessionStorage.getItem('wxp_token');
-	if (!userToken)
+	const userId = sessionStorage.getItem('wxp_user_id');
+	if (!userId)
 	{
 		console.log('No user token found, skipping disconnect...');
 		return;
 	}
-	if (userToken)
+	if (userId)
 	{
 		console.log('Disconnecting user...');
-		updateUser(userToken, { is_online: false })
-			.then(() => {
-				sessionStorage.removeItem('wxp_token');
-				sessionStorage.removeItem('wxp_user_id');
-			})
-			.catch((error) => {
-				console.error('Error updating user status:', error);
-			});
+		try {
+			await updateUser(userId, { is_online: false });
+			sessionStorage.removeItem('wxp_token');
+			sessionStorage.removeItem('wxp_user_id');
+		} catch (error) {
+			console.error('Error updating user status:', error);
+		}
 		setFont(0, 0);
 		removeApps();
 	}
@@ -108,9 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	{
 		let	logoffButton = document.getElementById('log-off-button') as HTMLElement;
 	
-		logoffButton.addEventListener('click', (e: MouseEvent) => {
-			disconnectUser();
-			clearBrowserCache();
+		logoffButton.addEventListener('click', async (e: MouseEvent) => {
+			await disconnectUser();
+			await clearBrowserCache();
 			loginScreen.style.display = 'block';
 			location.reload();
 		});

@@ -424,8 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			if (confirm(`Are you sure you want to change your username to "${nameInput.value}"?`)) {
 				sendNotification('Username Changed', `Username changed to ${nameInput.value}`, "./img/Utils/profile-icon.png");
-				updateUser(sessionStorage.getItem('wxp_token'), { username: nameInput.value })
-				sessionStorage.setItem('wxp_user_name', nameInput.value);
+				await updateUser(sessionStorage.getItem('wxp_user_id'), { username: nameInput.value })
 				nameInput.value = '';
 				updateAllUserNames();
 			}
@@ -494,7 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		applyButton.textContent = 'Change Password';
 		applyButton.style.padding = '5px 10px';
 
-		applyButton.onclick = () => {
+		applyButton.onclick = async () => {
 			if (passwordInput.value !== confirmPasswordInput.value) {
 				sendNotification('Error', 'Passwords do not match', "./img/Utils/error-icon.png");
 				return;
@@ -517,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			if (confirm('Are you sure you want to change your password?')) {
 				sendNotification('Password Changed', 'Password successfully changed', "./img/Utils/profile-icon.png");
-				updateUser(sessionStorage.getItem('wxp_token'), { password: passwordInput.value })
+				await updateUser(sessionStorage.getItem('wxp_user_id'), { password: passwordInput.value })
 				passwordInput.value = '';
 				confirmPasswordInput.value = '';
 			}

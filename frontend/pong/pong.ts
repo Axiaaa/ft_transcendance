@@ -1396,13 +1396,13 @@ export async function getUserRanked(userData: Partial<User>): Promise<User> {
 		}
 };
 
-export async function getCurrentUser(token : string | null): Promise<User> {
-	if (token === null) {
+export async function getCurrentUser(id : string | null): Promise<User> {
+	if (id === null) {
 		throw new Error('Token isn\'t valid, try to log in again');
 	}
 	try {
 		// This endpoint should be adjusted based on your actual API
-		const response = await apiFetch(`/users/${token}`);
+		const response = await apiFetch(`/users/${id}`);
 		
 		const user = await response.json();
 		

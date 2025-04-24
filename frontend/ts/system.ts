@@ -58,7 +58,7 @@ export function setFont(inputSize: number, previousSize: number | 0) {
 			sendNotification('Font Size Changed', `Font size reset`, "./img/Utils/font-icon.png");
 }
 
-export function clearBrowserCache() {
+export async function clearBrowserCache() {
 	try {
 		// Clear cookies
 		const cookies = document.cookie.split(';');
@@ -110,8 +110,8 @@ export function clearBrowserCache() {
 
 window.addEventListener('beforeunload', async (event) => {
 	event.preventDefault();
-	disconnectUser();
-	clearBrowserCache();
+	await disconnectUser();
+	await clearBrowserCache();
 	return 'You will be disconnected if you reload or leave this page. Are you sure ?';
 });
 
@@ -497,7 +497,7 @@ export async function resetUserImages()
 
 export async function updateAllUserNames()
 {
-	let currentUser = await getCurrentUser(sessionStorage.getItem("wxp_token"));
+	let currentUser = await getCurrentUser(sessionStorage.getItem("wxp_user_id"));
 	if (currentUser == null)
 		return;
 	let userName = currentUser.username;

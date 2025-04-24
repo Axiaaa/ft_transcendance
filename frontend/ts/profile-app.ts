@@ -488,7 +488,7 @@ export async function initProfileApp()
 					statusText.style.fontSize = '14px';
 					statusContainer.appendChild(statusText);
 					{
-						let currentUser = getCurrentUser(sessionStorage.getItem('wxp_token') as string);
+						let currentUser = getCurrentUser(sessionStorage.getItem('wxp_user_id') as string);
 						let isOnline = isUserOnline((await currentUser).username);
 						if (!isOnline)
 						{
@@ -501,7 +501,7 @@ export async function initProfileApp()
 					let lastLoginInfo = document.createElement('p');
 					lastLoginInfo.innerText = 'Last login:' + ' Loading...';
 					{
-						let currentUser = getCurrentUser(sessionStorage.getItem('wxp_token') as string);
+						let currentUser = getCurrentUser(sessionStorage.getItem('wxp_user_id') as string);
 						let lastLogin = (await currentUser).last_login;
 						let lastLoginDate = new Date(lastLogin);
 						let options: Intl.DateTimeFormatOptions = {
@@ -599,7 +599,7 @@ export async function initProfileApp()
 						const updateHistory = async () => {
 							try {
 								console.log('Fetching tournament history of user ' + sessionStorage.getItem('wxp_user_id'));
-								let matchHistory = getUserMatchHistory(sessionStorage.getItem('wxp_token') as string);
+								let matchHistory = getUserMatchHistory(sessionStorage.getItem('wxp_user_id') as string);
 								console.log('HistoryTab is: ' + matchHistory);
 
 								// Keep track of matches added to prevent duplicates
@@ -920,9 +920,9 @@ export async function initProfileApp()
 						let pointsScored = 0;
 				
 						// Get data from API
-						const token = sessionStorage.getItem('wxp_token') as string;
-						const matchHistory = await getUserMatchHistory(token);
-						const currentUser = await getCurrentUser(token);
+						const id = sessionStorage.getItem('wxp_user_id') as string;
+						const matchHistory = await getUserMatchHistory(id);
+						const currentUser = await getCurrentUser(id);
 						const currentUsername = currentUser.username;
 				
 						// Process each match

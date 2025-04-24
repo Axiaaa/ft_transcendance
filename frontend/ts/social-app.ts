@@ -12,13 +12,13 @@ import { clearBrowserCache, goToDesktopPage, goToLoginPage } from "./system.js";
  * This function retrieves pending friend request details using the provided user token,
  * and transforms them into a format suitable for UI display with user information.
  * 
- * @param userToken - The authentication token of the current user
+ * @param userId - The authentication token of the current user
  * @returns A promise that resolves to an array of formatted friend requests with id, username, avatar, and time
  * @throws Will catch errors internally and return an empty array
  */
-export async function fetchFormattedPendingRequests(userToken: string): Promise<{ id: string, username: string, avatar: string, is_online: boolean }[]> {
+export async function fetchFormattedPendingRequests(id: string): Promise<{ id: string, username: string, avatar: string, is_online: boolean }[]> {
 	try {
-		const pendingRequestsDetails = await getPendingFriendRequestsDetails(userToken);
+		const pendingRequestsDetails = await getPendingFriendRequestsDetails(id);
 		
 		if (!pendingRequestsDetails) {
 			return [];
@@ -50,13 +50,13 @@ export async function fetchFormattedPendingRequests(userToken: string): Promise<
  * This function retrieves the friends list using the provided user token,
  * and transforms it into a format suitable for UI display with user information.
  * 
- * @param userToken - The authentication token of the current user
+ * @param userId - The authentication token of the current user
  * @returns A promise that resolves to an array of formatted friends with id, username, avatar, and status
  * @throws Will catch errors internally and return an empty array
  */
-export async function fetchFormattedFriends(userToken: string): Promise<{ id: string, username: string, avatar: string, is_online: boolean }[]> {
+export async function fetchFormattedFriends(id: string): Promise<{ id: string, username: string, avatar: string, is_online: boolean }[]> {
 	try {
-		const friendsDetails = await getUserFriendsDetails(userToken);
+		const friendsDetails = await getUserFriendsDetails(id);
 		
 		if (!friendsDetails) {
 			return [];
@@ -332,9 +332,9 @@ export async function removeSocialApp()
 export async function initSocialApp()
 {
 
-let userToken = sessionStorage.getItem("wxp_token");
+let userId = sessionStorage.getItem("wxp_user_id");
 let userId = Number(sessionStorage.getItem("wxp_user_id"));
-if (!userToken || isNaN(userId))
+if (!userId || isNaN(userId))
 {
 	console.log("Can't find user token or ID, aborting Social App initialization");
 	clearBrowserCache();
@@ -442,13 +442,13 @@ if (!userToken || isNaN(userId))
 							notificationsList.innerHTML = '';
 						}
 						
-						const userToken = sessionStorage.getItem("wxp_token");
-						if (!userToken) {
+						const userId = sessionStorage.getItem("wxp_user_id");
+						if (!userId) {
 							console.error("User token not found");
 							return;
 						}
 						
-						const pendingRequests = await fetchFormattedPendingRequests(userToken);
+						const pendingRequests = await fetchFormattedPendingRequests(userId);
 						
 						if (pendingRequests.length === 0) {
 							const emptyMessage = document.createElement('div');
@@ -513,8 +513,8 @@ if (!userToken || isNaN(userId))
 				const fetchRecentFriends = async () => {
 					try {
 
-						const userToken = sessionStorage.getItem("wxp_token");
-						if (!userToken) {
+						const userId = sessionStorage.getItem("wxp_user_id");
+						if (!userId) {
 							console.error("User token not found");
 							return;
 						}
@@ -524,7 +524,7 @@ if (!userToken || isNaN(userId))
 							recentFriendsList.innerHTML = '';
 						}
 	
-						const friends = await fetchFormattedFriends(userToken);
+						const friends = await fetchFormattedFriends(userId);
 						
 						if (friends.length === 0) {
 							const emptyMessage = document.createElement('div');
@@ -849,10 +849,10 @@ if (!userToken || isNaN(userId))
 				// Fetch user profile data
 				const fetchUserProfile = async () => {
 					try {
-						const userToken = sessionStorage.getItem("wxp_token");
+						const userId = sessionStorage.getItem("wxp_user_id");
 						const userId = sessionStorage.getItem("wxp_user_id");
 						
-						if (!userToken || !userId) {
+						if (!userId || !userId) {
 							console.error("User token or ID not found");
 							return;
 						}
@@ -938,14 +938,14 @@ if (!userToken || isNaN(userId))
 				// Function to fetch and display friend statistics
 				const fetchFriendStatistics = async () => {
 					try {
-						const userToken = sessionStorage.getItem("wxp_token");
-						if (!userToken) {
+						const userId = sessionStorage.getItem("wxp_user_id");
+						if (!userId) {
 							console.error("User token not found");
 							return;
 						}
 						
 						// Get friends list using the API
-						const friendsData = await getUserFriendsDetails(userToken);
+						const friendsData = await getUserFriendsDetails(userId);
 						
 						// Update total count
 						friendsCountValue.textContent = friendsData.length.toString();
@@ -1333,13 +1333,13 @@ if (!userToken || isNaN(userId))
 						e.stopPropagation();
 						if (confirm(`Are you sure you want to remove ${friend.name} from your friends?`)) {
 							try {
-								const userToken = sessionStorage.getItem("wxp_token");
-								if (!userToken) {
+								const userId = sessionStorage.getItem("wxp_user_id");
+								if (!userId) {
 									console.error("User token not found");
 									return;
 								}
 								
-								await removeFriend(userToken, friend.name);
+								await removeFriend(userId, friend.name);
 
 								// If API call is successful, remove from UI and update count
 								friendItem.remove();
@@ -1363,15 +1363,15 @@ if (!userToken || isNaN(userId))
 						// Show loading state
 						friendsCountDisplay.textContent = 'Loading friends...';
 						
-						const userToken = sessionStorage.getItem("wxp_token");
-						if (!userToken) {
+						const userId = sessionStorage.getItem("wxp_user_id");
+						if (!userId) {
 							console.error("User token not found");
 							friendsCountDisplay.textContent = 'Error: User not logged in';
 							return;
 						}
 						
 						// Fetch all friends
-						const allFriendsResponse = await getUserFriendsDetails(userToken);
+						const allFriendsResponse = await getUserFriendsDetails(userId);
 						
 						// Deduplicate friends by ID to prevent duplicates from API
 						const uniqueMap = new Map();
@@ -1431,9 +1431,9 @@ if (!userToken || isNaN(userId))
 					if (count !== undefined) {
 						friendsCountDisplay.textContent = `Total Friends: ${count}`;
 					} else {
-						const userToken = sessionStorage.getItem("wxp_token");
-						if (userToken) {
-							getUserFriendsDetails(userToken)
+						const userId = sessionStorage.getItem("wxp_user_id");
+						if (userId) {
+							getUserFriendsDetails(userId)
 								.then(friends => {
 									friendsCountDisplay.textContent = `Total Friends: ${friends.length}`;
 								})
@@ -1629,7 +1629,7 @@ if (!userToken || isNaN(userId))
 						
 						try {
 							// Get user token
-							if (!userToken) {
+							if (!userId) {
 								console.error("User token not found");
 								return;
 							}
@@ -1761,8 +1761,8 @@ if (!userToken || isNaN(userId))
 				// Send friend request button click handler
 				sendRequestButton.addEventListener('click', () => {
 					if (currentSearchResult && sendRequestButton.getAttribute('data-disabled') === 'false') {
-						if (userToken) {
-							sendFriendRequest(userToken, currentSearchResult.username);
+						if (userId) {
+							sendFriendRequest(userId, currentSearchResult.username);
 							console.log(`Friend request sent to ${currentSearchResult.username}`);
 						}
 						else
@@ -1882,8 +1882,8 @@ if (!userToken || isNaN(userId))
 					try {
 						let pendingRequests: { id: string, username: string, avatar: string, is_online: boolean }[] = [];
 						
-						if (userToken) {
-							pendingRequests = await fetchFormattedPendingRequests(userToken);
+						if (userId) {
+							pendingRequests = await fetchFormattedPendingRequests(userId);
 						}
 						updateRequestCount(pendingRequests.length);
 						
@@ -2019,8 +2019,8 @@ if (!userToken || isNaN(userId))
 					});
 
 					acceptButton.addEventListener('click', () => {
-						if (userToken)
-							acceptFriendRequest(userToken, request.username);
+						if (userId)
+							acceptFriendRequest(userId, request.username);
 						requestItem.remove();
 						
 						showNotification(`You are now friends with ${request.username}!`, 'success');
@@ -2050,8 +2050,8 @@ if (!userToken || isNaN(userId))
 					});
 
 					declineButton.addEventListener('click', () => {
-						if (userToken)
-							declineFriendRequest(userToken, request.username);
+						if (userId)
+							declineFriendRequest(userId, request.username);
 						requestItem.remove();
 					});
 					
@@ -2097,8 +2097,8 @@ if (!userToken || isNaN(userId))
 
 				let pendingRequests: { id: string, username: string, avatar: string, is_online: boolean }[] = [];
 				
-				if (userToken)
-					pendingRequests = await fetchFormattedPendingRequests(userToken);
+				if (userId)
+					pendingRequests = await fetchFormattedPendingRequests(userId);
 
 				if (pendingRequests.length === 0) {
 					let emptyMessage = document.createElement('div');
@@ -2157,7 +2157,7 @@ if (!userToken || isNaN(userId))
 	}
 
 }
-function searchUsersByUsername(userToken: string, username: string) {
+function searchUsersByUsername(id: string, username: string) {
 	throw new Error("Function not implemented.");
 }
 
