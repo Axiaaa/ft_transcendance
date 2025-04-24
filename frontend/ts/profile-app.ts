@@ -454,6 +454,11 @@ export async function initProfileApp()
 					usernameDisplay.style.fontSize = '18px';
 					usernameDisplay.style.fontWeight = 'bold';
 					usernameDisplay.style.margin = '5px 0';
+					usernameDisplay.style.textAlign = 'center';
+					usernameDisplay.style.maxWidth = 'calc(100% - 100px)';
+					usernameDisplay.style.overflow = 'hidden';
+					usernameDisplay.style.textOverflow = 'ellipsis';
+					usernameDisplay.style.whiteSpace = 'nowrap';
 					usernameDisplay.style.textShadow = '1px 1px 1px rgba(255, 255, 255, 0.5)';
 					profileInfoContainer.appendChild(usernameDisplay);
 
@@ -659,6 +664,7 @@ export async function initProfileApp()
 					// Create refresh button
 					let refreshButton = document.createElement('button');
 					refreshButton.innerText = 'Refresh History';
+					refreshButton.id = 'profileapp-refresh-history-button';
 					refreshButton.style.padding = '3px 10px';
 					refreshButton.style.backgroundColor = '#ECE9D8';
 					refreshButton.style.border = '1px solid #ACA899';
@@ -692,7 +698,7 @@ export async function initProfileApp()
 						// Clear existing history items
 						while (TournamentHistory.firstChild) {
 						refreshButton.style.opacity = '0.5';
-						refreshButton.textContent = 'Loading...';
+						refreshButton.innerText = 'Loading...';
 							TournamentHistory.removeChild(TournamentHistory.firstChild);
 						}
 						// Refresh the history
@@ -700,7 +706,7 @@ export async function initProfileApp()
 						setTimeout(() => {
 							refreshButton.style.pointerEvents = 'auto';
 							refreshButton.style.opacity = '1';
-							refreshButton.textContent = 'Refresh History';
+							refreshButton.innerText = 'Refresh History';
 							refreshButton.disabled = false;
 						}
 						, 1000);
@@ -762,6 +768,7 @@ export async function initProfileApp()
 
 				let refreshButton = document.createElement('button');
 				refreshButton.innerText = 'Refresh Stats';
+				refreshButton.id = 'profileapp-refresh-stats-button';
 				refreshButton.style.padding = '4px 12px';
 				refreshButton.style.backgroundColor = '#ECE9D8';
 				refreshButton.style.border = '1px solid #ACA899';
@@ -1023,6 +1030,9 @@ export async function initProfileApp()
 						GeneralContent.style.display = 'none';
 						HistoryMatchContent.style.display = 'flex';
 						StatsContent.style.display = 'none';
+						let historyRefreshButton = document.getElementById('profileapp-refresh-history-button') as HTMLElement;
+						if (historyRefreshButton)
+							historyRefreshButton.click();
 					});
 				}
 				if (StatsCategorie)
@@ -1031,6 +1041,9 @@ export async function initProfileApp()
 						GeneralContent.style.display = 'none';
 						HistoryMatchContent.style.display = 'none';
 						StatsContent.style.display = 'flex';
+						let statsRefreshButton = document.getElementById('profileapp-refresh-stats-button') as HTMLElement;
+						if (statsRefreshButton)
+							statsRefreshButton.click();
 					});
 				}
 			}

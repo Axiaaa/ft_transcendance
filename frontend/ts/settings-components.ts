@@ -426,6 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				sendNotification('Username Changed', `Username changed to ${nameInput.value}`, "./img/Utils/profile-icon.png");
 				updateUser(sessionStorage.getItem('wxp_token'), { username: nameInput.value })
 				nameInput.value = '';
+				sessionStorage.setItem('wxp_user_name', nameInput.value);
 				updateAllUserNames();
 			}
 		};
