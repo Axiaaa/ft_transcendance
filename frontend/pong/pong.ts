@@ -1375,9 +1375,10 @@ const API_CONFIG = {
 
 export async function getUserRanked(userData: Partial<User>): Promise<User> {
 		try {
-			const response = await apiFetch('/users/login', {
+			const token = sessionStorage.getItem('wxp_token');
+			const response = await apiFetch('/users/login_ranked', {
 				method: 'POST',
-				body: JSON.stringify({ ...userData, signup: false })
+				body: JSON.stringify({ ...userData, token }),
 			});
 			
 			if (!response.ok) {
@@ -1394,8 +1395,6 @@ export async function getUserRanked(userData: Partial<User>): Promise<User> {
 			throw error;	
 		}
 };
-	
-
 
 export async function getCurrentUser(token : string | null): Promise<User> {
 	if (token === null) {
@@ -1451,7 +1450,6 @@ rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 				rankedSelectionContainer.style.display = "none";
 				menu.style.display = "none";
 				startCountdown(startGame);
-				//ces deux lignes font bug : si on se connecte de nouveau avec le compte de base, les token changent et ca bug
 				const temp_p1 = await getCurrentUser(sessionStorage.getItem("wxp_token")!);
 				const temp_p2 = await getCurrentUser(sessionStorage.getItem("second_wxp_token")!);
 				showMatchInfo(temp_p1.username, temp_p2.username);

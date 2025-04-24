@@ -427,4 +427,39 @@ export async function userRoutes(server : FastifyInstance) {
         }
 });
 
+server.route<{ 
+    Body: {
+        username: string,
+        password: string,
+        token: string
+    }
+    }>({
+    method: 'POST',
+    url: '/users/login_ranked',
+    config: {
+        rateLimit: RateLimits.login,
+    },
+        handler: async (request, reply) => {
+        const { username, password, token } = request.body;
+        const user = await getUserFromDb({ token });
+        if (user == null) {
+            reply.code(404).send({error: "User not found"});
+            return;
+        }
+        if (user.username == username) {
+            reply.code(400).send({error: "Username can only contain alphanumeric characters"});
+            return ;
+        }
+        const user2 = await getUserFromHash(username, password);
+        if (user2 == null) {
+            reply.code(400).send({error: "User not found"});
+            return;
+        }
+        user2.token = crypto.randomBytes(32).toString('hex');
+        user2.updateUserInDb();
+        reply.code(200).send(user2);
+    }
+}
+);
+
 }
