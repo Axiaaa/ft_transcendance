@@ -1885,6 +1885,7 @@ if (!userToken || isNaN(userId))
 						if (userToken) {
 							pendingRequests = await fetchFormattedPendingRequests(userToken);
 						}
+						updateRequestCount(pendingRequests.length);
 						
 						if (pendingRequests.length === 0) {
 							let emptyMessage = document.createElement('div');
@@ -1896,7 +1897,6 @@ if (!userToken || isNaN(userId))
 							emptyMessage.style.fontSize = '11px';
 							emptyMessage.style.fontStyle = 'italic';
 						} else {
-							updateRequestCount(pendingRequests.length);
 							pendingRequests.forEach(request => {
 								createRequestItem(request);
 							});
