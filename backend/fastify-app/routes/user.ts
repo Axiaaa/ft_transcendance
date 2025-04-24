@@ -104,7 +104,7 @@ export async function userRoutes(server : FastifyInstance) {
         },
             handler: async (request, reply) => {
             const { username, password, signup } = request.body;
-            if (/[^A-Za-z0-9]/.test(username)){
+            if (/[^A-Za-z0-9]/.test(username) && username.length <= 20){
                     reply.code(400).send({error: "Username can only contain alphanumeric characters"});
                     return ;
                 }
@@ -171,7 +171,7 @@ export async function userRoutes(server : FastifyInstance) {
 
         const { token } = request.params;
         const { username, email, password, is_online, avatar, win_nbr, loss_nbr, background, last_login, font_size } = request.body;
-        if (username && /[^A-Za-z0-9]/.test(username)){
+        if (username && /[^A-Za-z0-9]/.test(username) && username.length <= 20) {
             reply.code(400).send({error: "Username can only contain alphanumeric characters"});
             return ;
         }
