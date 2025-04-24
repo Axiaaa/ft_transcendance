@@ -167,7 +167,7 @@ export async function uploadRoutes(server: FastifyInstance) {
 			reply.code(200).send({message: "File deleted successfully"});
 		} catch (err) {
 			reply.log.error(err);
-			reply.code(500).send({error: "Failed to delete file"});
+			reply.code(424).send({error: "Failed to delete file"});
 		}
 	});
 }
