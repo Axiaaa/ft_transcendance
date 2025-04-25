@@ -57,25 +57,6 @@ services:
     networks:
       - ft_transcendence
 
-  fastifyapp:
-    container_name: fastifyapp
-    build:
-      context: ./backend/fastify-app
-      dockerfile: Dockerfile
-    # ports:
-    #   - ${FASTIFY_PORT}:4321
-    volumes:
-      - sqlite_data:/usr/src/app/db/
-      #- ./IMAGES:/server/img_storage # Uncomment this line if you want to use a local directory for images
-      - img_storage:/server/img_storage # Uncomment this line if you want to use a named volume for images
-    environment:
-      - PORT=${FASTIFY_PORT}  
-      - SALT=${SALT}
-    depends_on:
-      - sqlite
-      - nginx
-    networks:
-      - ft_transcendence
       
 ###########################################################################
 #                                                                         #
@@ -251,7 +232,7 @@ services:
     restart: always
 
 ###########################################################################
-#                                                                         #
+#                                                                         # 
 #                                MONITORING                               #
 #                                                                         #
 ###########################################################################
@@ -291,6 +272,7 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+        
   nginx_exporter:
     image: nginx/nginx-prometheus-exporter
     container_name: nginx_exporter
@@ -371,3 +353,60 @@ services:
       networks:
         - ft_transcendence
       restart: "no"
+
+
+  users-route:
+    container_name: user-route
+    build:
+      context: ./backend/user-route
+      dockerfile: Dockerfile
+    volumes:
+      - sqlite_data:/usr/src/app/db/
+      #- ./IMAGES:/server/img_storage # Uncomment this line if you want to use a local directory for images
+      - img_storage:/server/img_storage # Uncomment this line if you want to use a named volume for images
+    environment:
+      - PORT=${USERS_ROUTE_PORT}
+      - SALT=${SALT}
+    depends_on:
+      - sqlite
+      - nginx
+    networks:
+      - ft_transcendence
+
+
+  matchs-route:
+    container_name: matchs-route
+    build:
+      context: ./backend/matchs-route
+      dockerfile: Dockerfile
+    volumes:
+      - sqlite_data:/usr/src/app/db/
+      #- ./IMAGES:/server/img_storage # Uncomment this line if you want to use a local directory for images
+      - img_storage:/server/img_storage # Uncomment this line if you want to use a named volume for images
+    environment:
+      - PORT=${MATCHS_ROUTE_PORT}
+      - SALT=${SALT}
+    depends_on:
+      - sqlite
+      - nginx
+    networks:
+      - ft_transcendence
+
+
+  upload-route:
+    container_name: upload-route
+    build:
+      context: ./backend/upload-route
+      dockerfile: Dockerfile
+    volumes:
+      - sqlite_data:/usr/src/app/db/
+      #- ./IMAGES:/server/img_storage # Uncomment this line if you want to use a local directory for images
+      - img_storage:/server/img_storage # Uncomment this line if you want to use a named volume for images
+    environment:
+      - PORT=${UPLOAD_ROUTE_PORT}
+      - SALT=${SALT}
+    depends_on:
+      - sqlite
+      - nginx
+    networks:
+      - ft_transcendence

@@ -5,20 +5,20 @@ start : up
 stop : down
 
 build :
-	docker-compose build 
+	docker compose build 
 
 up :
-	docker-compose up -d
+	docker compose up -d
 
 
 down :
-	docker-compose down
+	docker compose down
 
 logs :
-	docker-compose logs -f
+	docker compose logs -f
 
 destroy:
-	docker-compose down -v --remove-orphans
+	docker compose down -v --remove-orphans
 
 clean : destroy
 	docker system prune -af
