@@ -272,6 +272,7 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+        
   nginx_exporter:
     image: nginx/nginx-prometheus-exporter
     container_name: nginx_exporter
@@ -364,7 +365,7 @@ services:
       #- ./IMAGES:/server/img_storage # Uncomment this line if you want to use a local directory for images
       - img_storage:/server/img_storage # Uncomment this line if you want to use a named volume for images
     environment:
-      - PORT=${USER_ROUTE_PORT}
+      - PORT=${USERS_ROUTE_PORT}
       - SALT=${SALT}
     depends_on:
       - sqlite

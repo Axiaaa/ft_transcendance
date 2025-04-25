@@ -65,9 +65,9 @@ elasticsearch_data_view='{
 
 userroute_data_view='{
   "data_view": {
-    "title": "users-route-*",
+    "title": "user-route-*",
     "name": "Users route dataview",
-    "id": "fastify-data",
+    "id": "user-route-data",
     "fieldAttrs": {
       "@timestamp": {
         "customLabel": "Timestamp"
@@ -83,7 +83,7 @@ matchsroute_data_view='{
   "data_view": {
     "title": "matchs-route-*",
     "name": "Matchs Route Data View",
-    "id": "fastify-data",
+    "id": "matchs-route-data",
     "fieldAttrs": {
       "@timestamp": {
         "customLabel": "Timestamp"
@@ -99,7 +99,7 @@ uploadroute_data_view='{
   "data_view": {
     "title": "upload-route-*",
     "name": "Upload route Data View",
-    "id": "fastify-data",
+    "id": "upload-route-data",
     "fieldAttrs": {
       "@timestamp": {
         "customLabel": "Timestamp"
@@ -176,8 +176,8 @@ request=$(curl -X POST "$KIBANA_URL/api/data_views/data_view" \
   -H "kbn-xsrf: true" \
   -H "Content-Type: application/json" \
   --cert "$CERT" --key "$KEY" --cacert "$CA" \
-  -d "$usersroute_data_view")
-if [[ "$request" == *'{"data_view":{"id":"fastify-data"'* ]]; then
+  -d "$userroute_data_view")
+if [[ "$request" == *'{"data_view":{"id":"users-route-data"'* ]]; then
     echo "Fastify data view created successfully"
 else
     echo "Failed to create fastify data view"
@@ -190,7 +190,7 @@ request=$(curl -X POST "$KIBANA_URL/api/data_views/data_view" \
   -H "Content-Type: application/json" \
   --cert "$CERT" --key "$KEY" --cacert "$CA" \
   -d "$matchsroute_data_view")
-if [[ "$request" == *'{"data_view":{"id":"fastify-data"'* ]]; then
+if [[ "$request" == *'{"data_view":{"id":"matchs-route-data"'* ]]; then
     echo "Fastify data view created successfully"
 else
     echo "Failed to create fastify data view"
@@ -203,7 +203,7 @@ request=$(curl -X POST "$KIBANA_URL/api/data_views/data_view" \
   -H "Content-Type: application/json" \
   --cert "$CERT" --key "$KEY" --cacert "$CA" \
   -d "$uploadroute_data_view")
-if [[ "$request" == *'{"data_view":{"id":"fastify-data"'* ]]; then
+if [[ "$request" == *'{"data_view":{"id":"upload-route-data"'* ]]; then
     echo "Fastify data view created successfully"
 else
     echo "Failed to create fastify data view"
