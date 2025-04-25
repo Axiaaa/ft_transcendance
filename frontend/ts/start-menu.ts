@@ -1,9 +1,10 @@
-import { clearBrowserCache, removeApps, setFont } from "./system.js";
+import { clearBrowserCache, goToLoginPage, removeApps, setFont } from "./system.js";
 import { updateUser } from "./API.js";
 import { openAppWindow } from "./app-icon.js";
 
 export async function disconnectUser()
 {
+	console.log('Disconnecting user...');
 	const userId = sessionStorage.getItem('wxp_user_id');
 	if (!userId)
 	{
@@ -108,14 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
 		let	logoffButton = document.getElementById('log-off-button') as HTMLElement;
 	
 		logoffButton.addEventListener('click', async (e: MouseEvent) => {
-			const confirmLogoff = confirm("Are you sure you want to log off? All unsaved work may be lost.");
-			if (!confirmLogoff) {
-				return;
-			}
+
+			location.reload();
 			await disconnectUser();
 			await clearBrowserCache();
-			location.reload();
-			loginScreen.style.display = 'block';
+			goToLoginPage();
+
 		});
 	}
 	{
