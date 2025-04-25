@@ -72,8 +72,26 @@ groups:
         summary: "Instance [{{ $labels.instance }}] down"
         description: "[{{ $labels.instance }}] of job {{ $labels.job }} has been down for more than 15 seconds."
 
-    - alert: FastifyDown
-      expr: up{job="fastify"} == 0
+    - alert: UserRouteDown
+      expr: up{job="users-route-container"} == 0
+      for: 15s
+      labels:
+        severity: critical
+      annotations:
+        summary: "Instance [{{ $labels.instance }}] down"
+        description: "[{{ $labels.instance }}] of job {{ $labels.job }} has been down for more than 15 seconds."
+
+    - alert: MatchsRouteDown
+      expr: up{job="matchs-route-container"} == 0
+      for: 15s
+      labels:
+        severity: critical
+      annotations:
+        summary: "Instance [{{ $labels.instance }}] down"
+        description: "[{{ $labels.instance }}] of job {{ $labels.job }} has been down for more than 15 seconds."
+
+    - alert: UploadRouteDown
+      expr: up{job="upload-route-container"} == 0
       for: 15s
       labels:
         severity: critical

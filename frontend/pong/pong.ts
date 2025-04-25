@@ -1452,8 +1452,8 @@ rankedform.addEventListener("submit", async (event: SubmitEvent) => {
 				rankedSelectionContainer.style.display = "none";
 				menu.style.display = "none";
 				startCountdown(startGame);
-				const temp_p1 = await getCurrentUser(sessionStorage.getItem("wxp_token")!);
-				const temp_p2 = await getCurrentUser(sessionStorage.getItem("second_wxp_token")!);
+				const temp_p1 = await getCurrentUser(sessionStorage.getItem("wxp_user_id")!);
+				const temp_p2 = await getCurrentUser(sessionStorage.getItem("second_wxp_user_id")!);
 				showMatchInfo(temp_p1.username, temp_p2.username);
 				}
 			}

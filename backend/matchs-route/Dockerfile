@@ -11,4 +11,4 @@ RUN npm install @fastify/rate-limit
 RUN npm run build
 CMD ["npm", "start"]
 
-EXPOSE 4321
+EXPOSE 0003

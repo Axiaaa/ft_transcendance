@@ -1,9 +1,8 @@
-import { IMatch } from "./matchs.d";
 import { server } from ".";
 import { db } from ".";
 import { getUserFromDb } from "./user";
 
-export class Match implements IMatch {
+export class Match implements Match {
 
     public id: number;
     public player1: string;

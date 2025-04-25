@@ -2,14 +2,11 @@ import fastify from "fastify";
 import database from "better-sqlite3";
 import metrics from "fastify-metrics"
 import { userRoutes } from "./routes/user";
-import { matchsRoutes } from "./routes/matchs";
 import rateLimit from '@fastify/rate-limit';
-import { keepAliveRoute } from "./routes/keep_alive";
-import { uploadRoutes } from "./routes/upload";
 import multipart from '@fastify/multipart';
 
 
-const Port = process.env.PORT || 4321
+const Port = process.env.PORT || "0001"
 const envUser = process.env.API_USERNAME || 'admin'
 const envPassword = process.env.API_PASSWORD || 'admin'
 export const salt = process.env.SALT || 'salt'
@@ -21,10 +18,10 @@ export const server = fastify({
 });
 
 server.addHook('preHandler', async (req, reply) => {
-  if (req.url.startsWith('/api/users/login') || req.url.startsWith('/metrics')) {
-	return;
-  }
- 
+	if (req.url.startsWith('/api/users/login') || req.url.startsWith('/metrics')) {
+		return;
+
+	}
 	const authHeader = req.headers.authorization;
 	if (!authHeader || !authHeader.startsWith('Bearer ')) 
 	  return reply.code(401).send({ error: 'Unauthorized' });
@@ -66,9 +63,6 @@ const start = async () => {
 		await server.register(rateLimit, {global: false});
 		await server.register(metrics,{endpoint: '/metrics'});
 		await server.register(userRoutes, { prefix: '/api' });
-		await server.register(matchsRoutes, { prefix: '/api' });
-		await server.register(keepAliveRoute, { prefix: '/api' });
-		await server.register(uploadRoutes, { prefix: '/api' });
 		await server.listen({ port: Number(Port) , host: '0.0.0.0'})
 		console.log('Server started sucessfully')
 	} catch (err) {
