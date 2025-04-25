@@ -170,4 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
 	warningIcon.addEventListener('click', () => {
 		sendNotification('Warning', 'This is a warning message', './img/Taskbar/taskbar-warning-icon.png');
 	});
+	soundIcon.addEventListener('click', () => {
+		const urls = [
+			'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+			'https://youtu.be/yxxyjDFnbb0',
+			'https://youtu.be/5BZLz21ZS_Y',
+			'https://www.youtube.com/watch?v=hmjU-6tkEc8&pp'
+		];
+		const randomIndex = Math.floor(Math.random() * urls.length);
+		window.open(urls[randomIndex], '_blank');
+	});
+	clippyIcon.addEventListener('click', () => {
+		const url = 'https://fr.wikipedia.org/wiki/Clippy';
+		window.open(url, '_blank');
+	});
 });
